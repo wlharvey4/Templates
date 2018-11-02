@@ -1,0 +1,28 @@
+### ~/.bashrc TEMPLATE
+
+
+
+
+##########
+### EMACS
+##########
+
+# READLINE
+set -o emacs
+
+## EMACS SERVERS
+
+# GUI SERVER
+open -jb org.gnu.Emacs --args --eval '(server-start)'
+
+# TERM SERVER (DAEMON)
+emacs --daemon=termserver
+
+alias ecg="emacsclient -s server $@"
+alias ect='emacsclient -s termserver'
+
+echo ===============================================================================
+echo \'ecg FILE \&\' runs \'emacsclient FILE \&\' using the EmacsMac server \'server\'
+echo \'ect FILE\' runs \'emacsclient FILE\' using the terminal emacs server \'termserver\'
+echo ===============================================================================
+

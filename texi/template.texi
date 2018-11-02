@@ -1,0 +1,336 @@
+\input texinfo @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename template.info
+@settitle A Sample Texinfo Template
+@c %**end of header
+
+@c ===========================
+@c INFO FILES AND NODES
+@c ===========================
+
+@ignore ======================================================================
+  Info files  are divided  into pieces  called NODES,  each of  which contains
+information about one topic.  Each NODE has a name, text for the user to read,
+and pointers to  other NODES.  One NODE  is displayed at a  time, and commands
+allow the user to move around to other NODES in different ways.
+
+  Each NODE  may have  CHILD NODES  that describe subtopics  of the  NODE, now
+called a PARENT  NODE.  All of a  parent's child's nodes are listed  in a MENU
+within the NODE.
+
+  Thus, an Info file is organized like a  book: a NODE is at the logical level
+of a chapter, while its CHILD NODES  are at the logical level of sections, and
+their CHILD NODES at the logical level of subsections, and so on.
+
+  All of the CHILDREN of a PARENT are linked together in a bidirectional chain
+of `Next' and  `Previous' pointers to next and previous  NODES.  Further, each
+CHILD NODE records the PARENT NODE as its `Up' pointer.
+
+  An Info  file also contains pointers  of another kind, REFERENCES,  that are
+sprinkled  throughout the  body  of the  textual  material.  These  REFERENCES
+provide links to other nodes in a non-hierarchical manner.
+
+  Different  commands  are  used  to  specify the  structure  of  the  printed
+material, such as @chapter, @section, @subsection, @subsubsection, so that the
+online Info file and the printed manual  do not necessarily have to follow the
+same structure, although they usually do.
+
+  An  Info file  is  entered through  a  NODE named  `Top'.   This `Top'  NODE
+contains a summary of the file's purpose  and a MENU through which the rest of
+the  file  can  be  reached,  either   sequentially  from  NODE  to  NODE,  or
+asynchronously by  jumping directly to a  NODE.  To read through  an Info file
+sequentially, hit  the <SPC> bar repeatedly  and you will reach  every NODE in
+order from start to finish.
+
+  There is in addition a `dir' file that  holds a menu of pointers to the `Top
+NODE of every Info file in the  entire system.  This `dir' file can be reached
+from any Info file by means of the `d' command at any time.
+@end ignore ==================================================================
+
+@c ============================
+@c Six Parts of a Texinfo File
+@c ============================
+
+@ignore
+  1. Header
+  2. Summary and Copyright
+  3. Title and Copyright
+  4. `Top' Node and Master Menu
+  5. Body
+  6. Indices and End
+@end ignore
+  
+@c ============================
+@c 1. HEADER
+@c ============================
+
+@ignore
+The HEADER Section:
+
+    * \input texinfo @c -*- texinfo -*-
+      @c %**start of header
+      @setfilename <INFO FILE NAME>
+      @settitle <MANUAL TITLE AND VERSION>
+      @c %**end of header
+
+    * This section does not produce any output in either the online version
+      or the printed version; it sets various parameters, such as the name
+      of the Info file and the title to use in the headers and footers.
+
+    * \input texinfo @c -*- texinfo -*-
+      Command to load the texinfo style file when processed by TeX, and to
+      tell Emacs to use the texinfo mode when being edited.
+
+    * Any command that affects document formatting as a whole can go into
+      the header section.  @synindex may also be included in the header.
+      @footnotestyle is another possibility.
+
+    * @setfilename <NAME>
+      Command to name the Info file and tell TeX what name to use when opening
+      auxiliary files. All text before this command is ignored. The usual
+      convention is to change the extension from .texi to .info.  When producing
+      HTML output, makeinfo will replace the extension with .html.
+
+    * @settitle <TITLE>
+      Command to give the printed manual a title for the purpose of its
+      headers and footers, as well as the default document description for
+      the <head> element in HTML format.
+
+    * TeX prints page headings only for that text that comes after the @end
+      titlepage command in the Texinfo file, or that comes after an @headings
+      command that turns on headings.
+
+    * You may create customized headings or footings which could include this
+      TITLE from @settitle command.
+
+    **start of header and **end of header
+       lines are necessary in order to run TeX or Info on just part of the
+       file
+@end ignore
+
+@c ===========================
+@c 2. SUMMARY & COPYRIGHT
+@c ===========================
+
+@copying
+Summary template of a texinfo file
+
+Copyright @copyright{} 2017 LOLH
+
+@quotation
+Permission is granted to ...
+@end quotation
+
+@end copying
+
+@ignore    
+    * @copying
+    * @quotation ... @end quotation
+      The Summary & Copyright segment contains a summary segment that describes
+      the document and the copyright notice and copying permissions. The
+      quotation may help readibility.
+
+    * @copying command conventionally consists of a sentence or two about what
+      the program is, identification of the documentation itself, the legal
+      copyright line, and the copying permissions.
+
+    * The text of `@copying' is output as a comment at the beginning of Info,
+      HTML, and XML output files.  It is not output implicitly in plain text or
+      TeX; you must manually insert `@insertcopying' to emit the copying
+      information.
+
+    * In order for a reader to see the copyright notice in an Info file or HTML
+      document, the command `@insertcopying' should be placed in the Top node
+      of the manual.
+
+@end ignore
+
+@c ===========================
+@c 3. TITLEPAGE, COPYRIGHT PAGE & TABLE OF CONTENTS PAGE
+@c ===========================
+
+@titlepage
+@title Texinfo Template Information
+@subtitle <Whatever>
+@subtitle <More>
+@author <Author>
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+Published by ...
+
+@end titlepage
+
+@contents
+
+@ignore
+    * @titlepage
+    * @title <MANUAL TITLE>
+    * @subtitle <SUBTITLE>
+    * @author <AUTHOR>
+      Commands to begin the titlepage (starts a new page) and to set the title.
+      The titlepage places a formatted title onto the front page of the printed
+      manual.  Subtitles and authors are also possible. Everthing between 
+      @titlepage and @end titlepage are placed on unnumbered pages.
+
+    * setcontentsaftertitlepage
+      Command to force the table of contents to appear after the title page on
+      unnumbered pages.
+
+    * @page
+    * @vskip 0pt plus 1filll
+    * @insertcopying
+      The copyright segment places the copyright information on the backside
+       of the titlepage in the printed manual (only);
+
+    * @end titlepage
+      Command to end the titlepage, which starts a new page and turns on
+      page numbering and starts generating page headings.
+
+    * @contents
+    * @shortcontents
+    * @summarycontents (synonym for @shortcontents)
+      The contents command generates a table of contents in the printed manual.
+      The @chapter, @section, and other structuring commands supply the
+      information to make up a table of contents.
+      Other commands generate a short or summary table of contents that lists
+      only the chapters, appendices, and unnumbered chapters.  Sections,
+      subsections, and subsubsections are omitted. Info ignores contents
+      commands. Contents are included in plain text output by `makeinfo
+      --no headers'.
+
+    * This section applies to the printed manual only.  In hard copy output,
+      the manual's name and author are usually printed on a title page.
+      Copyright information is usually printed on the back of the title page.
+      This information does not appear in an Info file.
+
+    * If you wish to include titlepage-like information for plain text out,
+      place any such leading material between `@ifplaintext' and `@end 
+      ifplaintext' commands.  makeinfo automatically includes this when writing
+      plain text (`--no-headers'), along with an `@insertcopying'.
+
+    * Three methods for creating a title page.
+      1. @titlefont, @sp, @center commands to generate a title page in which
+         the words on the page are centered.  These commands are legal 
+         anywhere in the document.
+      2. @title, @subtitle, and @author commands to create a title page with
+         black rules under the title and author lines and the subtitle text is
+         set flush to the right hand side of the page. These commands are legal
+         only between @titlepage and @end titlepage commands.
+      The two methods may be combined.
+      3. For extremely simple documents, and for the bastard title page in
+         traditional book frontmatter, there is also a command @shorttitlepage
+         which takes the rest of the line as the title.  The argument is
+         typeset on a page by itself and followed by a blank page.
+
+    * Example of first method:
+      @titlepage
+      @sp 10
+      @center @titlefont{TITLE}
+      @sp 2
+      @center SUBTITLE
+      @sp 2
+      @center AUTHOR
+      ...
+      @end titlepage
+
+    * Example of the second method:
+      @titlepage
+      @title TITLE
+      @subtitle SUBTITLE
+      @subtitle OTHER SUBTITLE
+      @author AUTHOR
+      @page
+      ...
+      @end titlepage
+
+    * Example of mixed methods:
+      @titlepage
+      @titlefont{TITLE}
+      @sp 1
+      @title FURTHER TITLE
+      @subtitle Edition ... for Release ...
+      @author by ..., ...
+      @author and ...
+      @end titlepage
+
+@end ignore
+
+@c ===========================
+@c 4. `TOP' NODE & MASTER MENU
+@c ===========================
+
+@ifnottex
+@node Top
+@top Texinfo Template
+
+@insertcopying
+@end ifnottex
+
+@menu
+* First Chapter::       First Chapter description
+* Second Chapter::      Second Chapter description
+
+* Index::               Complete Index
+@end menu
+
+@ignore
+    * @ifnottex
+    * @node Top
+      The `Top' node starts the online output (it does not appear in
+      the printed  manual);
+
+    * @top <DESCRIPTION>
+      The @top command helps `makeinfo' determine the relationships between
+      nodes;
+
+    * @insertcopying
+    * @end ifnottex
+      Consider including the copying permissions here as well for online
+      readers (which also includes a summary);
+
+    * @menu
+    * * <Menu Item:Node Name. Description>
+      Contains at least a top-level menu listing the chapters; and possibly
+      a ``Master Menu'' listing all the nodes in the entire document;
+@end ignore
+
+@c ===========================
+@c 5. BODY
+@c ===========================
+
+@node First Node
+@chapter First Chapter
+@cindex index entry, and another
+
+Body text
+
+@ignore
+    The body of the document is structured like a traditional book or
+    encyclopedia, with nodes, child nodes, references, and, for the
+    printed manual, chapters, sections, subsections, and subsubsections,
+    and several indices.
+@end ignore
+
+@c ===========================
+@c 6. INDICES AND END
+@c ===========================
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye
+
+@ignore
+    * @node Index
+    * printindex <type>
+      The End segment creates an index NODE and  prints the indices
+
+    * @bye
+      The @bye command marks the end of the manual and generates the output.
+@end ignore
