@@ -1,0 +1,64 @@
+#!/opt/local/bin/bash
+
+# Bash Profile Template
+# 2018-11-03T11:50
+
+
+###########
+### EDITOR
+###########
+
+export SHELL=/opt/local/bin/bash
+export EDITOR=emacsclient
+set -o emacs
+
+##########
+### EMACS
+##########
+
+export EMACS_HOME=${HOME}/.emacs.d
+export EMACS_INIT=init.el
+export EMACS_WIDTH=250
+export TERMSERVER=termserver
+export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501
+
+###########################
+### EMACS SERVER FUNCTIONS
+###########################
+
+termserver() {
+    # The terminal server runs as a daemon; look for daemon=termserver as a running process
+
+    # USAGE: termserver [ --start | --kill ]
+    # without any options, display status and exit
+    # execute this function from bashrc with --start option to always have a running daemon
+
+    termserver=$(pgrep -f daemon=termserver)
+    if [ $termserver ]
+    then
+	echo Found a running term server:
+	echo ---------------------------------------------------------------------------
+	ps -f $termserver
+	echo ---------------------------------------------------------------------------
+	if [[ $1 == --kill ]]
+	then
+	    echo -n Killing termserver ${termserver}...
+	    pkill -f daemon=termserver && echo killed || echo not killed
+	    echo goodbye
+	fi
+	
+    else
+	echo Did not find a running term server.
+	if [[ $1 == --start ]]
+	then
+	    emacs --daemon=${TERMSERVER}
+	    [ $(pgrep -f daemon=${TERMSERVER}) ] && \
+		echo successfully started new daemon=${TERMSERVER} || \
+		    echo failed to start
+	    echo ---------------------------------------------------------------------------
+	    ps -f $(pgrep -f daemon=${TERMSERVER})
+	    echo ---------------------------------------------------------------------------
+	    echo goodbye
+	fi
+    fi
+}

@@ -1,5 +1,7 @@
-### ~/.bashrc TEMPLATE
-### 2018-11-02T21:50
+#!/opt/local/bin/bash
+
+# bashrc TEMPLATE
+# 2018-11-03T13:00
 
 
 
@@ -7,37 +9,34 @@
 ### EMACS
 ##########
 
-# READLINE
-set -o emacs
-
 ## EMACS SERVERS
+# Start the terminal server daemon=termserver
+# Use termserver --kill to, you know, kill it
+# -------------------------------------------------------------------------------
+termserver --start
+alias ect='emacsclient -qs termserver'
 
-# start and stop (toggle) Emacs servers (one GUI, one terminal)
-# ------------------------------------------------------------------------
-toggleEmacsServers() {
-  if ! [ $SERVERS ]; then
-    open -jb org.gnu.Emacs --args --eval '(server-start nil)'
-    emacs --daemon=termserver
-    export SERVERS=1
+## EMACS ALIASES
+alias edprofile='sudo  emacs -Q /private/etc/profile'
+alias ed.profile='sudo emacs -Q ~/.profile'
+alias ed.bash_profile='sudo emacs -Q ~/.bash_profile'
+alias edbashrc='sudo   emacs -Q /private/etc/bashrc'
+alias ed.bashrc='sudo  emacs -Q ~/.bashrc'
+alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
+
+
+
+
+open -jb org.gnu.Emacs --args --eval '(server-start nil)'
+emacsclient -s server --eval '(progn (server-force-delete) (save-buffers-kill-terminal))'
 
 echo ===============================================================================
 echo \'ecg FILE \&\' runs \'emacsclient FILE \&\' using the EmacsMac server \'server\'
 echo \'ect FILE\' runs \'emacsclient FILE\' using the terminal emacs server \'termserver\'
 echo ===============================================================================
 
-  else
-    emacsclient -s server --eval '(progn (server-force-delete) (save-buffers-kill-terminal))'
-    emacsclient -s termserver --eval '(kill-emacs)'
-    unset SERVERS
-  fi
-}
-
 ecg() {
   emacsclient -cqs server "$@" &
-}
-
-ect() {
-  emacsclient -qs termserver "$@"
 }
 
 initEmacs() {
