@@ -1,5 +1,5 @@
 ### ~/.bashrc TEMPLATE
-
+### 2018-11-02T21:50
 
 
 
@@ -12,17 +12,44 @@ set -o emacs
 
 ## EMACS SERVERS
 
-# GUI SERVER
-open -jb org.gnu.Emacs --args --eval '(server-start)'
-
-# TERM SERVER (DAEMON)
-emacs --daemon=termserver
-
-alias ecg="emacsclient -s server $@"
-alias ect='emacsclient -s termserver'
+# start and stop (toggle) Emacs servers (one GUI, one terminal)
+# ------------------------------------------------------------------------
+toggleEmacsServers() {
+  if ! [ $SERVERS ]; then
+    open -jb org.gnu.Emacs --args --eval '(server-start nil)'
+    emacs --daemon=termserver
+    export SERVERS=1
 
 echo ===============================================================================
 echo \'ecg FILE \&\' runs \'emacsclient FILE \&\' using the EmacsMac server \'server\'
 echo \'ect FILE\' runs \'emacsclient FILE\' using the terminal emacs server \'termserver\'
 echo ===============================================================================
 
+  else
+    emacsclient -s server --eval '(progn (server-force-delete) (save-buffers-kill-terminal))'
+    emacsclient -s termserver --eval '(kill-emacs)'
+    unset SERVERS
+  fi
+}
+
+ecg() {
+  emacsclient -cqs server "$@" &
+}
+
+ect() {
+  emacsclient -qs termserver "$@"
+}
+
+initEmacs() {
+  emacsclient -s server ${EMACS_HOME}/${EMACS_INIT}
+}
+
+### EDIT CONFIG FILES
+alias edprofile='sudo emacs /private/etc/profile'
+alias edbashrc='sudo emacs /private/etc/bashrc'
+alias edtmuxconf='sudo emacs /private/etc/tmux.conf'
+
+### LIST
+alias ls='ls -GF'
+alias lsl='ls -lh'
+alias lsd='lsl | grep ^d | sed -Ee s/^.*\(\[\ \]\)\(\[^\ \]*\)$/\\2/'
