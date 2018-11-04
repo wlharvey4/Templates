@@ -1,7 +1,7 @@
-#!/opt/local/bin/bash
+#!/usr/bin/env bash
 
 # Bash Profile Template
-# 2018-11-03T11:50
+# 2018-11-03T19:45
 
 
 ###########
@@ -20,7 +20,10 @@ export EMACS_HOME=${HOME}/.emacs.d
 export EMACS_INIT=init.el
 export EMACS_WIDTH=250
 export TERMSERVER=termserver
-export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501
+# The server directory locations and names really seem completely system
+# dependent and on how emacs and Emacs.app have been compiled and set up
+export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- lolh
+export EMACS_SERVER_DIR=/var/folders/x_ # <-- pine
 
 ###########################
 ### EMACS SERVER FUNCTIONS
@@ -33,32 +36,89 @@ termserver() {
     # without any options, display status and exit
     # execute this function from bashrc with --start option to always have a running daemon
 
-    termserver=$(pgrep -f daemon=termserver)
+    termserver=$(pgrep -f termserver)
     if [ $termserver ]
     then
-	echo Found a running term server:
+	echo Found a running termserver:
 	echo ---------------------------------------------------------------------------
 	ps -f $termserver
 	echo ---------------------------------------------------------------------------
 	if [[ $1 == --kill ]]
 	then
-	    echo -n Killing termserver ${termserver}...
-	    pkill -f daemon=termserver && echo killed || echo not killed
+	    echo -n Killing termserver...
+	    pkill -f termserver && echo killed || echo not killed
 	    echo goodbye
+	fi
+	echo
+	
+    else
+	echo Did not find a running termserver.
+	if [[ $1 == --start ]]
+	then
+	    emacs --bg-daemon=${TERMSERVER}
+	    [ $(pgrep -f ${TERMSERVER}) ] && \
+		echo successfully started new daemon ${TERMSERVER} || \
+		    echo failed to start
+	    echo ---------------------------------------------------------------------------
+	    ps -f $(pgrep -f ${TERMSERVER})
+	    echo ---------------------------------------------------------------------------
+	    echo
+	fi
+    fi
+}
+
+guiserver() {
+    if [ $(find ${EMACS_SERVER_DIR} -path \*/emacs501/server 2>/dev/null) ]
+    then
+	echo Found a running guiserver.
+	echo ---------------------------------------------------------------------------
+	show_guiserver
+	echo ---------------------------------------------------------------------------
+	if [[ $1 == --kill ]]
+	then
+	    echo -n Killing guiserver...
+	    emacsclient -s server --eval '(save-buffers-kill-terminal 0)' && echo killed || echo not killed
 	fi
 	
     else
-	echo Did not find a running term server.
+	echo Did not find a running guiserver.
 	if [[ $1 == --start ]]
 	then
-	    emacs --daemon=${TERMSERVER}
-	    [ $(pgrep -f daemon=${TERMSERVER}) ] && \
-		echo successfully started new daemon=${TERMSERVER} || \
-		    echo failed to start
+	    echo -n Starting gui server...
+	    open -jb org.gnu.Emacs --args --eval '(server-start)' && echo started || echo not started
 	    echo ---------------------------------------------------------------------------
-	    ps -f $(pgrep -f daemon=${TERMSERVER})
+	    show_guiserver
 	    echo ---------------------------------------------------------------------------
-	    echo goodbye
 	fi
     fi
+}
+
+emacsservers() {
+    case $1 in
+	--status)    { termserver; guiserver; } ;;
+	--startall)  { termserver --start; guiserver --start; } ;;
+	--killall)   { termserver --kill; guiserver --kill; } ;;
+	--help)      {
+	    echo ===============================================================================
+	    echo \'ecg FILE \&\' runs \'emacsclient FILE \&\' using the EmacsMac server \'server\'
+	    echo \'ect FILE\' runs \'emacsclient FILE\' using the terminal emacs server \'termserver\'
+	    echo termserver [--start \| --kill] \(no option gives status\)
+	    echo guiserver  [--start \| --kill] \(no option gives status\)
+	    echo emacsservers --status \| --startall \| --killall
+	    echo ===============================================================================
+	}
+	*) echo Ignoring unrecognized option `$1` ;;
+    esac
+}
+
+show_guiserver() {
+    ps -f $(pgrep -f Emacs) | \
+	sed -n \
+	    -e '1p' \
+	    -e '2 s|'${EMACS_SERVER_DIR}'.*Emacs|'${EMACS_SERVER_DIR}'/...Emacs|p'
+}
+
+initEmacs() {
+    # TODO: reinitialize when done
+    emacs -Q ${EMACS_HOME}/${EMACS_INIT}
 }

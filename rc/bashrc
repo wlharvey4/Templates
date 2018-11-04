@@ -1,8 +1,7 @@
-#!/opt/local/bin/bash
+#!/usr/bin/env bash
 
 # bashrc TEMPLATE
-# 2018-11-03T13:00
-
+# 2018-11-03T19:45
 
 
 ##########
@@ -13,35 +12,20 @@
 # Start the terminal server daemon=termserver
 # Use termserver --kill to, you know, kill it
 # -------------------------------------------------------------------------------
-termserver --start
+emacsservers --startall
+
 alias ect='emacsclient -qs termserver'
+ecg() {
+    emacsclient -s server "$@" &
+}
 
 ## EMACS ALIASES
 alias edprofile='sudo  emacs -Q /private/etc/profile'
-alias ed.profile='sudo emacs -Q ~/.profile'
-alias ed.bash_profile='sudo emacs -Q ~/.bash_profile'
+alias ed.profile='emacs -Q ~/.profile'
+alias ed.bash_profile='emacs -Q ~/.bash_profile'
 alias edbashrc='sudo   emacs -Q /private/etc/bashrc'
-alias ed.bashrc='sudo  emacs -Q ~/.bashrc'
+alias ed.bashrc='emacs -Q ~/.bashrc'
 alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
-
-
-
-
-open -jb org.gnu.Emacs --args --eval '(server-start nil)'
-emacsclient -s server --eval '(progn (server-force-delete) (save-buffers-kill-terminal))'
-
-echo ===============================================================================
-echo \'ecg FILE \&\' runs \'emacsclient FILE \&\' using the EmacsMac server \'server\'
-echo \'ect FILE\' runs \'emacsclient FILE\' using the terminal emacs server \'termserver\'
-echo ===============================================================================
-
-ecg() {
-  emacsclient -cqs server "$@" &
-}
-
-initEmacs() {
-  emacsclient -s server ${EMACS_HOME}/${EMACS_INIT}
-}
 
 ### EDIT CONFIG FILES
 alias edprofile='sudo emacs /private/etc/profile'
