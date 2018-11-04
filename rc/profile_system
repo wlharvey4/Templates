@@ -1,0 +1,85 @@
+# -*- mode: sh -*-
+
+# System-wide .profile for sh(1)
+
+# System profile Template
+# 2018-11-04T14:30
+
+
+
+#######################
+### SYSTEM-WIDE COLORS
+#######################
+export CLICOLOR=1
+export LSCOLORS=GxFxCxDxBxegedabagaced
+
+export BLACK="\e[0;30m"
+export BLACKBOLD="\e[1;30m"
+export RED="\e[0;31m"
+export REDBOLD="\e[1;31m"
+export GREEN="\e[0;32m"
+export GREENBOLD="\e[1;32m"
+export YELLOW="\e[0;33m"
+export YELLOWBOLD="\e[1;33m"
+export BLUE="\e[0;34m"
+export BLUEBOLD="\e[1;34m"
+export PURPLE="\e[0;35m"
+export PURPLEBOLD="\e[1;35m"
+export CYAN="\e[0;36m"
+export CYANBOLD="\e[1;36m"
+export WHITE="\e[0;37m"
+export WHITEBOLD="\e[1;37m"
+export CLEAR="\e[0m"
+
+
+#######################
+### SYSTEM-WIDE EDITOR
+#######################
+export SHELL=/usr/local/bin/bash
+export EDITOR=emacsclient
+set -o emacs
+
+
+#############################
+### NEW PATH MARKER FUNCTION
+#############################
+new_path_marker() {
+    # colors the new portion of a PATH alteration
+    OLD_PATH="${1}"
+    NEW_PATH="${2}"
+
+    echo "${PURPLE}${NEW_PATH}${CLEAR}" | sed -e 's#'"${OLD_PATH}"'#'\\${YELLOWBOLD}$"${OLD_PATH}"\\${PURPLE}'#'
+}
+
+
+echo ===============================================================================
+printf "${RED}[/etc/profile...]${CLEAR}\n"
+echo ===============================================================================
+
+########################
+### LIBEXEC PATH HELPER
+########################
+printf "[${YELLOW}changing PATH using ${CYANBOLD}/usr/libexec/path_helper...${CLEAR}\n"
+OLD_PATH=$PATH
+printf "${YELLOW}[old path: ${YELLOWBOLD}${PATH}]${CLEAR}\n"
+
+if [ -x /usr/libexec/path_helper ]; then
+   eval `/usr/libexec/path_helper -s`
+fi
+
+NEW_PATH=$(new_path_marker ${OLD_PATH} ${PATH})
+printf "${YELLOW}[new path:${CLEAR} ${NEW_PATH}]${CLEAR}\n\n"
+
+printf "${GREEN}[BASH: ${BASH}]==> ${CYANBOLD}/etc/bashrc${GREEN}]${CLEAR}\n"
+
+#########################
+### SOURCE SYSTEM BASHRC
+#########################
+if [ "${BASH-no}" != "no" ]; then
+   [ -r /etc/bashrc ] && . /etc/bashrc
+fi
+
+printf "${GREEN}[${CYANBOLD}/etc/bashrc${GREEN} \<==]${CLEAR}\n"
+echo ===============================================================================
+printf "${RED}[.../etc/profile]${CLEAR}\n"
+echo ===============================================================================

@@ -1,0 +1,46 @@
+# -*- mode: sh -*-
+
+# System-wide .bashrc file for interactive bash(1) shells.
+
+# System bashrc Template
+# 2018-11-04T14:30
+
+### RETURN IF NOT INTERACTIVE
+if [ -z "$PS1" ]; then
+   return
+fi
+
+printf "\t--------------------------------------------------------------------------\n"
+printf "\t${CYANBOLD}[/etc/bashrc...]${CLEAR}\n"
+printf "\t---------------------------------------------------------------------------\n"
+
+
+##############################
+### UPDATE SYSTEM-WIDE PROMPT
+##############################
+printf "\t${YELLOW}[changing PS1]${CLEAR}\n"
+echo "        from --> ${PS1}"
+
+PS1='\h:\W \u\$ '
+
+echo "        to   --> ${PS1}"
+
+
+# Make bash check its window size after a process completes
+shopt -s checkwinsize
+
+[ -r "/etc/bashrc_$TERM_PROGRAM" ] && . "/etc/bashrc_$TERM_PROGRAM"
+
+
+########################################
+### SYSTEM CONFIGURATION EDIT SHORTCUTS
+########################################
+alias edprofile='sudo  emacs -Q /private/etc/profile'
+alias edbashrc='sudo   emacs -Q /private/etc/bashrc'
+alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
+
+
+
+printf "\t--------------------------------------------------------------------------\n"
+printf "\t${CYANBOLD}[.../etc/bashrc]${CLEAR}\n"
+printf "\t--------------------------------------------------------------------------\n"

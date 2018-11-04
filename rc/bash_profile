@@ -1,34 +1,45 @@
-#!/usr/bin/env bash
+# -*- mode: sh -*-
 
 # Bash Profile Template
-# 2018-11-03T19:45
+# 2018-11-04T14:30
 
 
-###########
-### EDITOR
-###########
 
-export SHELL=/opt/local/bin/bash
-export EDITOR=emacsclient
-set -o emacs
 
-##########
-### EMACS
-##########
+###############
+### USER'S PS1
+###############
+printf "\n${YELLOW}[changing PS1]${CLEAR}\n"
+echo "from --> $PS1"
 
+export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
+# export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
+
+echo "to   --> $PS1"
+
+# I think these can be used inside a prompt...
+# ϟ ☭ Ѫ ൿ ൠ ඞ ෴ ஃ ৯ ॐ Ճ ҂ Ω Δ π ʃ ɐ Ɣ ƒ Ŀ Ħ × ¿ ∑ ∀ ∃ ∄ ∞ ∫ ∮ ∬ ∨∧ ∻ ∴ ∵ ≠ ⊕ ⊗ ⊢ ⊣
+# ♅ ♆ ♡ ♥ ⚒ ⚙ ⚛ ✾ ❉ ❯ ❳ ➙ ➤ ➳ ➺ ➻ ⟗ ⟞ ⟢ ⟫ ⟶ ⟹ ⟿ 𐄡 𐄨 𐅍 𐌈 𐌎 𐌇 𐐝 𝄞 𝄢 𝄆 ᐉ ᗚ ᕯ Ꮬ ⊶ ⊾
+# ⊿ ⋈ ⋊ ⋗ ⊙ ⊚ ≣ ░ ▓ ▞ ▣ ◈ ◉ ☠ ☢ ☣ ☬ ៚
+
+
+#################
+### USER'S EMACS
+#################
 export EMACS_HOME=${HOME}/.emacs.d
 export EMACS_INIT=init.el
 export EMACS_WIDTH=250
 export TERMSERVER=termserver
-# The server directory locations and names really seem completely system
-# dependent and on how emacs and Emacs.app have been compiled and set up
-export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- lolh
-export EMACS_SERVER_DIR=/var/folders/x_ # <-- pine
+## The server directory locations and names really seem completely system
+## dependent and on how emacs and Emacs.app have been compiled and set up
+
+# export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- lolh
+export EMACS_SERVER_DIR=/var/folders/x_ # /.../emacs501 <-- pine
+
 
 ###########################
 ### EMACS SERVER FUNCTIONS
 ###########################
-
 termserver() {
     # The terminal server runs as a daemon; look for daemon=termserver as a running process
 
@@ -47,7 +58,6 @@ termserver() {
 	then
 	    echo -n Killing termserver...
 	    pkill -f termserver && echo killed || echo not killed
-	    echo goodbye
 	fi
 	echo
 	
@@ -57,7 +67,7 @@ termserver() {
 	then
 	    emacs --bg-daemon=${TERMSERVER}
 	    [ $(pgrep -f ${TERMSERVER}) ] && \
-		echo successfully started new daemon ${TERMSERVER} || \
+		echo started || \
 		    echo failed to start
 	    echo ---------------------------------------------------------------------------
 	    ps -f $(pgrep -f ${TERMSERVER})
@@ -68,6 +78,16 @@ termserver() {
 }
 
 guiserver() {
+    # The  Emacs  GUI  server  establishes  a  socket  in  a  temporary  folder
+    # somewhere; this  location appears  to be  very dependent  on a  number of
+    # factors of which I am not aware;  Emacs will reveal its location when you
+    # force delete it  using (server-force-delete).  This function  looks for a
+    # socket  named   'server'  in   this  directory,   which  I   have  called
+    # $EMACS_SERVER_DIR.   To start  a server,  invoke Emacs  with the  command
+    # (server-start).  To kill the server,  invoke emacsclient with the command
+    # (save-buffers-kill-terminal).
+
+    printf "${WHITEBOLD}"
     if [ $(find ${EMACS_SERVER_DIR} -path \*/emacs501/server 2>/dev/null) ]
     then
 	echo Found a running guiserver.
@@ -76,7 +96,7 @@ guiserver() {
 	echo ---------------------------------------------------------------------------
 	if [[ $1 == --kill ]]
 	then
-	    echo -n Killing guiserver...
+	    echo -n Killing gui server...
 	    emacsclient -s server --eval '(save-buffers-kill-terminal 0)' && echo killed || echo not killed
 	fi
 	
@@ -91,9 +111,15 @@ guiserver() {
 	    echo ---------------------------------------------------------------------------
 	fi
     fi
+    printf "${CLEAR}"
 }
 
+
 emacsservers() {
+    # This is  a wrapper  function for  the termserver  and the  guiserver.  It
+    # starts and kills both with a single command.
+    
+    printf "${WHITEBOLD}"
     case $1 in
 	--status)    { termserver; guiserver; } ;;
 	--startall)  { termserver --start; guiserver --start; } ;;
@@ -106,19 +132,112 @@ emacsservers() {
 	    echo guiserver  [--start \| --kill] \(no option gives status\)
 	    echo emacsservers --status \| --startall \| --killall
 	    echo ===============================================================================
-	}
+	} ;;
 	*) echo Ignoring unrecognized option `$1` ;;
     esac
+    printf "${CLEAR}"
 }
 
+
 show_guiserver() {
+    # Helper function for guiserver()
+    
     ps -f $(pgrep -f Emacs) | \
 	sed -n \
 	    -e '1p' \
 	    -e '2 s|'${EMACS_SERVER_DIR}'.*Emacs|'${EMACS_SERVER_DIR}'/...Emacs|p'
 }
 
+
 initEmacs() {
     # TODO: reinitialize when done
     emacs -Q ${EMACS_HOME}/${EMACS_INIT}
 }
+
+
+### shortcuts for invoking emacsclient for both termserver and guiserver
+### TODO set up alternate editor functionality
+alias ect='emacsclient -qs termserver'
+ecg() {
+    emacsclient -s server "$@" &
+}
+
+
+################
+### RACKET PATH
+################
+printf "${YELLOW}[changing path manually]${CLEAR}\n"
+OLD_PATH=${PATH}
+printf "${YELLOW}[old path: ${YELLOWBOLD}${PATH}]${CLEAR}\n"
+
+export PATH=$PATH:/Applications/Racket\ v7.0/bin
+
+NEW_PATH=$(new_path_marker ${OLD_PATH} ${PATH})
+printf "${YELLOW}[new path: ${NEW_PATH}]\n"
+
+
+########################
+### SYSTEM-WIDE ALIASES
+########################
+alias ls='ls -FG'
+alias lsl='ls -lAFG'
+#alias lsl='ls -lh'
+alias lsd='lsl | grep ^d | sed -Ee s/^.*\(\[\ \]\)\(\[^\ \]*\)$/\\2/'
+
+####################
+### USER'S PERLBREW
+####################
+printf "\n${YELLOW}[${CYANBOLD}~/perl5/perlbrew/etc/bashrc...${YELLOW}]${CLEAR}\n"
+
+source ~/perl5/perlbrew/etc/bashrc
+
+printf "${YELLOW}[...${CYANBOLD}~/perl5/perlbrew/etc/bashrc${YELLOW}]${CLEAR}\n"
+
+
+##############################
+### USER'S OPAM CONFIGURATION
+##############################
+
+printf "\n${YELLOW}[opam configuration...${CYANBOLD}/Users/pine/.opam/opam-init/init.sh]${CLEAR}\n"
+
+test -r /Users/pine/.opam/opam-init/init.sh && . /Users/pine/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
+
+printf "${YELLOW}[...opam configuration]${CLEAR}\n"
+
+printf "\n${YELLOW}[${CYANBOLD}~/.bashrc...${YELLOW}]${CLEAR}\n"
+
+[[ -s ~/.bashrc ]] && source ~/.bashrc
+
+printf "${YELLOW}[${CYANBOLD}... ~/.bashrc${YELLOW}]${CLEAR}\n"
+
+
+### HOMEBREW OPENSSL NOTES
+# openssl is keg-only, which means it was not symlinked into /usr/local,
+# because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.
+
+# export PATH="/usr/local/opt/openssl/bin:$PATH"
+
+# For compilers to find openssl you may need to set:
+#   export LDFLAGS="-L/usr/local/opt/openssl/lib"
+#   export CPPFLAGS="-I/usr/local/opt/openssl/include"
+
+# For pkg-config to find openssl you may need to set:
+#   export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
+
+
+### HOMEBREW GETTEXT
+# gettext is keg-only, which means it was not symlinked into /usr/local,
+# because macOS provides the BSD gettext library & some software gets confused if both are in the library path.
+
+# If you need to have gettext first in your PATH run:
+#   echo 'export PATH="/usr/local/opt/gettext/bin:$PATH"' >> ~/.bash_profile
+
+# For compilers to find gettext you may need to set:
+#   export LDFLAGS="-L/usr/local/opt/gettext/lib"
+#   export CPPFLAGS="-I/usr/local/opt/gettext/include"
+
+
+
+printf "===========================================================================\n"
+printf "${RED}[... .bash_profile]${CLEAR}\n"
+printf "===========================================================================\n"

@@ -1,38 +1,35 @@
-#!/usr/bin/env bash
+# -*- mode: sh -*-
 
 # bashrc TEMPLATE
-# 2018-11-03T19:45
+# 2018-11-04T14:30
+
+printf "\t---------------------------------------------------------------------------\n"
+printf "\t${CYANBOLD}[~/.bashrc...]${CLEAR}\n"
+printf "\t---------------------------------------------------------------------------\n"
 
 
-##########
-### EMACS
-##########
 
-## EMACS SERVERS
-# Start the terminal server daemon=termserver
-# Use termserver --kill to, you know, kill it
-# -------------------------------------------------------------------------------
+#######################
+### START EMACS SERVERS
+########################
+printf "\n\t${YELLOW}[emacsservers...]${CLEAR}\n"
+
+# Start the both the termserver and guiserver
+# User emacservers --killall to kill them all
 emacsservers --startall
 
-alias ect='emacsclient -qs termserver'
-ecg() {
-    emacsclient -s server "$@" &
-}
+printf "\t${YELLOW}[...emacsservers]${CLEAR}\n"
 
-## EMACS ALIASES
-alias edprofile='sudo  emacs -Q /private/etc/profile'
-alias ed.profile='emacs -Q ~/.profile'
-alias ed.bash_profile='emacs -Q ~/.bash_profile'
-alias edbashrc='sudo   emacs -Q /private/etc/bashrc'
-alias ed.bashrc='emacs -Q ~/.bashrc'
-alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
 
-### EDIT CONFIG FILES
-alias edprofile='sudo emacs /private/etc/profile'
-alias edbashrc='sudo emacs /private/etc/bashrc'
-alias edtmuxconf='sudo emacs /private/etc/tmux.conf'
+########################################
+### USER'S CONFIGURATION EDIT SHORTCUTS
+########################################
+alias ed.bash_profile='sudo emacs -Q ~/.bash_profile'
+alias ed.bashrc='sudo emacs -Q ~/.bashrc'
+alias ed.profile='sudo emacs -Q ~/.profile'
 
-### LIST
-alias ls='ls -GF'
-alias lsl='ls -lh'
-alias lsd='lsl | grep ^d | sed -Ee s/^.*\(\[\ \]\)\(\[^\ \]*\)$/\\2/'
+
+
+printf "\t---------------------------------------------------------------------------\n"
+printf "\t${CYANBOLD}[... ~/.bashrc]${CLEAR}\n"
+printf "\t---------------------------------------------------------------------------\n"
