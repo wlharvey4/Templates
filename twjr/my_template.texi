@@ -17,14 +17,15 @@
 @defindex cr   @c chunk reference
 @c *****************************************************************************
 
-@c VERSION 0.2.0
-@c DATE    2018-10-28T24:25
+@c VERSION 0.3.0
+@c DATE    2018-11-04T21:45
 
 @c -----------------------------------------------------------------------------
 @set TITLE      Long Title Here
 @set SHORTTITLE Short Title Here
 @set EDITION 0.n
 @set UPDATE-MONTH MONTH, YYYY @c goes in the subtitle
+@set COPYRIGHT-YEAR YYYY
 @set AUTHOR WLHarvey4
 @set ADDRESS1 Address Line 1
 @set ADDRESS2 Address Line 2
@@ -1296,6 +1297,7 @@ This chunk is called by @r{@{@file{my-bib-macros.texi}@}}; see its first definit
 @crindex @r{<@i{Makefile---TWJR Targets}>}, use
 @crindex @r{<@i{Makefile---Clean Targets}>}, use
 @crindex @r{<@i{Makefile---Bib Macros Example Target}>}, use
+@crindex @r{<@i{Makefile---Applications}>}, use
 @cdindex @r{@{@file{Makefile}@}}, definition
 @noindent
 @r{@{@file{Makefile}@}} @equiv{}
@@ -1308,6 +1310,7 @@ This chunk is called by @r{@{@file{my-bib-macros.texi}@}}; see its first definit
 @r{<@i{Makefile---TWJR Targets}>}
 @r{<@i{Makefile---Clean Targets}>}
 @r{<@i{Makefile---Bib Macros Example Target}>}
+@r{<@i{Makefile---Applications}>}
 
 @end example
 @iftex
@@ -1318,6 +1321,7 @@ This chunk is called by @r{@{@file{my-bib-macros.texi}@}}; see its first definit
 The following table lists called chunk definition points.
 @multitable @columnfractions .35 .65
 @headitem Chunk name @tab First definition point
+@item @r{<@i{Makefile---Applications}>} @tab See @ref{Makefile---Applications}.
 @item @r{<@i{Makefile---Bib Macros Example Target}>} @tab See @ref{Makefile---Bib-Macros-Example-Target}.
 @item @r{<@i{Makefile---Clean Targets}>} @tab See @ref{Makefile---Clean-Targets}.
 @item @r{<@i{Makefile---Default Target}>} @tab See @ref{Makefile---Default-Target}.
@@ -1412,7 +1416,6 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 
 @c -----------------------------------------------------------------------------
 
-
 @node Makefile TWJR Targets
 @appendixsec TWJR Targets
 @cindex TWJR targets
@@ -1431,25 +1434,33 @@ document.     @code{info}    runs     @command{makeinfo},    @code{pdf}    runs
 # TWJR TARGETS
 ##############
 TWJR : twjr
-twjr : tangle weave
+twjr : jrtangle jrweave worldclean
 
-TANGLE : tangle
-tangle : $(FILE).twjr
+lodestone : $(FILE).twjr
     jrtangle $(FILE).twjr
+    touch $(FILE).twjr
+    touch lodestone;
 
-WEAVE : weave
+JRTANGLE : jrtangle
+jrtangle:  tangle
+tangle : lodestone
+
+JRWEAVE : WEAVE
+WEAVE   : jrweave
+jrweave : weave
 weave : TEXI
 TEXI  : texi
 texi  : $(FILE).texi
 $(FILE).texi : $(FILE).twjr
     jrweave $(FILE).twjr > $(FILE).texi
+            emacs --batch --eval '(progn (find-file "./$(FILE).texi" nil) (texinfo-master-menu 1) (save-buffer 0))'
 
 INFO : info
 info : $(FILE).info
 $(FILE).info : $(FILE).texi
     makeinfo $(FILE).texi
 openinfo : INFO
-    emacs $(FILE).info
+    open -nb org.gnu.Emacs --args --eval '(info "($(ROOT)/$(FILE).info)top" "$(FILE).texi")'
 
 PDF : pdf
 pdf : $(FILE).pdf
@@ -1515,26 +1526,59 @@ The @file{TEXI} file is always left because  it will be accurate so long as the
 
 # remove backup files
 clean :
-    rm -f *~ .*~ #*#
+    @@echo clean
+    @@rm -f *~ .*~ #*#
 
 # remove  all directories;  leave the  source files  @@file@{TWJR@}, @@@{TEXI@},  and
 # @@file@{Makefile@}
 dirclean : clean
-    for file in *; do          \
+    @@echo dirclean
+    @@for file in *; do         \
       case $$file in           \
         $(FILE)* | Makefile) ;;\
         my-bib-macros*)      ;;\
+        resources*)      ;;\
+        lodestone)       ;;\
         *) rm -vfr $$file    ;;\
       esac                     \
     done
 
 # after dirclean, remove HTML directory and PDF files
 distclean : dirclean
-    rm -vfr $(FILE) $(FILE).pdf
+    @@echo distclean
+    @@rm -vfr $(FILE) $(FILE).pdf
 
 # after distclean, remove INFO and my-bib-macros
 worldclean : distclean
-    rm -rfv *.info* my-bib-macros.texi
+    @@echo worldclean
+    @@rm -rfv *.info* my-bib-macros.texi
+
+@end example
+@iftex
+@smallfonts @rm
+@end iftex
+
+@noindent
+This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @ref{Makefile}.
+@iftex
+@textfonts @rm
+@end iftex
+
+
+
+
+@c -----------------------------------------------------------------------------
+
+@node Makefile Applications
+@appendixsec Makefile Applications
+@cindex Makefile applications
+
+@need 400
+@anchor{Makefile---Applications}
+@cdindex @r{<@i{Makefile---Applications}>}, definition
+@noindent
+@r{<@i{Makefile---Applications}>} @equiv{}
+@example
 
 @end example
 @iftex
@@ -1646,6 +1690,9 @@ This chunk is defined in
 @item @r{<@i{Bib-Use-Table---Node}>}
 This chunk is defined in
 @ref{Bib-Use-Table---Node}.
+@item @r{<@i{Makefile---Applications}>}
+This chunk is defined in
+@ref{Makefile---Applications}.
 @item @r{<@i{Makefile---Bib Macros Example Target}>}
 This chunk is defined in
 @ref{Makefile---Bib-Macros-Example-Target}.
@@ -1710,6 +1757,10 @@ This chunk is called by @r{@{@file{my-bib-macros.texi}@}}; see its first definit
 
 @noindent
 This chunk is called by @r{@{@file{my-bib-macros.texi}@}}; see its first definition at @ref{my-bib-macros-texi}.
+@item @r{<@i{Makefile---Applications}>}
+
+@noindent
+This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @ref{Makefile}.
 @item @r{<@i{Makefile---Bib Macros Example Target}>}
 
 @noindent
@@ -1759,8 +1810,16 @@ This chunk is called by @r{@{@file{my-file-with-bib.texi}@}}; see its first defi
 
 
 @c *****************************************************************************
-@node Bibliography
+
+@node @mybibnode{}
 @unnumbered Bibliography
+
+@table @asis
+
+@mybibitem{SAMPLE}
+Sample citation
+
+@end table
 
 
 
