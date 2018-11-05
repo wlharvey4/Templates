@@ -1,7 +1,13 @@
-# -*- mode: sh -*-
+# -*- MODE: SH -*-
 
-# bashrc TEMPLATE
-# 2018-11-04T14:30
+# TEMPLATE: ~/.bashrc
+# MODIFIED: 2018-11-05T11:40
+
+# User's .bashrc
+################################################################################
+
+
+
 
 printf "\t---------------------------------------------------------------------------\n"
 printf "\t${CYANBOLD}[~/.bashrc...]${CLEAR}\n"
@@ -9,24 +15,61 @@ printf "\t----------------------------------------------------------------------
 
 
 
-#######################
-### START EMACS SERVERS
-########################
+
+################################################################################
+### Set up USER'S prompts PS1, PS2, PS3, PS4
+
+printf "\n${YELLOW}[changing PS1]${CLEAR}\n"
+echo "from --> $PS1"
+
+export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
+# export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
+
+echo "to   --> $PS1"
+
+# I think these can be used inside a prompt...
+# ϟ ☭ Ѫ ൿ ൠ ඞ ෴ ஃ ৯ ॐ Ճ ҂ Ω Δ π ʃ ɐ Ɣ ƒ Ŀ Ħ × ¿ ∑ ∀ ∃ ∄ ∞ ∫ ∮ ∬ ∨∧ ∻ ∴ ∵ ≠ ⊕ ⊗
+# ⊢ ⊣ ♅ ♆ ♡ ♥ ⚒ ⚙ ⚛ ✾ ❉ ❯ ❳ ➙ ➤ ➳ ➺ ➻ ⟗ ⟞ ⟢ ⟫ ⟶ ⟹ ⟿ 𐄡 𐄨 𐅍 𐌈 𐌎 𐌇 𐐝 𝄞 𝄢 𝄆 ᐉ ᗚ ᕯ Ꮬ
+# ⊶ ⊾ ⊿ ⋈ ⋊ ⋗ ⊙ ⊚ ≣ ░ ▓ ▞ ▣ ◈ ◉ ☠ ☢ ☣ ☬ ៚
+################################################################################
+
+
+
+
+##################################################
+### Start Emacs servers
+
+## Start the both the termserver and guiserver
+## Use 'emacservers --killall' to kill them all
+
 printf "\n\t${YELLOW}[emacsservers...]${CLEAR}\n"
 
-# Start the both the termserver and guiserver
-# User emacservers --killall to kill them all
 emacsservers --startall
 
 printf "\t${YELLOW}[...emacsservers]${CLEAR}\n"
+####################################################
 
 
-########################################
-### USER'S CONFIGURATION EDIT SHORTCUTS
-########################################
+
+
+######################################################
+### USER's Configuration Alias Shortcuts
+
 alias ed.bash_profile='sudo emacs -Q ~/.bash_profile'
 alias ed.bashrc='sudo emacs -Q ~/.bashrc'
 alias ed.profile='sudo emacs -Q ~/.profile'
+alias ect='emacsclient -qs termserver'
+######################################################
+
+
+
+
+################################################################################
+### Secrets ssshhhh...
+
+export SECRET_SAUCE=
+################################################################################
+
 
 
 
