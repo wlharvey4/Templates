@@ -1,10 +1,11 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: /etc/bashrc
-# MODIFIED: 2018-11-05T11:35
+# 2018-11-06T08:15
 
 # System-wide .bashrc file for interactive bash(1) shells.
 ################################################################################
+
 
 
 
@@ -19,22 +20,11 @@ fi
 
 
 
-printf "\t--------------------------------------------------------------------------\n"
-printf "\t${CYANBOLD}[/etc/bashrc...]${CLEAR}\n"
-printf "\t---------------------------------------------------------------------------\n"
-
-
-
-
 ################################################################################
 ### System-wide prompts
-printf "\t${YELLOW}[changing PS1]${CLEAR}\n"
-echo "        from --> ${PS1}"
 
 export PS1='\h:\W \u\$ '
 export PS2="${B_WHITE}${F_BLACK}...${CLEAR} $ "
-
-echo "        to   --> ${PS1}"
 
 ### SOME ALTERNATE ideas:
 #export PS1='\033[33m[\!]\033[36m{\u@\H}\033[34;4m\w\033[0m
@@ -109,12 +99,4 @@ alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
 
 alias brewtasks='for task in doctor cleanup prune update; \
 do echo "===> Now on task ${task}" && brew ${task}; done;'
-
 ################################################################################
-
-
-
-
-printf "\t--------------------------------------------------------------------------\n"
-printf "\t${CYANBOLD}[.../etc/bashrc]${CLEAR}\n"
-printf "\t--------------------------------------------------------------------------\n"

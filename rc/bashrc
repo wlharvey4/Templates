@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bashrc
-# MODIFIED: 2018-11-05T11:40
+# 2018-11-06T08:30
 
 # User's .bashrc
 ################################################################################
@@ -9,23 +9,12 @@
 
 
 
-printf "\t---------------------------------------------------------------------------\n"
-printf "\t${CYANBOLD}[~/.bashrc...]${CLEAR}\n"
-printf "\t---------------------------------------------------------------------------\n"
-
-
-
-
 ################################################################################
 ### Set up USER'S prompts PS1, PS2, PS3, PS4
 
-printf "\n${YELLOW}[changing PS1]${CLEAR}\n"
-echo "from --> $PS1"
-
-export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
+export PS1="${PURPLEBOLD}[\!]${GREENBOLD}{\A}${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n${B_YELLOW}${F_BLACK} $ ${CLEAR}"
+#export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
 # export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
-
-echo "to   --> $PS1"
 
 # I think these can be used inside a prompt...
 # ϟ ☭ Ѫ ൿ ൠ ඞ ෴ ஃ ৯ ॐ Ճ ҂ Ω Δ π ʃ ɐ Ɣ ƒ Ŀ Ħ × ¿ ∑ ∀ ∃ ∄ ∞ ∫ ∮ ∬ ∨∧ ∻ ∴ ∵ ≠ ⊕ ⊗
@@ -42,11 +31,7 @@ echo "to   --> $PS1"
 ## Start the both the termserver and guiserver
 ## Use 'emacservers --killall' to kill them all
 
-printf "\n\t${YELLOW}[emacsservers...]${CLEAR}\n"
-
 emacsservers --startall
-
-printf "\t${YELLOW}[...emacsservers]${CLEAR}\n"
 ####################################################
 
 
@@ -69,10 +54,3 @@ alias ect='emacsclient -qs termserver'
 
 export SECRET_SAUCE=
 ################################################################################
-
-
-
-
-printf "\t---------------------------------------------------------------------------\n"
-printf "\t${CYANBOLD}[... ~/.bashrc]${CLEAR}\n"
-printf "\t---------------------------------------------------------------------------\n"

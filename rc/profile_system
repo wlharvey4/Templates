@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # .../Templates/rc/profile_system
-# MODIFIED: 2018-11-05T12:30
+# 2018-11-06T08:00
 
 # TEMPLATE: System-wide profile for sh(1)
 ###############################################################################
@@ -21,11 +21,8 @@ export <COMP>_DEBUG=${DEBUG:-0} # <-- set COMP
 ### SYSTEM-WIDE COLORS
 
 export CLICOLOR=1
-export LSCOLORS=GxFxCxDxBxegedabagaced
-# DARK
-#export LSCOLORS=GxFxCxDxBxegedabagaced
-# LIGHT
-#export LSCOLORS=ExFxBxDxCxegedabagacad
+export LSCOLORS=GxFxCxDxBxegedabagaced # <-- dark
+#export LSCOLORS=ExFxBxDxCxegedabagacad # <-- light
 
 ### PLAIN (NOTE: these CLEAR first)
 export BLACK="\e[0;30m"
@@ -93,8 +90,9 @@ new_path_marker() {
     OLD_PATH="${1}"
     NEW_PATH="${2}"
 
-    echo "${PURPLE}${NEW_PATH}${CLEAR}" | \
-	sed -e 's#'"${OLD_PATH}"'#'\\${YELLOWBOLD}$"${OLD_PATH}"\\${PURPLE}'#'
+    echo "${PURPLE}${NEW_PATH}${CLEAR}" | sed \
+	-e 's#'"${OLD_PATH}"'#'\\${YELLOWBOLD}$"${OLD_PATH}"\\${PURPLE}'#' |
+        tr ':' '\n'
 }
 ################################################################################
 
@@ -106,19 +104,11 @@ new_path_marker() {
 
 ## NOTE:new_path_marker() and colors need to come first to use them in this file
 
-printf "[${YELLOW}changing PATH using ${CYANBOLD}/usr/libexec/path_helper...${CLEAR}\n"
-OLD_PATH=$PATH
-printf "${YELLOW}[old path: ${YELLOWBOLD}${PATH}]${CLEAR}\n"
-
-
 if [ -x /usr/libexec/path_helper ]; then
-	eval `/usr/libexec/path_helper -s`
+    unset PATH
+    export PATH=/usr/bin:/bin:/usr/sbin/:sbin
+    eval `/usr/libexec/path_helper -s`
 fi
-
-NEW_PATH=$(new_path_marker ${OLD_PATH} ${PATH})
-printf "${YELLOW}[new path:${CLEAR} ${NEW_PATH}]${CLEAR}\n\n"
-
-printf "${GREEN}[BASH: ${BASH}]==> ${CYANBOLD}/etc/bashrc${GREEN}]${CLEAR}\n"
 ################################################################################
 
 
@@ -131,15 +121,8 @@ export SHELL=/usr/local/bin/bash # <-- will vary
 export EDITOR=emacsclient
 set -o emacs
 export TERMSERVER=termserver
-export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- can vary by system
+export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- will vary
 ################################################################################
-
-
-
-
-echo ===============================================================================
-printf "${RED}[/etc/profile...]${CLEAR}\n"
-echo ===============================================================================
 
 
 
@@ -165,11 +148,3 @@ if [ -f /opt/local/etc/profile.d/bash_completion.sh ]; then
     . /opt/local/etc/profile.d/bash_completion.sh
 fi
 ################################################################################
-
-
-
-
-printf "${GREEN}[${CYANBOLD}/etc/bashrc${GREEN} \<==]${CLEAR}\n"
-echo ===============================================================================
-printf "${RED}[.../etc/profile]${CLEAR}\n"
-echo ===============================================================================

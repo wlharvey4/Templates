@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bash_profile
-# MODIFED: 2018-11-05T12:00
+# 2018-11-06T08:25
 
 # User's .bash_profile
 ################################################################################
@@ -52,7 +52,7 @@ termserver() {
     termserver=$(pgrep -f termserver)
     if [ $termserver ]
     then
-	printf "${YELLOW}Found a running termserver:${WHITEBOLD}\n"
+	printf "${YELLOWBOLD}Found a running termserver:${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
 	ps -f $termserver
 	echo ---------------------------------------------------------------------------
@@ -64,12 +64,12 @@ termserver() {
 		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
 	fi
 	echo
-	
+
     else
 	printf "${YELLOW}Did not find a running termserver.${CLEAR}\n"
 	if [[ $1 == --start ]]
 	then
-	    printf "${BLUE}starting termserver...${CLEAR}"
+	    printf "${BLUE}starting termserver...${CYAN}\n"
 	    emacs --bg-daemon=${TERMSERVER}
 	    [ $(pgrep -f ${TERMSERVER}) ] && \
 		printf "${GREEN}started${WHITEBOLD}\n" || \
@@ -95,7 +95,7 @@ guiserver() {
 
     if [ $(find ${EMACS_SERVER_DIR} -path \*/emacs501/server 2>/dev/null) ]
     then
-	printf "${YELLOW}Found a running guiserver.${WHITEBOLD}\n"
+	printf "${YELLOWBOLD}Found a running guiserver.${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
 	show_guiserver
 	echo ---------------------------------------------------------------------------
@@ -108,12 +108,12 @@ guiserver() {
 		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
 	fi
 	echo
-	
+
     else
 	printf "${YELLOW}Did not find a running guiserver.${CLEAR}\n"
 	if [[ $1 == --start ]]
 	then
-	    printf "${BLUE}Starting gui server...${CLEAR}"
+	    printf "${BLUE}Starting gui server...${CYAN}\n"
 	    open -jb org.gnu.Emacs --args --eval '(server-start)' && \
 		printf "${GREEN}started${CLEAR}\n" || \
 	        printf "${BLINK}${F_RED}not started${CLEAR}\n"
@@ -134,7 +134,7 @@ emacsservers() {
     # --------------------------------------------------------------------------
     # USAGE: emacsservers --status | --startall | --killall | -h | --help
     #---------------------------------------------------------------------------
-    
+
     printf "${WHITEBOLD}"
     case $1 in
 	--status)    { termserver; guiserver; } ;;
@@ -157,7 +157,7 @@ emacsservers() {
 
 show_guiserver() {
     # Helper function for guiserver()
-    
+
     ps -f $(pgrep -f Emacs) | \
 	sed -n \
 	    -e '1p' \
@@ -192,63 +192,45 @@ initEmacs() {
 ################################################################################
 ### USER'S OPAM CONFIGURATION
 
-printf "\n${YELLOW}[opam configuration...${CYANBOLD}/Users/pine/.opam/opam-init/init.sh]${CLEAR}\n"
-
 test -r /Users/pine/.opam/opam-init/init.sh && \
     . /Users/pine/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
-
-printf "${YELLOW}[...opam configuration]${CLEAR}\n"
 ################################################################################
 
 
 
 
-
-################################################################################
-### Source ~/.bashrc
-
-printf "\n${YELLOW}[${CYANBOLD}~/.bashrc...${YELLOW}]${CLEAR}\n"
-
-[[ -s ~/.bashrc ]] && source ~/.bashrc
-
-printf "${YELLOW}[${CYANBOLD}... ~/.bashrc${YELLOW}]${CLEAR}\n"
-################################################################################
-
-
-
-
-################
-### RACKET PATH
-################
-printf "${YELLOW}[changing path manually]${CLEAR}\n"
-OLD_PATH=${PATH}
-printf "${YELLOW}[old path: ${YELLOWBOLD}${PATH}]${CLEAR}\n"
-
-export PATH=$PATH:/Applications/Racket\ v7.0/bin
-
-NEW_PATH=$(new_path_marker ${OLD_PATH} ${PATH})
-printf "${YELLOW}[new path: ${NEW_PATH}]\n"
-
-
-
-
-####################
-### USER'S PERLBREW
-####################
-printf "\n${YELLOW}[${CYANBOLD}~/perl5/perlbrew/etc/bashrc...${YELLOW}]${CLEAR}\n"
+###################################
+### USER's Perlbrew
 
 source ~/perl5/perlbrew/etc/bashrc
-
-printf "${YELLOW}[...${CYANBOLD}~/perl5/perlbrew/etc/bashrc${YELLOW}]${CLEAR}\n"
-
+###################################
 
 
 
 
+################################################################################
+### USER's Golang
+
+## A valid GOPATH is required to use the `go get` command.
+## If $GOPATH is not specified, $HOME/go will be used by default:
+##   https://golang.org/doc/code.html#GOPATH
+
+#export GOPATH=~/Dev/Programs/go # <-- set for development
+################################################################################
 
 
 
 
+#######################################
+### Source ~/.bashrc
+
+[[ -s ~/.bashrc ]] && source ~/.bashrc
+#######################################
+
+
+
+
+################################################################################
 ### HOMEBREW OPENSSL NOTES
 # openssl is keg-only, which means it was not symlinked into /usr/local,
 # because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.
@@ -261,8 +243,12 @@ printf "${YELLOW}[...${CYANBOLD}~/perl5/perlbrew/etc/bashrc${YELLOW}]${CLEAR}\n"
 
 # For pkg-config to find openssl you may need to set:
 #   export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
+################################################################################
 
 
+
+
+################################################################################
 ### HOMEBREW GETTEXT
 # gettext is keg-only, which means it was not symlinked into /usr/local,
 # because macOS provides the BSD gettext library & some software gets confused if both are in the library path.
@@ -273,9 +259,4 @@ printf "${YELLOW}[...${CYANBOLD}~/perl5/perlbrew/etc/bashrc${YELLOW}]${CLEAR}\n"
 # For compilers to find gettext you may need to set:
 #   export LDFLAGS="-L/usr/local/opt/gettext/lib"
 #   export CPPFLAGS="-I/usr/local/opt/gettext/include"
-
-
-
-printf "===========================================================================\n"
-printf "${RED}[... .bash_profile]${CLEAR}\n"
-printf "===========================================================================\n"
+################################################################################
