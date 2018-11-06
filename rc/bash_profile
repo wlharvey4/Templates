@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bash_profile
-# 2018-11-06T08:25
+# 2018-11-06T08:50
 
 # User's .bash_profile
 ################################################################################
@@ -102,7 +102,7 @@ guiserver() {
 
 	if [[ $1 == --kill ]]
 	then
-	    printf "${BLUE}Killing gui server..."
+	    printf "${BLUE}Killing guiserver..."
 	    emacsclient -s server --eval '(save-buffers-kill-terminal 0)' && \
 		printf "${GREEN}killed${CLEAR}\n" || \
 		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
@@ -113,7 +113,7 @@ guiserver() {
 	printf "${YELLOW}Did not find a running guiserver.${CLEAR}\n"
 	if [[ $1 == --start ]]
 	then
-	    printf "${BLUE}Starting gui server...${CYAN}\n"
+	    printf "${BLUE}Starting guiserver...${CYAN}\n"
 	    open -jb org.gnu.Emacs --args --eval '(server-start)' && \
 		printf "${GREEN}started${CLEAR}\n" || \
 	        printf "${BLINK}${F_RED}not started${CLEAR}\n"

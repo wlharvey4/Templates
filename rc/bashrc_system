@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: /etc/bashrc
-# 2018-11-06T08:15
+# 2018-11-06T08:40
 
 # System-wide .bashrc file for interactive bash(1) shells.
 ################################################################################
@@ -96,6 +96,11 @@ alias h='fc -l '
 alias edprofile='sudo  emacs -Q /private/etc/profile'
 alias edbashrc='sudo   emacs -Q /private/etc/bashrc'
 alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
+
+alias ls='ls -FGh'
+alias lsl='ls -lAFG'
+#alias lsl='ls -lh'
+alias lsd='lsl | grep ^d | sed -Ee s/^.*\(\[\ \]\)\(\[^\ \]*\)$/\\2/'
 
 alias brewtasks='for task in doctor cleanup prune update; \
 do echo "===> Now on task ${task}" && brew ${task}; done;'

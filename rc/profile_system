@@ -106,7 +106,7 @@ new_path_marker() {
 
 if [ -x /usr/libexec/path_helper ]; then
     unset PATH
-    export PATH=/usr/bin:/bin:/usr/sbin/:sbin
+    export PATH=/usr/bin:/bin:/usr/sbin:sbin
     eval `/usr/libexec/path_helper -s`
 fi
 ################################################################################
@@ -117,11 +117,11 @@ fi
 ################################################################################
 ### System-wide editor settings
 
-export SHELL=/usr/local/bin/bash # <-- will vary
+export SHELL=/usr/local/bin/bash # <-- set for environment
 export EDITOR=emacsclient
 set -o emacs
 export TERMSERVER=termserver
-export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- will vary
+export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- set for environment
 ################################################################################
 
 
