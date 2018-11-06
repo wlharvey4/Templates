@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bashrc
-# 2018-11-06T08:30
+# 2018-11-06T11:00
 
 # User's .bashrc
 ################################################################################
@@ -12,7 +12,7 @@
 ################################################################################
 ### Set up USER'S prompts PS1, PS2, PS3, PS4
 
-export PS1="${PURPLEBOLD}[\!]${GREENBOLD}{\A}${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n${B_YELLOW}${F_BLACK} $ ${CLEAR}"
+export PS1="[${PURPLEBOLD}\!:\j] ${CYANBOLD}\u:\h ${GREENBOLD}\D{%a %b %d} \A ${BLUEBOLD}\w \e${CLEAR}\n$ "
 #export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
 # export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
 

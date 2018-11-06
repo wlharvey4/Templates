@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bash_profile
-# 2018-11-06T08:50
+# 2018-11-06T10:55
 
 # User's .bash_profile
 ################################################################################
@@ -36,21 +36,34 @@ export TERMSERVER=termserver
 ##    show_guiserver():helper function
 
 termserver() {
-    # The terminal server runs as a daemon; to determine whether a daemon is
+    # The terminal  server runs as a  daemon; to determine whether  a daemon is
     # currently running, look for daemon=termserver as a process using 'pgrep';
-    # to kill the daemon, kill the process; force-deleting the server in emacs
-    # breaks the connection with the process, but leaves the process running;
-    # starting a new daemon thereafter just accumulates processes.
-    # Execute this function from ~/.bashrc with --start option to always have a
-    # running terminal server (or use emacsserver --startall).
+    # to kill the daemon, kill the  process; force-deleting the server in emacs
+    # breaks the connection  with the process, but leaves  the process running;
+    # starting  a new  daemon thereafter  just accumulates  processes.  Execute
+    # this  function from  ~/.bashrc with  `--start'  option to  always have  a
+    # running terminal server  (or use `emacsserver --startall')  to start both
+    # the termserver and the guiserver at the same time.
+
+    # NOTE: There seems to be a kind of  bug in Bash; when a variable is empty,
+    # (including unset) `test -n  $VAR' ( `[ -n $VAR ]'  ) produces 'true', but
+    # [[ -n $VAR ]] produces 'false'.  `test  -z $VAR' ( `[ -z $VAR ]' produces
+    # true for any variable that contains either "" or " ".
+
+    # NOTE: there  was a glitch  in finding  the termserver using  `pgrep' when
+    # starting tmux  for the first  time; it would  find a number  of processes
+    # that  did  not  survive,  probably   because  they  included  the  phrase
+    # 'termserver' in  them; I found  that restricting  the PPID to  1 filtered
+    # just  the process  that  was needed.   This only  happened  on the  first
+    # invocation of tmux when no server was running.
 
     # --------------------------------------------------------------------------
     # USAGE: termserver [ --start | --kill ]
     #        without any options, display status and exit
     # --------------------------------------------------------------------------
 
-    termserver=$(pgrep -f termserver)
-    if [ $termserver ]
+    termserver=$(pgrep -P 1 -f termserver)
+    if [[ -n $termserver ]]
     then
 	printf "${YELLOWBOLD}Found a running termserver:${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
