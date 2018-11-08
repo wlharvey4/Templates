@@ -3,13 +3,13 @@
 
 # VARIABLE DEFINITIONS
 ######################
-
-SHELL := /usr/local/bin/bash
-ROOT  := $(PWD)
-FILE  := my_template
-
-FILES := files
 LODESTONE := .lodestone
+
+SHELL := /opt/local/bin/bash
+
+FILE  := my_template
+ROOT  := $(PWD)
+FILES := files
 
 # DEFAULT Target
 ################
@@ -20,12 +20,13 @@ default : TWJR
 
 # TWJR TARGETS
 ##############
-# Create everything; remove build files and logs.
-TWJR : twjr
-twjr : jrtangle jrweave info pdf html dirclean
 
-# Same as twjr, but don't delete any build or log files;
+# Process everything; don't remove any build or log files;
 twjrkeep : jrtangle jrweave info pdf html
+
+# Process everything; remove build files and logs.
+TWJR : twjr
+twjr : twjrkeep dirclean
 
 # JRTANGLE depends upon the LODESTONE and the ROOT FILES directory; if either is
 # missing or out of date, then JRTANGLE will be run to extract its files.

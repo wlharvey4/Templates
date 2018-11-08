@@ -4,9 +4,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input texinfo   @c -*- mode: texinfo -*-
 
-@  FILE    my_template.twjr
-@c VERSION 0.5.0
-@c DATE    2018-11-07T20:45
+@c FILE    my_template.twjr
+@c VERSION 0.6.0
+@c DATE    2018-11-07T10:50
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -25,16 +25,24 @@
 @c -----------------------------------------------------------------------------
 @set TITLE      Long Title Here
 @set SHORTTITLE Short Title Here
+@set AUTHOR WLHarvey4
 @set EDITION 0.n
 @set UPDATE-MONTH MONTH, YYYY @c goes in the subtitle
 @set COPYRIGHT-YEAR YYYY
-@set AUTHOR WLHarvey4
+@set COPYRIGHT-HOLDER Copyright Holder
 @set ADDRESS1 Address Line 1
 @set ADDRESS2 Address Line 2
 @c -----------------------------------------------------------------------------
 
+
+
+
+
+
+
+
 @c *****************************************************************************
-@c BIBCITE
+@c BIBCITE MACROS
 @c *****************************************************************************
 
 @c need to load macros before header
@@ -143,6 +151,16 @@
 
 @c -----------------------------------------------------------------------------
 
+
+
+
+
+
+
+@c *****************************************************************************
+@c SECTIONING / INDICES
+@c *****************************************************************************
+
 @iftex
 @set DOCUMENT book
 @set CHAPTER chapter
@@ -171,6 +189,18 @@
 @set SECTION section
 @set SUBSECTION subsection
 @end ifdocbook
+
+
+@c merge the function and variable indices into the concept index do so without
+@c the code  font, and in the  index entries do the  font management ourselves.
+@c Also  merge in  the chunk  definition and  reference entries,  which jrweave
+@c creates for us.
+@ifnothtml
+@synindex fn cp
+@synindex vr cp
+@synindex cd cp
+@synindex cr cp
+@end ifnothtml
 
 @c /////////////////////////////////////////////////////////////////////////////
 
@@ -201,8 +231,22 @@
 @end macro
 @end ifnottex
 
-@c -------------------------------------
-@c -------------------------------------
+
+@c <------------------------------------->
+@c The initial_setup code runs as a script
+@c in a  BEGIN section  of AWK  during the
+@c tangling  phase  before any  files  are
+@c extracted.   Here  create  a  directory
+@c structure for  project files,  plus any
+@c other initialization that might need to
+@c be   done.    Files  are   moved   into
+@c directories in a @post_create command.
+
+@c <------------------------------------->
+
+
+@c END Special TexiwebJr Commands
+@c /////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -211,29 +255,55 @@
 
 
 
-@c *****************************************************************************
-@c INDEX COMMANDS
-@c *****************************************************************************(
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN PRINTED MATTER
+@c --COPYING
+@c --FRONT MATTER
+@c   **TITLE PAGES
+@c     ..Short Title
+@c     ..Title Page
+@c     ..Copyright Page
+@c --MAIN MATTER
+@c   **Top
+@c     --- unpaginated ---
+@c     ..General Introduction
+@c     ..Menus
+@c     ..Table of Contents
+@c     --- paginated --- unnumbered ---
+@c     ..Front Matter
+@c       ~~Forward
+@c       ~~Preface
+@c     --- paginated --- numbered ---
+@c     ..Main Matter 
+@c       ~~Chapters
+@c         >>Sections
+@c           ^^Subsections
+@c             ##Subsubsections
+@c     --- paginated --- lettered ---
+@c       ~~Appendices
+@c --BACK MATTER
+@c   --- paginated --- unnumbered ---
+@c   **Lists (Unnumbered)
+@c     ..Bibliography
+@c     ..Tables
+@c     ..Indices
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-@c merge the function and variable indexes into the concept index
-@c do so without the code font, and in the index entries do the
-@c font management ourselves.  Also merge in the chunk definition
-@c and reference entries, which jrweave creates for us.
-@ifnothtml
-@synindex fn cp
-@synindex vr cp
-@synindex cd cp
-@synindex cr cp
-@end ifnothtml
 
 
 
 
-@c *****************************************************************************
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN COPYING
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @copying
-@c *****************************************************************************
 
-@ -----------------------------------------------------------------------------
+@c <------------------------------------->
 @docbook
 <para>Published by:</para>
 
@@ -248,24 +318,25 @@ URL: <ulink url="http://www.example.com/">http://www.example.com/</ulink></liter
 Full name here
 All Rights Reserved.</literallayout>
 @end docbook
-@c -----------------------------------------------------------------------------
+@c <------------------------------------->
 
 
-@c -----------------------------------------------------------------------------
+@c <------------------------------------->
 @ifnotdocbook
-Copyright @copyright{} YYYY, YYYY @*
-Full name here @*
+Copyright @copyright{} @value{COPYRIGHT-YEAR} @*
+@value{COPYRIGHT-HOLDER} @*
 All Rights Reserved.
 @end ifnotdocbook
-@c -----------------------------------------------------------------------------
+@c <------------------------------------->
 
 
 @sp 1
-The FOO program is copyright
-@copyright{} YYYY, YYYY by Full name here. It is published under
-the conditions of the GNU General Public License, version 3.
+The @value{TITLE} is copyrighted @copyright{} @value{COPYRIGHT-YEAR} by
+@value{COPYRIGHT-HOLDER}.  It is published under the conditions of the GNU
+General Public License, version 3.
 @sp 2
 This is Edition @value{EDITION} of @cite{@value{TITLE}}.
+
 
 @end copying
 @c /////////////////////////////////////////////////////////////////////////////
@@ -273,7 +344,15 @@ This is Edition @value{EDITION} of @cite{@value{TITLE}}.
 
 
 
-@c =============================================================================
+
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN TITLEPAGE
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @c Let texinfo.tex give us full section titles
 @xrefautomaticsectiontitle on
 
@@ -307,15 +386,16 @@ This is Edition @value{EDITION} of @cite{@value{TITLE}}.
 @c End extra commands added by jrweave
 
 @titlepage
-@c =============================================================================
 
 @c Uncomment this if it's ever printed as a real book(let).
 @c @shorttitlepage @value{SHORTTITLE}
 
 @title @value{TITLE}
-@subtitle @value{UPDATE-MONTH}
-@author @value{AUTHOR} @c Full Name here
+@subtitle @value{SHORTTITLE} Edition @value{EDITION} (@value{UPDATE-MONTH})
+@author @value{AUTHOR}
 
+
+@c <------------------------------------->
 @ifnotdocbook
 @c Include the Distribution inside the titlepage environment so
 @c that headings are turned off.  Headings on and off do not work.
@@ -333,15 +413,23 @@ URL: @url{http://www.example.com/} @*
 
 @insertcopying
 @end ifnotdocbook
+@c <------------------------------------->
+
 
 @end titlepage
 @c /////////////////////////////////////////////////////////////////////////////
 
 
 
-@c *****************************************************************************
-@c HEADINGS
-@c *****************************************************************************
+
+
+
+
+
+
+@c =============================================================================
+@c HEADINGS SETTINGS
+@c =============================================================================
 
 @iftex
 @headings off
@@ -349,6 +437,7 @@ URL: @url{http://www.example.com/} @*
 @oddheading  @strong{@thischapter} @| @value{DRAFT} @| @thispage
 @end iftex
 
+@c /////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -356,9 +445,13 @@ URL: @url{http://www.example.com/} @*
 
 
 
-@c #############################################################################
-@c BEGIN
-@c #############################################################################
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN TOP
+@c --General Introduction
+@c --Main Menu
+@c --Table of Contents
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -376,13 +469,10 @@ URL: @url{http://www.example.com/} @*
 @top General Introduction
 @c =============================================================================
 
-@c Preface node should come right after the Top
-@c node, in `unnumbered' sections, then the introductory chapter.
-@c Licensing nodes are appendices, they're not central to TexiWebJr.
-
-This file documents FOO, a program that does WHATEVER.
+This file documents @value{TITLE}, a program that does @dots{}.
 
 @insertcopying
+
 @end ifnotxml
 @end ifnotdocbook
 @end ifnottex
@@ -390,7 +480,10 @@ This file documents FOO, a program that does WHATEVER.
 
 
 
-@c =============================================================================
+@c -----------------------------------------------------------------------------
+
+@c                MENUS
+@c <------------------------------------->
 @menu
 * Preface::
 * Introduction::
@@ -409,7 +502,10 @@ Preface
 * Audience::                    Who should read this @value{DOCUMENT}.
 * Overview::                    An overview of the @value{DOCUMENT}.
 * Conventions::                 Typographical conventions.
-* Acknowledgements::            Acknowledgements.
+
+First Chapter Title
+
+* First Section::
 
 The Makefile
 
@@ -428,15 +524,31 @@ Code Chunk Summaries
 @end detailmenu
 @end menu
 
-@c =============================================================================
+@c <------------------------------------->
 
 
-
-
-@c =============================================================================
+@c                 TOC
+@c <------------------------------------->
 @c @summarycontents
 @contents
-@c =============================================================================
+@c <------------------------------------->
+
+
+@c END Menus and Contents
+@c /////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN FRONT-MATTER
+@c --Forward
+@c --Preface
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -446,12 +558,16 @@ Code Chunk Summaries
 
 
 @c *****************************************************************************
+@c                                 FORWARD
 
-@c Add these to the menu if they ever get included.
 @c @node Foreword
 @c @unnumbered Foreword
 
 
+@c END Forward
+@c /////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
@@ -459,6 +575,15 @@ Code Chunk Summaries
 
 
 @c *****************************************************************************
+@c                               PREFACE
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN Preface
+@c --Audience
+@c --Overviw
+@c --Conventions
+@c --Acknowledgements
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 @node Preface, Introduction, Top, Top
 @unnumbered Preface
@@ -469,68 +594,114 @@ Text here.
 * Audience::                    Who should read this @value{DOCUMENT}.
 * Overview::                    An overview of the @value{DOCUMENT}.
 * Conventions::                 Typographical conventions.
-* Acknowledgements::            Acknowledgements.
 @end menu
 
 
 
 
 @c -----------------------------------------------------------------------------
+
 @node Audience, Overview, Preface, Preface
 @unnumberedsec Intended Audience
 
-First, what is literate programming? To  begin this conversation, it is just as
-important to understand  what it is not  as what it is. It  is @emph{not} about
-@b{documentation}.
+Who should read  this document?  First, what is literate  programming? To begin
+this conversation, it is just as important to understand what it is not as what
+it is. It is @emph{not}  @b{documentation}.  It is, rather, a @emph{programming
+paradigm}, or  perhaps a @emph{programming  meta-language} sitting on top  of a
+conventional programming language.  Here are a few quotes to set the context:
 
 @quotation
-Read your  first page: YOU  GOT IT TOTALLY  WRONG. Literate programming  is NOT
-about  documentation in  the first  place.  All quotes  you tore  out speak  of
-literate programming as if it's just a documentation system. While it is not.
+@sansserif{Read your  first page: YOU  GOT IT TOTALLY  WRONG. Literate
+programming is NOT about documentation in the first place.  All quotes
+you  tore  out  speak  of  literate programming  as  if  it's  just  a
+documentation system.  While it is not.}
 
-Literate   programming  is   a  PROGRAMMING   PARADIGM,  or   if  you   wish  a
-"META-LANGUAGE", on top of machine-coding  language, which was created with the
-purpose of:  a) allowing humans  to create abstractions over  abstractions over
-abstractions with macros (which are phrases in a human language and if you wish
-are precise "new operators" in that meta-language, created on the fly). b) this
-system of macros can be created not  in machine demanded order, but as need for
-logical  thinking.   Later  it  is  reshuffled   ("tangled",  i.e.  convoluted,
-scrambled) from the natural into the inhuman machine codes.
+@sansserif{Literate programming  is a PROGRAMMING PARADIGM,  or if you
+wish a "META-LANGUAGE",  on top of machine-coding  language, which was
+created with the purpose of: a) allowing humans to create abstractions
+over abstractions over abstractions with  macros (which are phrases in
+a human language  and if you wish are precise  "new operators" in that
+meta-language, created  on the fly). b)  this system of macros  can be
+created  not  in machine  demanded  order,  but  as need  for  logical
+thinking.   Later  it  is  reshuffled  ("tangled",  i.e.   convoluted,
+scrambled) from the natural into the inhuman machine codes.}
 
-You totally missed the  idea, and in the case of blind  leading the blind quote
-scores of other misreaders. Literate  programming is not a documentation system
-per ce, it's a programming paradigm.
+@sansserif{You  totally missed  the idea,  and  in the  case of  blind
+leading  the   blind  quote  scores  of   other  misreaders.  Literate
+programming is not  a documentation system per se,  it's a programming
+paradigm.}
 
-@author Astonished Reader. "On Misreadings", email, January 2009.
-@mybibcite{LitProg:Home}
+@author Astonished Reader @mybibcite{LitProg:Home}
 @end quotation
 
-It is literature teaching people about a very complex system, a set of symbols
-intended for a machine to interpret and turn into action.
+It is literature  teaching people about a  very complex system, i.e.,  a set of
+symbols intended for  humans about a set  of symbols intended for  a machine to
+interpret and turn into action.
 
 @quotation
-Let us change our traditional attitude to the construction of programs: Instead
-of imagining that  our main task is to  instruct a computer what to  do, let us
-concentrate rather on explaining to human beings what we want a computer to do.
+@sansserif{Let us change our  traditional attitude to the construction
+of programs: Instead of imagining that  our main task is to instruct a
+computer what to do, let us  concentrate rather on explaining to human
+beings what we want a computer to do.}
 @author Donald Knuth @mybibcite{LitProg:Knuth}
 @end quotation
 
 @quotation
-Literate programming is the art of preparing programs for human readers.
+@sansserif{Literate programming  is the art of  preparing programs for
+human readers.}
 @author Norman Ramsey @mybibcite{LitProg:Ramsey}
 @end quotation
 
-Therefore,  it  is important  to  understand  that  literate programming  is  a
-programming  paradigm  that allows  greater  abstraction  than the  programming
-language itself, and it is a paradigm  that is based upon the logical needs and
-understandings of the  programming author speaking to  other programmers, while
-at the  same time,  it is  a paradigm designed  to allow  a computer  system to
-``tangle'' the programming author's ideas into  a system that is understood and
-processed by a  machine according to the machine's  requirements, i.e., machine
-code.
+Literate programming  is a  programming paradigm  or meta-language  that allows
+greater abstraction than the programming language itself; it is a paradigm that
+is based  upon the logical needs  and understandings of the  programming author
+speaking to programming  readers (including him or herself), while  at the same
+time,  in parallel,  it is  a  paradigm or  meta-language designed  to allow  a
+computer system to  @emph{tangle} the programming author's ideas  into a system
+that  is understood  and  processed by  a machine  according  to the  machine's
+requirements: machine code.
 
-This document is  intended for human consumption. If you  are a machine, please
-refer to the tangled up mess that has been prepared for you as source code.
+In the case  of literate programming via the  @file{TexiWebJr} system, however,
+there is the added advantage that  during the @emph{weaving} process the author
+is producing two  dual abstractions for readers: @b{nodes}  (via an @file{Info}
+file)  and  @b{sectioning}  (via   a  hyperlinked  @file{Pdf}  document),  each
+inherently independent  yet working in concert  to produce at one  and the same
+time  both graph-based  and chapter-based  output, each  with its  own inherent
+strengths  and  advantages.  The  @file{TexiWebJr}  system  goes even  further,
+however, in  producing a  third output which  is a hybrid  of both  systems, an
+@acronym{HTML}  form (via  an @acronym{HTML}  web  site) that  combines both  a
+sectioning output  and a graph-based  output.  You  have your choice  of graph,
+sectioning, and combined,  all of which is fully  indexed and cross-referenced,
+from one  source file.
+
+It  is an  inherent aspect  of literate  programming that  there is  always one
+source document,  so that by  changing any one part  of the system,  the author
+updates all  forms of  output at  one and the  same time.   It is  perhaps this
+aspect of  literate programming  that causes the  confusion with  thinking that
+literate  programming  is  solely   about  @emph{documentation}.   In  reality,
+however, that  is just one  aspect of literate  programming; the real  point of
+literate programming  is that the author  can attack the problem  of creating a
+complex system from an abstract logical position disconnected to a large degree
+from the  requirements of  the computer  machine and present  the problem  to a
+reader in a way  that will provide true understanding with  less effort than if
+the reader had to understand the system from the computer's point of view
+
+And finally, I use  literate programming as a form of  education.  It allows me
+to  take a  complex situation  and break  it down  into hierarchies  of simpler
+parts, but at  the same time provide links and  cross-references and indices to
+tie the complex  system together into a web of  inter-related parts, which form
+the whole.  Using this form of literate programming, I can create one big whole
+system, and iteratively rework it into a web of inter-related parts that inform
+my growing understanding  of the system as a whole,  while never destroying the
+system's inherent  integrity to operate as  a functional machine.
+
+In summary, I see the advantages of literate programming to be immense and that
+far outweigh the  relatively high cost of  learning how to do it  (which is for
+certain a life-long endeavor in itself).  Therefore, dear Reader, this document
+is intended for human  consumption.  If you are a machine,  please refer to the
+tangled mess that has  been prepared for you as source  code.  Whoever you are,
+enjoy.  Cheers.
+
 
 
 @c -----------------------------------------------------------------------------
@@ -543,7 +714,7 @@ Overview text and chapter by chapter description here.
 
 
 @c -----------------------------------------------------------------------------
-@node Conventions, Acknowledgements, Overview, Preface
+@node Conventions,  , Overview, Preface
 @unnumberedsec Typographical Conventions
 
 @c Copied mostly verbatim from the gawk manual.
@@ -588,16 +759,28 @@ in this sentence.  Finally, file names are indicated like this:
 
 
 @c -----------------------------------------------------------------------------
-@node Acknowledgements,  , Conventions, Preface
-@unnumberedsec Acknowledgements
 
-Acknowledgements go here.
+@c @node Acknowledgements
+@c @unnumberedsec Acknowledgements
+
+@c Acknowledgements go here.
 
 
-
-
-@c /////////////////////////////////////////////////////////////////////////////
 @c END Preface
+@c /////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN CHAPTERS
+@c --Introduction
+@c --Chapters 1-1
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -607,10 +790,16 @@ Acknowledgements go here.
 
 
 @c *****************************************************************************
+@c                              INTRODUCTION
+
 @node Introduction, First chapter, Preface, Top
 @chapter Introduction
 
 
+@c END Chapter Introduction
+@c /////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
@@ -618,6 +807,7 @@ Acknowledgements go here.
 
 
 @c *****************************************************************************
+@c                              CHAPTER ONE
 
 @node First chapter, The Makefile, Introduction, Top
 @chapter First Chapter Title
@@ -628,10 +818,36 @@ Acknowledgements go here.
 
 
 
+@c -----------------------------------------------------------------------------
+@c                              Section One
 
-@c =============================================================================
-@c APPENDICES
-@c =============================================================================
+@menu
+* First Section::
+@end menu
+
+@node First Section,  , First chapter, First chapter
+@section First Section Title
+
+
+@c END Chapter First
+@c /////////////////////////////////////////////////////////////////////////////
+
+
+@c END CHAPTERS
+@c /////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN APPENDICES
+@c --The Makefile
+@c --Code Chunk Summaries
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -641,6 +857,7 @@ Acknowledgements go here.
 
 
 @c *****************************************************************************
+@c                              THE MAKEFILE
 
 @node The Makefile, Code Chunk Summaries, First chapter, Top
 @appendix The Makefile
@@ -704,13 +921,23 @@ The following table lists called chunk definition points.
 The @env{SHELL} variable is included because some shell commands depend upon
 Bash version 4, which is not native on my system.
 
-The @env{ROOT} varible is designed to allow  you to to extract the source files
+The @env{ROOT} variable is designed to allow you to to extract the source files
 (not the @acronym{TEXI}, @acronym{INFO}, @acronym{PDF} or @acronym{HTML} files,
-but the programs defined inside the @acronym{TWJR} file) to a directory outside
-of the your ``present working  directory'' (@env{PWD}) should that be something
-you want to do.
+but  the  programs defined  inside  the  @acronym{TWJR}  file) to  a  directory
+structure outside of the your  ``present working directory'' (@env{PWD}) should
+that be something you want to do, i.e., for production purposes.
 
-The @code{FILE} variable is the name of the @code{TWJR} file without extension.
+The @code{FILE} variable  is the name of this source  @code{TWJR} file, without
+extension.
+
+The @code{FILES} variable is the name of  the root directory for the files that
+are extracted during the @emph{tangling} phase.  This directory goes underneath
+the @file{ROOT} directory.  Feel free to name this whatever you want.
+
+The @code{LODESTONE}  variable is an empty  reference file that is  used solely
+for its  modification time  to help  the Makefile  determine when  to recompile
+(i.e., @emph{tangle} and @emph{weave}) the  source @file{TWJR} file.  It should
+not be changed or otherwise touched (pun intended).
 
 @need 400
 @anchor{Makefile---Variable-Definitions}
@@ -720,13 +947,13 @@ The @code{FILE} variable is the name of the @code{TWJR} file without extension.
 @example
 # VARIABLE DEFINITIONS
 ######################
-
-SHELL := /usr/local/bin/bash
-ROOT  := $(PWD)
-FILE  := my_template
-
-FILES := files
 LODESTONE := .lodestone
+
+SHELL := /opt/local/bin/bash
+
+FILE  := my_template
+ROOT  := $(PWD)
+FILES := files
 
 @end example
 @iftex
@@ -752,19 +979,54 @@ The @code{default} target  extracts all source files and moves  them into their
 proper  directories,  and  processes  the   @code{TEXI}  source  file  into  an
 @code{INFO}  file, a  @code{PDF} document,  and an  @code{HTML} web  site. This
 process automatically updates the TEXI's nodes and sectioning commands prior to
-generating  the   INFO,  PDF,   and  HTML   documents.  What   used  to   be  a
+generating  the   INFO,  PDF,  and   HTML  documents.    What  used  to   be  a
 manually-intensive process is now completely  automated through a Makefile that
-is extracted from the @code{TWJR} source.  This process depends upon the system
-containing  @file{make},  @file{Texinfo}  of  at least  version  6.5  (for  the
-weaving),  @file{GNU  AWK}  (for  the  tangling),  and  @file{Emacs}  (for  the
-updating).
+is extracted from the @code{TWJR}  source.
 
-The  target @code{TWJR}  will run  both commands  @command{jrtangle} (producing
-code  output) and  @command{jrweave}  (producing documentation  output) on  the
-@code{TWJRJ}  source  code, while  the  target  @code{WEAVE} (or  alternatively
-@code{TEXI}) will  run just  the command  @command{jrweave} on  the @file{TWJR}
-file.  If the  @file{TWJR} source  file  has been  modified, then  it will  run
-@command{jrtangle} first.
+This  automated  process  depends   upon  the  programmer's  system  containing
+@file{GNU   AWK}  (for   the   primary  literate   programming  operations   of
+@emph{tangling}   and   @emph{weaving}@footnote{No  other   implementation   of
+@file{AWK}  will  work}),   @file{make}  (to  control  the   build  and  output
+processes@footnote{While I haven't tested it, just about any @file{make} should
+work}),  @file{Texinfo} of  at least  version 6.5  (for the  processing of  the
+@file{TEXI} output file), @file{makeinfo} (to produce the @file{INFO} file from
+the @file{TEXI}  file), and @file{Emacs}  (for the automatic updating  of nodes
+and sectioning  command@footnote{Again, while I  haven't tested it,  just about
+any @file{Emacs}  should work}).   With these  dependencies, everything  can be
+compiled with a single call to @command{make} with no argument:
+
+@example
+$ make
+@end example
+
+Individual files and documents can also be targeted with simple calls such as:
+
+@example
+$ make html
+
+$ make openhtml
+
+$ make pdf
+
+$ make openpdf
+
+$make info
+
+$ make openinfo
+
+$ make distclean
+
+$ make allclean
+@end example
+
+@noindent and so forth (just name a few).
+
+The target  @code{twjr} is  the default, and  does everything  explicitly.  The
+target @code{weave}  (or alternatively @code{texi})  will run just  the command
+@command{jrweave}  on the  @file{TWJR} file  to produce  the @file{TEXI}  file,
+which  is  directly  responsible  for  producing  the  output  files.   If  the
+@file{TWJR}  source  file has  been  modified,  then @command{maked}  will  run
+@command{jrtangle} first to update all source documents.
 
 @need 400
 @anchor{Makefile---Default-Target}
@@ -774,8 +1036,9 @@ file.  If the  @file{TWJR} source  file  has been  modified, then  it will  run
 @example
 # DEFAULT Target
 ################
-.PHONY : TWJR JRTANGLE JRWEAVE TEXI INFO PDF HTML
-.PHONY : default twjr jrtangle jrweave weave texi info pdf html newmakefile
+.PHONY : TWJR JRTANGLE TANGLE JRWEAVE WEAVE TEXI INFO PDF HTML
+.PHONY : default twjr twjrkeep jrtangle tangle
+.PHONY : jrweave weave texi info pdf html newmakefile
 
 default : TWJR
 
@@ -804,18 +1067,28 @@ in some  way. The @file{make} target  @command{twjr} is the default  target and
 runs each of the processes  @command{jrtangle} and @command{jrweave} to produce
 source files,  a @acronym{TEXI} file,  an @acronym{INFO} file,  a @acronym{PDF}
 document, and an @acronym{HTML} web site.  It only sources what is necessary as
-@file{make} is  designed to do.  Note that  at this time,  ``weaving'' includes
+@file{make} is designed to do.  Note that at this time, @emph{weaving} includes
 automatic  menu and  node  updating  of the  @acronym{TEXI}  file,  so that  an
 @acronym{INFO} file  can also be  generated without needing to  manually update
 the  @acronym{TEXI} file  first  as used  to be  the  case. @file{make}  target
 @code{info}     runs     @command{makeinfo},     target     @code{pdf}     runs
 @command{pdftexi2dvi}, and target @code{html} runs @command{makeinfo --html}.
 
+The default @file{twjr} target deletes all extraneous build and log files prior
+to finishing.   If you want  to retain  the build and  log files, then  run the
+target @file{twjrkeep} instead.
+
 The  file  @file{.lodestone}   is  used  to  set  a  reference   time  for  the
 @acronym{TWJR} file,  so that  if the @acronym{TWJR}  file changes,  new source
 documents will be generated; otherwise, it  will simply be left alone. In other
 words, if @file{.lodestone}  is older than @file{.twjr},  then @file{.twjr} has
-been modified, and it should be ``tangled'' and ``woven'' first.
+been modified, and it should be @emph{tangled} and @emph{woven} first.  If it is
+newer, then @command{make} will not recompile.
+
+Should the @file{Makefile}  portion of the @file{TWJR} be modified,  then it is
+important to  obtain a fresh copy  of the @file{Makefile} prior  to running any
+target; therefore,  use the target  @command{make newmakefile} first,  then run
+any desired target.
 
 @need 400
 @anchor{Makefile---TWJR-Targets}
@@ -825,15 +1098,17 @@ been modified, and it should be ``tangled'' and ``woven'' first.
 @example
 # TWJR TARGETS
 ##############
-# Create everything; remove build files and logs.
-TWJR : twjr
-twjr : jrtangle jrweave info pdf html dirclean
 
-# Same as twjr, but don't delete any build or log files;
+# Process everything; don't remove any build or log files;
 twjrkeep : jrtangle jrweave info pdf html
 
-# JRTANGLE depends upon the LODESTONE and the ROOT FILES directory; if either is
-# missing or out of date, then JRTANGLE will be run to extract its files.
+# Process everything; remove build files and logs.
+TWJR : twjr
+twjr : twjrkeep dirclean
+
+# JRTANGLE depends upon the LODESTONE and the ROOT FILES directory;
+# if either is missing or out of date, then JRTANGLE will be run to
+# extract its files.
 JRTANGLE : TANGLE
 TANGLE   : jrtangle
 jrtangle : tangle
@@ -844,13 +1119,13 @@ $(LODESTONE) : $(FILE).twjr
     @@touch $(LODESTONE)
     @@printf "$@{GREEN@}done tangling.$@{CLEAR@}\n"
 
-# Extract the source files using jrtangle
+# Extracts the source files using jrtangle
 $(ROOT)/$(FILES) :
     @@jrtangle $(FILE).twjr
     @@touch $(LODESTONE)
 
-# Extracts the Makefile if necessary by tangling; everything else is thereafter
-# deleted
+# Extracts the Makefile if necessary by tangling; everything else
+# is thereafter deleted
 newmakefile : $(LODESTONE)
     make allclean
 
@@ -871,6 +1146,8 @@ $(FILE).texi : $(FILE).twjr
       (texinfo-master-menu 1) (save-buffer 0))' 2> batch.log
     @@printf "$@{GREEN@}done updating.$@{CLEAR@}\n"
 
+# Runs makeinfo on the TEXI file;
+# Opens the INFO file in Emacs
 INFO : info
 info : $(FILE).info
 $(FILE).info : $(FILE).texi
@@ -882,6 +1159,8 @@ openinfo : INFO
     @@emacsclient -s server --eval '(info "($(ROOT)/$(FILE).info)top")'
     @@printf "$@{GREEN@}done$@{CLEAR@}\n"
 
+# Runs pdftexi2dvi on the TEXI file;
+# Opens the PDF file
 PDF : pdf
 pdf : $(FILE).pdf
 $(FILE).pdf : $(FILE).texi
@@ -893,6 +1172,8 @@ openpdf : PDF
     @@open $(FILE).pdf
     @@printf "$@{GREEN@}done$@{CLEAR@}\n"
 
+# Runs makeinfo --html on the TEXI file;
+# Opens index.html in a browser
 HTML : html
 html : $(FILE)/index.html
 $(FILE)/index.html : $(FILE).texi
@@ -927,10 +1208,11 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 The @command{clean} target removes  backup files. The @command{dirclean} target
 removes build  directories and log  files, but  not source files  (those inside
 @file{files} directory,  e.g., @file{bin/} and and  @file{src/}) and associated
-files  and programs  inside them.  The @command{distclean}  target removes  the
+files and  programs inside  them.  The  @command{distclean} target  removes the
 @acronym{INFO}, @acronym{PDF},  @acronym{HTML}, and @acronym{source}  files and
-directories. Finally,  the @command{allclean} target removes everything except
-the @acronym{TWJR} file and the @file{Makefile}.
+directories, leaving just  the @file{TWJR} file, the @file{TEXI}  file, and the
+@file{Makefile}.  Finally,  the  @command{allclean} target  removes  everything
+except the @acronym{TWJR} file and the @file{Makefile}.
 
 @need 400
 @anchor{Makefile---Clean-Targets}
@@ -992,6 +1274,11 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 @appendixsec Makefile Applications
 @cindex Makefile applications
 
+Place any targets for running  code-specific commands here, such as executables
+in the @file{bin/} directory.  The file @verb{|@<Makefile---Applicaionts@>|} is
+a hook  that can  be used in  another part  of the source  document; this  is a
+fundamental feature of literate programming.
+
 @need 400
 @anchor{Makefile---Applications}
 @cdindex @r{<@i{Makefile---Applications}>}, definition
@@ -1011,6 +1298,9 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 @end iftex
 
 
+@c END The Makefile
+@c /////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -1018,6 +1308,8 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 
 
 @c *****************************************************************************
+@c                        CODE CHUNK SUMMARIES
+
 @node Code Chunk Summaries, @mybibnode{}, The Makefile, Top
 @appendix Code Chunk Summaries
 
@@ -1100,12 +1392,31 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 @end table
 
 
+@c END Code Chunk Summaries
+@c /////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c BEGIN END MATTER
+@c --Bibliography
+@c --Tables
+@c --Indices
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 
 
 
 
 
 @c *****************************************************************************
+@c                                BIBLIOGRAPHY
 
 @node @mybibnode{}, List of Tables, Code Chunk Summaries, Top
 @unnumbered Bibliography
@@ -1113,7 +1424,7 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 @table @asis
 
 @mybibitem{LitProg:Home}
-@url{http://www.literateprogramming.com/}
+"On Misreadings", email, January 2009 @url{http://www.literateprogramming.com/}
 
 @mybibitem{LitProg:Knuth}
 @url{``Literate Programming (1984)'' in Literate Programming. CSLI, 1992, pg.
@@ -1125,6 +1436,9 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 @end table
 
 
+@c END Bibliography
+@c /////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -1132,12 +1446,16 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 
 
 @c *****************************************************************************
+@c                             LIST OF TABLES
 
 @node List of Tables, Concept Index, @mybibnode{}, Top
 @unnumbered List of Tables
 
 @listoffloats Table
 
+
+@c END Lists
+@c /////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -1146,10 +1464,23 @@ This chunk is called by @r{@{@file{Makefile}@}}; see its first definition at @re
 
 
 @c  *****************************************************************************
+@c                               CONCEPT INDEX
+
 @node Concept Index,  , List of Tables, Top
 @unnumbered Index
 
 @printindex cp
+
+
+@c END Indices
+@c /////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
 
 @bye
 
