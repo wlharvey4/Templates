@@ -1,0 +1,137 @@
+# MAKEFILE FILE CHUNKS
+######################
+
+# VARIABLE DEFINITIONS
+######################
+
+SHELL := /usr/local/bin/bash
+ROOT  := $(PWD)
+FILE  := my_template
+
+FILES := files
+LODESTONE := .lodestone
+
+# DEFAULT Target
+################
+.PHONY : TWJR JRTANGLE JRWEAVE TEXI INFO PDF HTML
+.PHONY : default twjr jrtangle jrweave weave texi info pdf html newmakefile
+
+default : TWJR
+
+# TWJR TARGETS
+##############
+# Create everything; remove build files and logs.
+TWJR : twjr
+twjr : jrtangle jrweave info pdf html dirclean
+
+# Same as twjr, but don't delete any build or log files;
+twjrkeep : jrtangle jrweave info pdf html
+
+# JRTANGLE depends upon the LODESTONE and the ROOT FILES directory; if either is
+# missing or out of date, then JRTANGLE will be run to extract its files.
+JRTANGLE : TANGLE
+TANGLE   : jrtangle
+jrtangle : tangle
+tangle   : $(LODESTONE) $(ROOT)/$(FILES)
+$(LODESTONE) : $(FILE).twjr
+	@printf "${YELLOW}Tangling $(FILE)...${CLEAR}\n"
+	@jrtangle $(FILE).twjr
+	@touch $(LODESTONE)
+	@printf "${GREEN}done tangling.${CLEAR}\n"
+
+# Extract the source files using jrtangle
+$(ROOT)/$(FILES) :
+	@jrtangle $(FILE).twjr
+	@touch $(LODESTONE)
+
+# Extracts the Makefile if necessary by tangling; everything else is thereafter
+# deleted
+newmakefile : $(LODESTONE)
+	make allclean
+
+# Extracts the TEXI, and updates the nodes and sections with a batch call to
+# Emacs; it depends upon TWJR
+JRWEAVE : WEAVE
+WEAVE   : jrweave
+jrweave : weave
+weave : TEXI
+TEXI  : texi
+texi  : $(FILE).texi
+$(FILE).texi : $(FILE).twjr
+	@printf "${YELLOW}Weaving $(FILE)...${CLEAR}\n"
+	@jrweave $(FILE).twjr > $(FILE).texi
+	@printf "${GREEN}done weaving.${CLEAR}\n";
+	@printf "${YELLOW}updating $(FILE)'s menus and nodes...${CLEAR}\n"
+	@emacs --batch --eval '(progn (find-file "./$(FILE).texi" nil) \
+	  (texinfo-master-menu 1) (save-buffer 0))' 2> batch.log
+	@printf "${GREEN}done updating.${CLEAR}\n"
+
+INFO : info
+info : $(FILE).info
+$(FILE).info : $(FILE).texi
+	@printf "${YELLOW}Creating an INFO file...${CLEAR}\n"
+	@makeinfo $(FILE).texi
+	@printf "${GREEN}done${CLEAR}\n"
+openinfo : INFO
+	@printf "${YELLOW}Opening INFO in Emacs...${CLEAR}\n"
+	@emacsclient -s server --eval '(info "($(ROOT)/$(FILE).info)top")'
+	@printf "${GREEN}done${CLEAR}\n"
+
+PDF : pdf
+pdf : $(FILE).pdf
+$(FILE).pdf : $(FILE).texi
+	@printf "${YELLOW}Creating a PDF file...${CLEAR}\n"
+	@pdftexi2dvi --build=tidy --build-dir=build --quiet $(FILE).texi
+	@printf "${GREEN}done${CLEAR}\n"
+openpdf : PDF
+	@printf "${YELLOW}Opening PDF...${CLEAR}\n"
+	@open $(FILE).pdf
+	@printf "${GREEN}done${CLEAR}\n"
+
+HTML : html
+html : $(FILE)/index.html
+$(FILE)/index.html : $(FILE).texi
+	@printf "${YELLOW}Creating an HTML directory...${CLEAR}\n"
+	@makeinfo --html $(FILE).texi
+	@printf "${GREEN}done${CLEAR}\n"
+openhtml : HTML
+	@printf "${YELLOW}Opening INDEX.HTML in the browser...${CLEAR}\n"
+	@open $(FILE)/index.html
+	@printf "${GREEN}done${CLEAR}\n"
+
+.PHONY : clean dirclean distclean worldclean allclean
+
+# remove backup files
+clean :
+	@printf "${WHITEBOLD}Cleaning...${CYAN}\n"
+	@rm -f *~ .*~ #*#
+	@printf "${GREEN}done cleaning.${CLEAR}\n"
+
+# after clean: remove all build and miscellaneous files, leaving only
+# TWJR, TEXI, INFO, HTML, PDF, Makefile & the source documents.
+dirclean : clean
+	@printf "${WHITEBOLD}Dir-cleaning...${CYAN}\n"
+	@for file in *; do         \
+	  case $$file in           \
+	    $(FILE)* | Makefile) ;;\
+	    files*)	 	 ;;\
+	    $(LODESTONE))        ;;\
+	    *) rm -vfr $$file	 ;;\
+	  esac                     \
+	done
+	@printf "${GREEN}done dir-cleaning.${CLEAR}\n"
+
+# after dirclean: remove INFO, HTML, and PDF, and FILES
+distclean : dirclean
+	@printf "${WHITEBOLD}Dist-cleaning...${CYAN}\n"
+	@rm -vfr $(FILE) $(FILE).info $(FILE).pdf $(ROOT)/$(FILES)
+	@printf "${GREEN}done dist-cleaning.${CLEAR}\n"
+
+# allclean: remove TEXI, leaving only TWJR and Makefile
+allclean : distclean
+	@printf "${WHITEBOLD}Cleaning all...${CYAN}\n"
+	@rm -vfr $(FILE).texi
+	@printf "${GREEN}done cleaning all.${CLEAR}\n"
+
+
+
