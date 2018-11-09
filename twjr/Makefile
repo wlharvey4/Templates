@@ -5,7 +5,7 @@
 ######################
 LODESTONE := .lodestone
 
-SHELL := /opt/local/bin/bash
+SHELL := /usr/local/bin/bash
 
 FILE  := my_template
 ROOT  := $(PWD)
@@ -13,8 +13,9 @@ FILES := files
 
 # DEFAULT Target
 ################
-.PHONY : TWJR JRTANGLE JRWEAVE TEXI INFO PDF HTML
-.PHONY : default twjr jrtangle jrweave weave texi info pdf html newmakefile
+.PHONY : TWJR JRTANGLE TANGLE JRWEAVE WEAVE TEXI INFO PDF HTML
+.PHONY : default twjr twjrkeep jrtangle tangle
+.PHONY : jrweave weave texi info pdf html newmakefile
 
 default : TWJR
 
@@ -28,25 +29,35 @@ twjrkeep : jrtangle jrweave info pdf html
 TWJR : twjr
 twjr : twjrkeep dirclean
 
-# JRTANGLE depends upon the LODESTONE and the ROOT FILES directory; if either is
-# missing or out of date, then JRTANGLE will be run to extract its files.
+# JRTANGLE depends upon the LODESTONE and the ROOT/FILES directory;
+# if either is missing or out of date, then JRTANGLE will be run to
+# extract its files.
 JRTANGLE : TANGLE
 TANGLE   : jrtangle
 jrtangle : tangle
-tangle   : $(LODESTONE) $(ROOT)/$(FILES)
+tangle   : files $(LODESTONE)
+
+# Checks the relative time to determine if JRTANGLE should be rerun
 $(LODESTONE) : $(FILE).twjr
 	@printf "${YELLOW}Tangling $(FILE)...${CLEAR}\n"
 	@jrtangle $(FILE).twjr
 	@touch $(LODESTONE)
 	@printf "${GREEN}done tangling.${CLEAR}\n"
 
-# Extract the source files using jrtangle
-$(ROOT)/$(FILES) :
-	@jrtangle $(FILE).twjr
-	@touch $(LODESTONE)
+# Checks for  the existence  of the ROOT/FILES  directory; extracts  files into
+# them if they don't  exist or are out of date; they must  be retouched if they
+# exist but  are out of date  because they will  not be remade or  updated when
+# files are extracted into them
+files : $(ROOT)/$(FILES)
+$(ROOT)/$(FILES) : $(FILE).twjr
+	@printf "${YELLOW}Creating files...${CLEAR}\n"
+	@touch $(FILE).twjr
+	@make $(LODESTONE)
+	@touch $(ROOT)/$(FILES)
+	@printf "${GREEN}done creating files.${CLEAR}\n"
 
-# Extracts the Makefile if necessary by tangling; everything else is thereafter
-# deleted
+# Extracts the Makefile if necessary by tangling; everything else
+# is thereafter deleted
 newmakefile : $(LODESTONE)
 	make allclean
 
@@ -67,6 +78,8 @@ $(FILE).texi : $(FILE).twjr
 	  (texinfo-master-menu 1) (save-buffer 0))' 2> batch.log
 	@printf "${GREEN}done updating.${CLEAR}\n"
 
+# Runs makeinfo on the TEXI file;
+# Opens the INFO file in Emacs
 INFO : info
 info : $(FILE).info
 $(FILE).info : $(FILE).texi
@@ -78,6 +91,8 @@ openinfo : INFO
 	@emacsclient -s server --eval '(info "($(ROOT)/$(FILE).info)top")'
 	@printf "${GREEN}done${CLEAR}\n"
 
+# Runs pdftexi2dvi on the TEXI file;
+# Opens the PDF file
 PDF : pdf
 pdf : $(FILE).pdf
 $(FILE).pdf : $(FILE).texi
@@ -89,6 +104,8 @@ openpdf : PDF
 	@open $(FILE).pdf
 	@printf "${GREEN}done${CLEAR}\n"
 
+# Runs makeinfo --html on the TEXI file;
+# Opens index.html in a browser
 HTML : html
 html : $(FILE)/index.html
 $(FILE)/index.html : $(FILE).texi
@@ -115,7 +132,7 @@ dirclean : clean
 	@for file in *; do         \
 	  case $$file in           \
 	    $(FILE)* | Makefile) ;;\
-	    files*)	 	 ;;\
+	    $(FILES)*)	 	 ;;\
 	    $(LODESTONE))        ;;\
 	    *) rm -vfr $$file	 ;;\
 	  esac                     \

@@ -5,8 +5,8 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.6.0
-@c DATE    2018-11-07T10:50
+@c VERSION 0.6.2
+@c DATE    2018-11-09T07:35
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -157,6 +157,7 @@
 
 
 
+
 @c *****************************************************************************
 @c SECTIONING / INDICES
 @c *****************************************************************************
@@ -274,7 +275,7 @@
 @c       ~~Forward
 @c       ~~Preface
 @c     --- paginated --- numbered ---
-@c     ..Main Matter 
+@c     ..Main Matter
 @c       ~~Chapters
 @c         >>Sections
 @c           ^^Subsections
@@ -394,7 +395,6 @@ This is Edition @value{EDITION} of @cite{@value{TITLE}}.
 @subtitle @value{SHORTTITLE} Edition @value{EDITION} (@value{UPDATE-MONTH})
 @author @value{AUTHOR}
 
-
 @c <------------------------------------->
 @ifnotdocbook
 @c Include the Distribution inside the titlepage environment so
@@ -415,10 +415,9 @@ URL: @url{http://www.example.com/} @*
 @end ifnotdocbook
 @c <------------------------------------->
 
-
 @end titlepage
-@c /////////////////////////////////////////////////////////////////////////////
 
+@c /////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -482,8 +481,8 @@ This file documents @value{TITLE}, a program that does @dots{}.
 
 @c -----------------------------------------------------------------------------
 
-@c                MENUS
 @c <------------------------------------->
+@c                MENUS
 @menu
 * Preface::
 * Introduction::
@@ -527,8 +526,8 @@ Code Chunk Summaries
 @c <------------------------------------->
 
 
-@c                 TOC
 @c <------------------------------------->
+@c                 TOC
 @c @summarycontents
 @contents
 @c <------------------------------------->
@@ -704,6 +703,7 @@ enjoy.  Cheers.
 
 
 
+
 @c -----------------------------------------------------------------------------
 @node Overview, Conventions, Audience, Preface
 @unnumberedsec What Is Covered
@@ -863,6 +863,58 @@ in this sentence.  Finally, file names are indicated like this:
 @appendix The Makefile
 @cindex makefile
 
+The @file{Makefile} has five initial targets built in as defaults:
+
+@enumerate
+@item
+Variable Definitions
+@itemize
+@item
+FILE: the name of this source document, without extension
+@item
+ROOT: the  name of the  root directory, which  defaults to the  present working
+directory, $(PWD)
+@item
+FILES: the  name of  the root directory  for the files  created in  this source
+document, which defaults to @file{files}
+@item
+LODESTONE: a reference file to help @file{Makefile} determine when to recompile
+this source document or the @file{TEXI} file
+@end itemize
+@item
+The Default Target: @command{twjr}, described below
+@item
+The TWJR Targets
+@table @command
+@item twjrkeep
+@command{jrtangle jrweave info pdf html}
+@item twjr
+@command{twjrkeep dirclean}
+@item jrtangle
+@command{jrtangle $(FILE).twjr}
+@item newmakefile
+@command{jrtangle allclean}
+@end table
+
+@item
+The Clean Targets
+@enumerate
+@item
+Clean
+@item
+Dirclean
+@item
+Distclean
+@item
+Allclean
+@end enumerate
+@item
+The Applications Hook
+@end enumerate
+
+
+
+
 @need 400
 @anchor{Makefile}
 @crindex @r{<@i{Makefile---Variable Definitions}>}, use
@@ -949,7 +1001,7 @@ not be changed or otherwise touched (pun intended).
 ######################
 LODESTONE := .lodestone
 
-SHELL := /opt/local/bin/bash
+SHELL := /usr/local/bin/bash
 
 FILE  := my_template
 ROOT  := $(PWD)
@@ -1106,23 +1158,32 @@ twjrkeep : jrtangle jrweave info pdf html
 TWJR : twjr
 twjr : twjrkeep dirclean
 
-# JRTANGLE depends upon the LODESTONE and the ROOT FILES directory;
+# JRTANGLE depends upon the LODESTONE and the ROOT/FILES directory;
 # if either is missing or out of date, then JRTANGLE will be run to
 # extract its files.
 JRTANGLE : TANGLE
 TANGLE   : jrtangle
 jrtangle : tangle
-tangle   : $(LODESTONE) $(ROOT)/$(FILES)
+tangle   : files $(LODESTONE)
+
+# Checks the relative time to determine if JRTANGLE should be rerun
 $(LODESTONE) : $(FILE).twjr
     @@printf "$@{YELLOW@}Tangling $(FILE)...$@{CLEAR@}\n"
     @@jrtangle $(FILE).twjr
     @@touch $(LODESTONE)
     @@printf "$@{GREEN@}done tangling.$@{CLEAR@}\n"
 
-# Extracts the source files using jrtangle
-$(ROOT)/$(FILES) :
-    @@jrtangle $(FILE).twjr
-    @@touch $(LODESTONE)
+# Checks for  the existence  of the ROOT/FILES  directory; extracts  files into
+# them if they don't  exist or are out of date; they must  be retouched if they
+# exist but  are out of date  because they will  not be remade or  updated when
+# files are extracted into them
+files : $(ROOT)/$(FILES)
+$(ROOT)/$(FILES) : $(FILE).twjr
+    @@printf "$@{YELLOW@}Creating files...$@{CLEAR@}\n"
+    @@touch $(FILE).twjr
+    @@make $(LODESTONE)
+    @@touch $(ROOT)/$(FILES)
+    @@printf "$@{GREEN@}done creating files.$@{CLEAR@}\n"
 
 # Extracts the Makefile if necessary by tangling; everything else
 # is thereafter deleted
@@ -1235,7 +1296,7 @@ dirclean : clean
     @@for file in *; do         \
       case $$file in           \
         $(FILE)* | Makefile) ;;\
-        files*)      ;;\
+        $(FILES)*)       ;;\
         $(LODESTONE))        ;;\
         *) rm -vfr $$file    ;;\
       esac                     \
