@@ -1,8 +1,8 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.6.0
-@c DATE    2018-11-07T10:50
+@c VERSION 0.6.1
+@c DATE    2018-11-08T11:20
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -1081,7 +1081,7 @@ dirclean : clean
 	@for file in *; do         \
 	  case $$file in           \
 	    $(FILE)* | Makefile) ;;\
-	    files*)	 	 ;;\
+	    $(FILES)*)	 	 ;;\
 	    $(LODESTONE))        ;;\
 	    *) rm -vfr $$file	 ;;\
 	  esac                     \
