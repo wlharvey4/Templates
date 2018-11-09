@@ -5,8 +5,8 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.6.2
-@c DATE    2018-11-09T07:35
+@c VERSION 0.6.3
+@c DATE    2018-11-09T11:00
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -483,6 +483,7 @@ This file documents @value{TITLE}, a program that does @dots{}.
 
 @c <------------------------------------->
 @c                MENUS
+
 @menu
 * Preface::
 * Introduction::
@@ -528,6 +529,7 @@ Code Chunk Summaries
 
 @c <------------------------------------->
 @c                 TOC
+
 @c @summarycontents
 @contents
 @c <------------------------------------->
@@ -863,11 +865,13 @@ in this sentence.  Finally, file names are indicated like this:
 @appendix The Makefile
 @cindex makefile
 
-The @file{Makefile} has five initial targets built in as defaults:
+The @file{Makefile} has five initial top-level targets built in as defaults:
 
 @enumerate
+
 @item
 Variable Definitions
+
 @itemize
 @item
 FILE: the name of this source document, without extension
@@ -881,10 +885,13 @@ document, which defaults to @file{files}
 LODESTONE: a reference file to help @file{Makefile} determine when to recompile
 this source document or the @file{TEXI} file
 @end itemize
+
 @item
 The Default Target: @command{twjr}, described below
+
 @item
 The TWJR Targets
+
 @table @command
 @item twjrkeep
 @command{jrtangle jrweave info pdf html}
@@ -898,6 +905,7 @@ The TWJR Targets
 
 @item
 The Clean Targets
+
 @enumerate
 @item
 Clean
@@ -908,8 +916,10 @@ Distclean
 @item
 Allclean
 @end enumerate
+
 @item
 The Applications Hook
+
 @end enumerate
 
 
@@ -1187,17 +1197,16 @@ $(ROOT)/$(FILES) : $(FILE).twjr
 
 # Extracts the Makefile if necessary by tangling; everything else
 # is thereafter deleted
-newmakefile : $(LODESTONE)
-    make allclean
+newmakefile : $(LODESTONE) allclean
 
 # Extracts the TEXI, and updates the nodes and sections with a batch call to
 # Emacs; it depends upon TWJR
 JRWEAVE : WEAVE
-WEAVE   : jrweave
+WEAVE   : TEXI
+TEXI    : jrweave
 jrweave : weave
-weave : TEXI
-TEXI  : texi
-texi  : $(FILE).texi
+weave   : texi
+texi    : $(FILE).texi
 $(FILE).texi : $(FILE).twjr
     @@printf "$@{YELLOW@}Weaving $(FILE)...$@{CLEAR@}\n"
     @@jrweave $(FILE).twjr > $(FILE).texi

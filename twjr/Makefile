@@ -58,17 +58,16 @@ $(ROOT)/$(FILES) : $(FILE).twjr
 
 # Extracts the Makefile if necessary by tangling; everything else
 # is thereafter deleted
-newmakefile : $(LODESTONE)
-	make allclean
+newmakefile : $(LODESTONE) allclean
 
 # Extracts the TEXI, and updates the nodes and sections with a batch call to
 # Emacs; it depends upon TWJR
 JRWEAVE : WEAVE
-WEAVE   : jrweave
+WEAVE   : TEXI
+TEXI    : jrweave
 jrweave : weave
-weave : TEXI
-TEXI  : texi
-texi  : $(FILE).texi
+weave   : texi
+texi    : $(FILE).texi
 $(FILE).texi : $(FILE).twjr
 	@printf "${YELLOW}Weaving $(FILE)...${CLEAR}\n"
 	@jrweave $(FILE).twjr > $(FILE).texi
