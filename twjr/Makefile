@@ -5,7 +5,7 @@
 ######################
 LODESTONE := .lodestone
 
-SHELL := /usr/local/bin/bash
+SHELL := $$(which bash)
 
 FILE  := my_template
 ROOT  := $(PWD)

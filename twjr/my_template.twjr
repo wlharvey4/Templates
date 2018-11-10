@@ -1,7 +1,7 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.6.3
+@c VERSION 0.6.4
 @c DATE    2018-11-09T11:00
 @c AUTHOR  wlharvey4
 
@@ -480,8 +480,10 @@ This file documents @value{TITLE}, a program that does @dots{}.
 
 
 
-
 @c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@part Front Matter
+
 @c BEGIN FRONT-MATTER
 @c --Forward
 @c --Preface
@@ -743,6 +745,13 @@ in this sentence.  Finally, file names are indicated like this:
 
 
 
+@c <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+@part Part I
+@c <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+
+
+
 
 
 @c *****************************************************************************
@@ -785,6 +794,13 @@ in this sentence.  Finally, file names are indicated like this:
 @c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+
+
+
+
+@c <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+@part Appendices
+@c <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 
 
@@ -904,7 +920,7 @@ not be changed or otherwise touched (pun intended).
 ######################
 LODESTONE := .lodestone
 
-SHELL := /usr/local/bin/bash
+SHELL := $$(which bash)
 
 FILE  := my_template
 ROOT  := $(PWD)
@@ -1265,6 +1281,13 @@ and the code chunk references.
 @c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+
+
+
+
+@c <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+@part Back Matter
+@c <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 
 
