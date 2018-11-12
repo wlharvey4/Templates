@@ -5,8 +5,8 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.7.0
-@c DATE    2018-11-12T08:20
+@c VERSION 0.7.1
+@c DATE    2018-11-12T10:00
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -233,15 +233,14 @@
 @end ifnottex
 
 
-@c <------------------------------------->
-@c The initial_setup code runs as a script
-@c in a  BEGIN section  of AWK  during the
-@c tangling  phase  before any  files  are
-@c extracted.   Here  create  a  directory
-@c structure for  project files,  plus any
-@c other initialization that might need to
-@c be   done.    Files  are   moved   into
-@c directories in a @post_create command.
+@c -----------------------------------------------------------------------------
+@c INITIAL_SETUP
+@c -----------------------------------------------------------------------------
+
+@c The initial_setup code runs as a script in a BEGIN section of AWK during the
+@c tangling  phase before  any files  are  extracted. Here  create a  directory
+@c structure for project  files, plus any other initialization  that might need
+@c to be done. Files are moved into directories in a @post_create command.
 
 @c <------------------------------------->
 
@@ -735,7 +734,7 @@ Overview text and chapter by chapter description here.
 @noindent
 @r{@{@file{README.md}@}} @equiv{}
 @example
-# MY TEMPLATE
+# MY TWJR TEMPLATE
 
 ## About This Source File
 
@@ -1304,7 +1303,7 @@ $(FILE).texi : $(FILE).twjr
     @@printf "$@{GREEN@}done weaving.$@{CLEAR@}\n";
     @@printf "$@{YELLOW@}updating $(FILE)'s menus and nodes...$@{CLEAR@}\n"
     @@emacs --batch --eval '(progn (find-file "./$(FILE).texi" nil) \
-      (texinfo-master-menu 1) (save-buffer 0))' 2> batch.log
+      (texinfo-master-menu 1) (save-buffer 0))' 2> .batch.log
     @@printf "$@{GREEN@}done updating.$@{CLEAR@}\n"
 
 # Runs makeinfo on the TEXI file;
@@ -1386,15 +1385,16 @@ except the @acronym{TWJR} file and the @file{Makefile}.
 # remove backup files
 clean :
     @@printf "$@{WHITEBOLD@}Cleaning...$@{CYAN@}\n"
-    @@rm -f *~ .*~ #*#
+    @@rm -f *~ .*~ #*# #*.*#
     @@printf "$@{GREEN@}done cleaning.$@{CLEAR@}\n"
 
 # after clean: remove all build and miscellaneous files, leaving only
 # TWJR, TEXI, INFO, HTML, PDF, Makefile & the source documents.
 dirclean : clean
     @@printf "$@{WHITEBOLD@}Dir-cleaning...$@{CYAN@}\n"
-    @@for file in *; do         \
+    @@for file in * .*; do      \
       case $$file in           \
+            '.' | '..')          ;;\
         $(FILE)* | Makefile) ;;\
         $(FILES)*)       ;;\
         $(LODESTONE))        ;;\

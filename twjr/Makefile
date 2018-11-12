@@ -75,7 +75,7 @@ $(FILE).texi : $(FILE).twjr
 	@printf "${GREEN}done weaving.${CLEAR}\n";
 	@printf "${YELLOW}updating $(FILE)'s menus and nodes...${CLEAR}\n"
 	@emacs --batch --eval '(progn (find-file "./$(FILE).texi" nil) \
-	  (texinfo-master-menu 1) (save-buffer 0))' 2> batch.log
+	  (texinfo-master-menu 1) (save-buffer 0))' 2> .batch.log
 	@printf "${GREEN}done updating.${CLEAR}\n"
 
 # Runs makeinfo on the TEXI file;
@@ -122,15 +122,16 @@ openhtml : HTML
 # remove backup files
 clean :
 	@printf "${WHITEBOLD}Cleaning...${CYAN}\n"
-	@rm -f *~ .*~ #*#
+	@rm -f *~ .*~ #*# #*.*#
 	@printf "${GREEN}done cleaning.${CLEAR}\n"
 
 # after clean: remove all build and miscellaneous files, leaving only
 # TWJR, TEXI, INFO, HTML, PDF, Makefile & the source documents.
 dirclean : clean
 	@printf "${WHITEBOLD}Dir-cleaning...${CYAN}\n"
-	@for file in *; do         \
+	@for file in * .*; do      \
 	  case $$file in           \
+            '.' | '..')          ;;\
 	    $(FILE)* | Makefile) ;;\
 	    $(FILES)*)	 	 ;;\
 	    $(LODESTONE))        ;;\
