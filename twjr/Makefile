@@ -4,6 +4,7 @@
 # VARIABLE DEFINITIONS
 ######################
 LODESTONE := .lodestone
+README    := README.md
 
 SHELL := $$(which bash)
 
@@ -133,6 +134,7 @@ dirclean : clean
 	    $(FILE)* | Makefile) ;;\
 	    $(FILES)*)	 	 ;;\
 	    $(LODESTONE))        ;;\
+	    $(README))		 ;;\
 	    *) rm -vfr $$file	 ;;\
 	  esac                     \
 	done
