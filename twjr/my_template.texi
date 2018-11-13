@@ -5,8 +5,8 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.7.2
-@c DATE    2018-11-13T06:40
+@c VERSION 0.7.3
+@c DATE    2018-11-13T07:55
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -743,7 +743,7 @@ Overview text and chapter by chapter description here.
 @noindent
 @r{@{@file{README.md}@}} @equiv{}
 @example
-# MY TWJR TEMPLATE
+# The TWJR Template File
 
 ## About This Source File
 
@@ -1409,8 +1409,11 @@ $(FILE).info : $(FILE).texi
     @@makeinfo $(FILE).texi
     @@printf "$@{GREEN@}done$@{CLEAR@}\n"
 openinfo : INFO
-    @@printf "$@{YELLOW@}Opening INFO in Emacs...$@{CLEAR@}\n"
-    @@emacsclient -s server --eval '(info "($(ROOT)/$(FILE).info)top")'
+    @@printf "$@{YELLOW@}Opening INFO in Emacs...$@{PURPLE@}\n"
+    @@emacsclient -s server --eval \
+      '(progn \
+         (info "($(ROOT)/$(FILE).info)top") \
+         (revert-buffer t t))'
     @@printf "$@{GREEN@}done$@{CLEAR@}\n"
 
 
