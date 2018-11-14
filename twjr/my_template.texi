@@ -5,8 +5,8 @@
 \input texinfo   @c -*- mode: texinfo -*-
 
 @c FILE    my_template.twjr
-@c VERSION 0.7.2
-@c DATE    2018-11-13T06:40
+@c VERSION 0.7.3
+@c DATE    2018-11-13T23:55
 @c AUTHOR  wlharvey4
 
 @c *****************************************************************************
@@ -870,6 +870,12 @@ in this sentence.  Finally, file names are indicated like this:
 @c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+
+
+
+
+
+
 @c *****************************************************************************
 @c                            CHAPTER: Introduction
 
@@ -1010,7 +1016,7 @@ The TWJR Targets
 @item jrweave
 @command{jrweave $(FILE).twjr > $(FILE).texi}
 @item dist
-@command{jrweave $(FILE).twjr > $(FILE).texi}
+@command{jrtangle $(FILE).twjr jrweave $(FILE).twjr > $(FILE).texi distclean}
 @item newmakefile
 @command{jrtangle allclean}
 @end table
@@ -1410,7 +1416,10 @@ $(FILE).info : $(FILE).texi
     @@printf "$@{GREEN@}done$@{CLEAR@}\n"
 openinfo : INFO
     @@printf "$@{YELLOW@}Opening INFO in Emacs...$@{CLEAR@}\n"
-    @@emacsclient -s server --eval '(info "($(ROOT)/$(FILE).info)top")'
+    @@emacsclient -s server --eval \
+        '(progn \
+            (info "$(ROOT)/$(FILE).info") \
+            (revert-buffer t t))'
     @@printf "$@{GREEN@}done$@{CLEAR@}\n"
 
 
