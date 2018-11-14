@@ -1,4 +1,4 @@
-# MY TWJR TEMPLATE
+# The TWJR Template File
 
 ## About This Source File
 
