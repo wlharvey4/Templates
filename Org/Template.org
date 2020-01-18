@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-16 12:54
-#+macro:version Version 0.1.0
+#+date:2020-01-17 17:59
+#+macro:version Version 0.1.1
 
 #+texinfo:@insertcopying
 
@@ -108,6 +108,18 @@
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set.$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
+	  @emacs --batch --eval \
+	    '(progn \
+		(load "~/.emacs") \
+		(if \
+		  (member (quote texinfo) org-export-backends) \
+		  (princ "texinfo backend IS installed in org-export-backends") \
+		  (princ "texinfo backend IS NOT installed in org-export-backends")) \
+		(terpri) \
+		(if \
+		   org-confirm-babel-evaluate \
+		   (princ "org-confirm-babel-evaluate IS SET to t; consider setting to nil") \
+		   (princ "org-confirm-babel-evaluate IS nil")))'
 
   open-org: $(ORG)
 	  emacsclient $(ORG) &
