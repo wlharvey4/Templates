@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-17 17:59
-#+macro:version Version 0.1.1
+#+date:2020-01-18 07:43
+#+macro:version Version 0.1.2
 
 #+texinfo:@insertcopying
 
@@ -38,6 +38,8 @@
 #+header: :noweb tangle
 #+begin_src makefile
   TEMPLATE = $(ORG_TEMPLATE)
+
+  SAVE = resources
 
   ### PROGRAM
   PROJ   = <<get-org-filename()>>
@@ -199,7 +201,11 @@
 
   dist-clean: clean
 	  -rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
-	  -for dir in *; do [ -d $$dir -a $$dir != "$(DIR_OLD)" ] && rm -vr $$dir; done
+	  -for dir in *; \
+	   do \
+		  [ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
+		  rm -vr $$dir; \
+	   done
 
   wiped-clean: dist-clean
 	  -rm -rf Makefile $(DIR_OLD)
@@ -263,7 +269,7 @@ fallback default.
 #+begin_src emacs-lisp :eval yes
   (save-excursion
     (if
-        (re-search-forward "^[[:space:]]+#\\+texinfo_filename:\\(.*\\)" nil t)
+        (re-search-forward "^[[:space:]]*#\\+texinfo_filename:\\(.*\\)" nil t)
         (file-name-sans-extension (match-string 1))
       (downcase (file-name-base))))
 #+end_src
