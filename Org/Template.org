@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-21 19:12
-#+macro:version Version 0.1.4
+#+date:2020-01-21 21:31
+#+macro:version Version 0.1.5
 
 #+texinfo:@insertcopying
 
@@ -13,6 +13,7 @@
 :PROPERTIES:
 :unnumbered: t
 :END:
+
 * Chapter
 
 * Build Tools
@@ -37,6 +38,7 @@
 #+header: :tangle Makefile
 #+header: :noweb tangle
 #+begin_src makefile
+  EMACS = /Applications/MacPorts/EmacsMac.app/Contents/MacOS/bin/emacs-26.3
   TEMPLATE = $(ORG_TEMPLATE)
 
   SAVE = resources
@@ -89,7 +91,6 @@
 	  help sync update values
 
   values: check
-	  @echo EMACSLOADPATH:	$(EMACSLOADPATH)
 	  @echo USER:		$(USER)
 	  @echo PROJ:		$(PROJ)
 	  @echo VERS:		$(VERS)
@@ -108,7 +109,7 @@
 	     { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
 	     printf "$${GREEN}GITHUB_TOKEN: set$${CLEAR}\n";
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
-	     printf "$${GREEN}~/.aws credentials and config: set.$${CLEAR}\n" || \
+	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
 	  @emacs --batch --load="~/.emacs" --eval \
 	    '(progn \
@@ -120,7 +121,8 @@
 		(if \
 		   org-confirm-babel-evaluate \
 		   (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-		   (princ "org-confirm-babel-evaluate: SET to nil")))'
+		   (princ "org-confirm-babel-evaluate: SET to nil")) \
+		(terpri))'
 
   open-org: $(ORG)
 	  emacsclient $(ORG) &
@@ -130,11 +132,9 @@
 
   texi: $(TEXI)
   $(TEXI): $(ORG)
-	  emacs --batch --eval '\
+	  $(EMACS) --batch --eval '\
 	  (progn \
 	    (require (quote org)) \
-	    (require (quote ob)) \
-	    (require (quote ox-texinfo)) \
 	    (require (quote ob-shell)) \
 	    (setq org-confirm-babel-evaluate nil) \
 	    (find-file "$(ORG)") \
