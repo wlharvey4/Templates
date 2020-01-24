@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-21 21:31
-#+macro:version Version 0.1.5
+#+date:2020-01-24 07:16
+#+macro:version Version 0.1.6
 
 #+texinfo:@insertcopying
 
@@ -525,6 +525,35 @@ then run interactively from within the project Org as =M-x update-build-tools=.
 	  (org-backward-heading-same-level 1)
 	  (save-buffer)
 	  (org-babel-tangle))))
+#+end_src
+** Toggle Emacs Init
+This script allows the user to toggle into effect a different Emacs
+initialization setup.  The script first lists the currently-selected
+initialization setup, then it lists the available initialization options, then
+requests the user's choice.  After obtaining the choice, it changes the
+symbolic link in ~/.emacs.d to that chosen by the user.  Emacs must then be
+restarted.
+
+Each initialization setup is a complete ~/.emacs.d subtree, which must be set
+up by the user, with its name given after a dash, such as =~/.emacs.d-original=
+or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
+
+#+name:toggle-emacs-init
+#+header: :shebang "#!/usr/bin/env bash"
+#+header: :tangle ~/Dev/bin/toggle-emacs-init
+#+begin_src sh
+  ls -l ~/.emacs.d | cut -f 12- -d ' '
+  echo
+  select choice in $(ls -1d ~/.emacs.d-*) "break"
+  do
+      echo You chose $choice
+      [[ $choice = "break" ]] && break
+      rm ~/.emacs.d
+      ln -vs $choice ~/.emacs.d
+      ls -l ~/.emacs.d
+      echo "You need to restart Emacs now."
+      break
+  done
 #+end_src
 
 * List of Programs
