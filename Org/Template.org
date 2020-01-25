@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-24 07:16
-#+macro:version Version 0.1.6
+#+date:2020-01-24 22:42
+#+macro:version Version 0.1.7
 
 #+texinfo:@insertcopying
 
@@ -542,18 +542,28 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+header: :shebang "#!/usr/bin/env bash"
 #+header: :tangle ~/Dev/bin/toggle-emacs-init
 #+begin_src sh
+  printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
+  printf "${CLEAR}"
   echo
-  select choice in $(ls -1d ~/.emacs.d-*) "break"
+  select choice in $(ls -1d ~/.emacs.d-*) "abort"
   do
-      echo You chose $choice
-      [[ $choice = "break" ]] && break
+      echo -n You chose 
+      printf " ${B_YELLOW}${F_BLACK}$choice${CLEAR}  "
+      [[ $choice = "abort" ]] && exit 0
       rm ~/.emacs.d
+      printf "${CYAN}"
       ln -vs $choice ~/.emacs.d
-      ls -l ~/.emacs.d
-      echo "You need to restart Emacs now."
+      echo
+      printf "${RED}"
+      read -N 1 -p "Restart Emacs now? (y/n) "
+      printf "${CLEAR}\n"
+      [[ $REPLY =~ y|Y ]] || { echo "Not restarting"; break; }
+      echo "Restarting..."
+      emacsclient --eval '(progn (desktop-save "~/.emacs.d-original/")(kill-emacs))'
       break
   done
+  /Applications/MacPorts/EmacsMac.app/Contents/MacOS/Emacs --eval '(progn (server-start)(desktop-read "~/.emacs.d-original/"))' &
 #+end_src
 
 * List of Programs
@@ -619,7 +629,7 @@ Copyright \copy 2020 by {{{author}}}
 * Local Variables                                                  :noexport:
 # Local Variables:
 # fill-column: 79
-# electric-quote-local-mode: t
+# eval: (electric-quote-local-mode)
 # indent-tabs-mode: t
 # time-stamp-pattern: "8/^\\#\\+date:%:y-%02m-%02d %02H:%02M$"
 # End:
