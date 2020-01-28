@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-24 22:42
-#+macro:version Version 0.1.7
+#+date:2020-01-28 02:03
+#+macro:version Version 0.1.8
 
 #+texinfo:@insertcopying
 
@@ -425,7 +425,7 @@ the most benefits from the AWS S3 ~sync~ command.
 
 
 * Build Scripts
-** Create Script                                                :dependencies:
+** Create Script                                              :dependencies:
 :PROPERTIES:
 :dependency1: ":tangle ~/Dev/bin/org-template"
 :dependency2: "cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org
@@ -484,7 +484,7 @@ script from the new Org project file.
 
   printf "${CLEAR}\n"
 #+end_src
-** Update Script                                              :env_var:
+** Update Script                                                   :env_var:
 :PROPERTIES:
 :env_var1: (find-file-noselect (getenv "ORG_TEMPLATE"))
 :END:
@@ -526,21 +526,21 @@ then run interactively from within the project Org as =M-x update-build-tools=.
 	  (save-buffer)
 	  (org-babel-tangle))))
 #+end_src
-** Toggle Emacs Init
-This script allows the user to toggle into effect a different Emacs
+** Switch Emacs Init
+This script allows the user to switch into using a different Emacs
 initialization setup.  The script first lists the currently-selected
-initialization setup, then it lists the available initialization options, then
+initialization setup, then it lists the available initialization setups, then
 requests the user's choice.  After obtaining the choice, it changes the
-symbolic link in ~/.emacs.d to that chosen by the user.  Emacs must then be
-restarted.
+symbolic link in =~/.emacs.d= to that chosen by the user.  Emacs is then killed
+and restarted using the ~desktop-save~ feature.
 
-Each initialization setup is a complete ~/.emacs.d subtree, which must be set
+Each initialization setup is a complete =~/.emacs.d= subtree, which must be set
 up by the user, with its name given after a dash, such as =~/.emacs.d-original=
 or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 
-#+name:toggle-emacs-init
+#+name:switch-emacs-init
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle ~/Dev/bin/toggle-emacs-init
+#+header: :tangle ~/Dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
