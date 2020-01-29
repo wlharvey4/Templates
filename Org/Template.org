@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-29 00:33
-#+macro:version Version 0.1.10
+#+date:2020-01-29 09:57
+#+macro:version Version 0.1.11
 
 #+texinfo:@insertcopying
 
@@ -46,6 +46,7 @@
   ### PROGRAM
   PROJ   = <<get-org-filename()>>
   DIR    = <<get-org-lc-filename()>>
+# VERS should be a dynamic function instead of a hard-coded value?
   VERS   = <<get-file-version()>>
   S3VERS = <<get-s3-version()>>
   USER   = <<get-github-user-info('login')>>
@@ -75,6 +76,12 @@
   SRC    = $(DIR)/
 
   DST_OLD = $(BUCKET)/$(DIR)-$(S3VERS)
+# ERROR: when a change has been made and uploaded to GitHub, and 'make sync' is
+#        run directly from the shell (texi is not updated first), then the $(VERS)
+#        is wrong.  'sync' does indeed run 'texi', but apparently 'make' uses the old
+#        version instead?  Possible solution is to make VERS a dynamic function;
+#        another solution is to look up VERS when running S3MOVE to obtain an
+#        accurate value for DST_NEW
   DST_NEW = $(BUCKET)/$(DIR)-$(VERS)
   EXCL_INCL = --exclude "*" --include "*.html"
   GRANTS  = --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
@@ -273,8 +280,6 @@ fallback default.
       (downcase (file-name-base))))
 #+end_src
 
-#+RESULTS: get-org-lc-filename
-
 ** Get File Version
 This program scans the current buffer for the version number and places it into
 the Makefile.
@@ -287,6 +292,10 @@ the Makefile.
     (re-search-forward "^#\\+macro:version Version \\(\\(?:[[:digit:]]+\\.?\\)\\{3\\}\\)")
     (concat "v" (match-string-no-properties 1) "/"))
 #+end_src
+
+** Get S3 List of Programs
+This script obtains the list of programs and their version numbers residing in
+the S3 bucket.  It returns an alist of the form ~((prog . ver))~.
 
 ** Get S3 Version
 :PROPERTIES:
