@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-28 02:03
-#+macro:version Version 0.1.8
+#+date:2020-01-29 00:18
+#+macro:version Version 0.1.9
 
 #+texinfo:@insertcopying
 
@@ -329,6 +329,30 @@ above.
       fi
   fi
 #+end_src
+
+#+caption:Get S3 Elisp Version
+#+name:get-s3-elisp-version
+#+header: :var dir=get-org-lc-filename()
+#+header: :var file_version=get-file-version()
+#+header: :results output
+#+header: :eval yes
+#+begin_src emacs-lisp
+  (setq re (concat (regexp-quote dir) "-\\(v\\(?:[[:digit:]]+\\.?\\)\\{3\\}\\)\\/"))
+  (setq str
+	(shell-command-to-string
+	 (concat
+	  "aws2 s3 ls s3://"
+	  (substitute-in-file-name "$AWS_S3_BUCKET"))))
+
+  (if (string= file_version "v0.0.0/")
+      nil
+    (progn
+      (string-match re str)
+      (princ (match-string-no-properties 1 str))))
+#+end_src
+
+#+RESULTS: get-s3-elisp-version
+: v0.1.5
 
 ** Get GitHub User Info
 This code calls the GitHub API from ~curl~ using the token stored in the env
