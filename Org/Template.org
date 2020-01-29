@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-29 00:18
-#+macro:version Version 0.1.9
+#+date:2020-01-29 00:33
+#+macro:version Version 0.1.10
 
 #+texinfo:@insertcopying
 
@@ -337,22 +337,27 @@ above.
 #+header: :results output
 #+header: :eval yes
 #+begin_src emacs-lisp
-  (setq re (concat (regexp-quote dir) "-\\(v\\(?:[[:digit:]]+\\.?\\)\\{3\\}\\)\\/"))
-  (setq str
+  (setq re ; regexp of the form <dir>-v1.23.45/, extracting v1.23.45/
+	(concat
+	 (regexp-quote dir) ; <== use :var dir here
+	 "-\\(v\\(?:[[:digit:]]+\\.?\\)\\{3\\}\\)\\/"))
+
+  (setq str ; aws s3 ls s3://<bucket>; obtains string of directories-versions
 	(shell-command-to-string
 	 (concat
 	  "aws2 s3 ls s3://"
-	  (substitute-in-file-name "$AWS_S3_BUCKET"))))
+	  (substitute-in-file-name "$AWS_S3_BUCKET")))) ; <== use env var here
 
-  (if (string= file_version "v0.0.0/")
+  (if (string= file_version "v0.0.0/") ; <== use :var file-version here
       nil
     (progn
-      (string-match re str)
-      (princ (match-string-no-properties 1 str))))
+      (string-match re str) ; str =~ /re/, match using this directory
+      (princ
+       (match-string-no-properties 1 str)))) ; print the first subexpression, e.g. v1.23.45
 #+end_src
 
 #+RESULTS: get-s3-elisp-version
-: v0.1.5
+: v0.1.9
 
 ** Get GitHub User Info
 This code calls the GitHub API from ~curl~ using the token stored in the env
