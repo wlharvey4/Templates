@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-29 09:57
-#+macro:version Version 0.1.11
+#+date:2020-01-29 23:03
+#+macro:version Version 0.1.13
 
 #+texinfo:@insertcopying
 
@@ -46,8 +46,7 @@
   ### PROGRAM
   PROJ   = <<get-org-filename()>>
   DIR    = <<get-org-lc-filename()>>
-# VERS should be a dynamic function instead of a hard-coded value?
-  VERS   = <<get-file-version()>>
+  VERS   = $(shell sed -Ene '/^\#\+macro:version Version ([[:digit:][:punct:]]{1,3})/ { s//v\1/p; q; }' $(ORG))/
   S3VERS = <<get-s3-version()>>
   USER   = <<get-github-user-info('login')>>
 
@@ -76,12 +75,6 @@
   SRC    = $(DIR)/
 
   DST_OLD = $(BUCKET)/$(DIR)-$(S3VERS)
-# ERROR: when a change has been made and uploaded to GitHub, and 'make sync' is
-#        run directly from the shell (texi is not updated first), then the $(VERS)
-#        is wrong.  'sync' does indeed run 'texi', but apparently 'make' uses the old
-#        version instead?  Possible solution is to make VERS a dynamic function;
-#        another solution is to look up VERS when running S3MOVE to obtain an
-#        accurate value for DST_NEW
   DST_NEW = $(BUCKET)/$(DIR)-$(VERS)
   EXCL_INCL = --exclude "*" --include "*.html"
   GRANTS  = --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
@@ -101,7 +94,7 @@
 	  @echo USER:		$(USER)
 	  @echo PROJ:		$(PROJ)
 	  @echo VERS:		$(VERS)
-	  @echo S3VERS:		$(S3VERS)
+	  @echo S3VERS:	$(S3VERS)
 	  @echo DIR:		$(DIR)
 	  @echo DIR_OLD:	$(DIR_OLD)
 	  @echo SRC:		$(SRC)
@@ -118,18 +111,18 @@
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	  @emacs --batch --load="~/.emacs" --eval \
-	    '(progn \
-		(if \
-		  (member (quote texinfo) org-export-backends) \
-		  (princ "texinfo backend: INSTALLED in org-export-backends") \
-		  (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
-		(terpri) \
-		(if \
-		   org-confirm-babel-evaluate \
-		   (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-		   (princ "org-confirm-babel-evaluate: SET to nil")) \
-		(terpri))'
+	    @emacs --batch --load="~/.emacs.d/init.el" --eval \
+	      '(progn \
+		  (if \
+		    (member (quote texinfo) org-export-backends) \
+		    (princ "texinfo backend: INSTALLED in org-export-backends") \
+		    (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
+		  (terpri) \
+		  (if \
+		     org-confirm-babel-evaluate \
+		     (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
+		     (princ "org-confirm-babel-evaluate: SET to nil")) \
+		  (terpri))'
 
   open-org: $(ORG)
 	  emacsclient $(ORG) &
