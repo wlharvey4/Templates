@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-29 23:45
-#+macro:version Version 0.1.14
+#+date:2020-01-30 09:43
+#+macro:version Version 0.1.15
 
 #+texinfo:@insertcopying
 
@@ -37,68 +37,80 @@
 #+name:Makefile
 #+header: :tangle Makefile
 #+header: :noweb tangle
+#+header: :shebang "#!/usr/bin/env bash"
 #+begin_src makefile
+  ###############################################################################
   ### USER-DEPENDENT VARIABLES
   ### USE ENVIRONMENT VARIABLES FOR SENSITIVE DATA
   ### ALL OTHERS CAN BE HARD-CODED
   ### YOU ALSO NEED ~/.aws/credentials
 
-  EMACS    = /Applications/MacPorts/EmacsMac.app/Contents/MacOS/bin/emacs-26.3
-  EMACS-D  = $(HOME)/.emacs.d
-  INIT-EL  = init.el
+  EMACS   := /Applications/MacPorts/EmacsMac.app/Contents/MacOS/bin/emacs-26.3
+  EMACS_D := $(HOME)/.emacs.d
+  INIT_EL := init.el
 
-  # the location of this file
-  TEMPLATE = $(ORG_TEMPLATE)
+  # the fully-qualified path to the Template file
+  TEMPLATE := $(ORG_TEMPLATE)
 
   # your personal GitHub token for authentication
-  TOKEN    = $(GITHUB_TOKEN)
+  # DO NOT HARD CODE THIS VALUE
+  TOKEN   := $(GITHUB_TOKEN)
 
-  # the AWS S3 bucket to use to store Org source files
-  BUCKET   = s3://$(AWS_S3_BUCKET)
+  # the AWS S3 bucket you want to use to store the html source files
+  BUCKET  := s3://$(AWS_S3_BUCKET)
 
-  # your aws command; this program uses the new version
-  AWS      = aws2
+  # your aws command; this program uses version 2
+  AWS     := aws2
 
   # your AWS region of choice
-  REGION   = --region us-west-2
+  REGION  := --region us-west-2
 
   ### END OF USER-DEPENDENT VARIABLES
+  ###############################################################################
 
   ### PROGRAM
-  PROJ   = <<get-org-filename()>>
+  ### NOTE: there can be only one Org file in the directory; so far this has not
+  ###       been a problem, but it might be.
+  PROJ  := $(basename $(shell ls *.org))
 
-  # DIR is not necessarily the same as PROJ; it is the exported .texi and .info filename
-  DIR    = <<get-org-lc-filename()>>
+  # DIR is not necessarily the same as PROJ;
+  # it is the exported .info name found at #+texinfo_filename:<DIR>.info
+  # without its extension, used as the directory name for the html exports;
+  # use the lowercased PROJ name if there is no texinfo_filename
+  DIR   := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(shell ls *.org))
+  DIR   ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
+
+  PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(BUCKET))))
 
   # VERS needs to be dynamic in case the version number is updated but the Makefile stays static during sync
-  VERS   = $(shell sed -Ene '/^\#\+macro:version Version ([[:digit:][:punct:]]{1,3})/ { s//v\1/p; q; }' $(ORG))/
-  S3VERS = <<get-s3-version()>>
-  USER   = <<get-github-user-info('login')>>
+  VERS   := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(shell ls *.org))
+  S3VERS := <<get-s3-version()>>
+  USER   := <<get-github-user-info('login')>>
 
   ### TOOLS & RESOURCES
-  TOOLS  = tools
-  CMPRPL = $(TOOLS)/cmprpl
-  SAVE   = resources
+  TOOLS  := tools
+  CMPRPL := $(TOOLS)/cmprpl
+  SAVE   := resources
 
   ### TEXINFO
-  ORG   = $(PROJ).org
-  TEXI  = $(PROJ).texi
-  INFO  = $(DIR).info
-  PDF   = $(PROJ).pdf
-  HTML  = $(DIR)/index.html
-  INDEX = index.html
-  DIR_OLD= $(DIR)-old
+  ORG   := $(PROJ).org
+  TEXI  := $(PROJ).texi
+  INFO  := $(DIR).info
+  PDF   := $(PROJ).pdf
+  HTML  := $(DIR)/index.html
+  INDEX := index.html
+  DIR_OLD := $(DIR)-old
 
   ### AWS
-  S3     = $(AWS) s3
-  SRC    = $(DIR)/
+  S3     := $(AWS) s3
+  SRC    := $(DIR)/
 
-  DST_OLD = $(BUCKET)/$(DIR)-$(S3VERS)
-  DST_NEW = $(BUCKET)/$(DIR)-$(VERS)
-  EXCL_INCL = --exclude "*" --include "*.html"
-  GRANTS  = --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
-  S3SYNC  = $(S3) sync $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
-  S3MOVE  = $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
+  DST_OLD := $(BUCKET)/$(DIR)-$(S3VERS)
+  DST_NEW := $(BUCKET)/$(DIR)-$(VERS)
+  EXCL_INCL := --exclude "*" --include "*.html"
+  GRANTS  := --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+  S3SYNC  := $(S3) sync $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
+  S3MOVE  := $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 
   default: check texi info html pdf
 
@@ -109,15 +121,16 @@
 	  help sync update values
 
   values: check
-	  @echo USER:	$(USER)
-	  @echo PROJ:	$(PROJ)
-	  @echo VERS:	$(VERS)
-	  @echo S3VERS:	$(S3VERS)
-	  @echo DIR:	$(DIR)
+	  @echo USER:   	$(USER)
+	  @echo PROJ:   	$(PROJ)
+	  @echo VERS:   	$(VERS)
+	  @echo S3VERS: 	$(S3VERS)
+	  @echo DIR:    	$(DIR)
 	  @echo DIR_OLD:	$(DIR_OLD)
-	  @echo SRC:	$(SRC)
+	  @echo SRC:    	$(SRC)
 	  @echo DST_OLD:	$(DST_OLD)
 	  @echo DST_NEW:	$(DST_NEW)
+	  @echo PROJ_LIST:	$(PROJ_LIST)
 
   check:
 	  @[[ -z $${AWS_S3_BUCKET} ]] && \
@@ -129,18 +142,18 @@
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	    @$(EMACS) --batch --load="$(EMACS-D)/$(INIT-EL)" --eval \
-	      '(progn \
-		  (if \
-		    (member (quote texinfo) org-export-backends) \
-		    (princ "texinfo backend: INSTALLED in org-export-backends") \
-		    (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
-		  (terpri) \
-		  (if \
-		     org-confirm-babel-evaluate \
-		     (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-		     (princ "org-confirm-babel-evaluate: SET to nil")) \
-		  (terpri))'
+	  @$(EMACS) --batch --load="$(EMACS_D)/$(INIT_EL)" --eval '\
+		  (progn \
+			  (if \
+				  (member (quote texinfo) org-export-backends) \
+				  (princ "texinfo backend: INSTALLED in org-export-backends") \
+				  (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
+			  (terpri) \
+			  (if \
+				  org-confirm-babel-evaluate \
+				  (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
+				  (princ "org-confirm-babel-evaluate: SET to nil")) \
+			  (terpri))'
 
   open-org: $(ORG)
 	  emacsclient $(ORG) &
@@ -164,6 +177,8 @@
   info: $(INFO)
   $(INFO): $(TEXI)
 	  makeinfo $(TEXI)
+  open-info: info
+	  emacsclient $(INFO)
 
   html: $(HTML)
   $(HTML): $(TEXI)
