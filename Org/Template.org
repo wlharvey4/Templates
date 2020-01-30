@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-30 09:43
-#+macro:version Version 0.1.15
+#+date:2020-01-30 09:57
+#+macro:version Version 0.1.16
 
 #+texinfo:@insertcopying
 
@@ -80,12 +80,20 @@
   DIR   := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(shell ls *.org))
   DIR   ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 
+
+  # If sync is run after the version number has been updated, then VERS picks up the newly-changed value.
+  # VERS used to be staticly imbedded when the Makefile was tangled, but it needs to be dynamic for development.
+  VERS      := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(shell ls *.org))
+
+  # PROJ_LIST contains the list of projects currently uploaded to the S3 bucket; each item contains the name
+  # of the project and its current version.
   PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(BUCKET))))
 
-  # VERS needs to be dynamic in case the version number is updated but the Makefile stays static during sync
-  VERS   := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(shell ls *.org))
-  S3VERS := <<get-s3-version()>>
-  USER   := <<get-github-user-info('login')>>
+  # S3VERS is the version of this project currently installed in the S3 bucket
+  S3VERS    := $(subst $(DIR)-, "", $(filter $(DIR)%, $(PROJ_LIST)))
+
+  # USER is the current user's GitHub login name
+  USER      := <<get-github-user-info('login')>>
 
   ### TOOLS & RESOURCES
   TOOLS  := tools
@@ -125,6 +133,7 @@
 	  @echo PROJ:   	$(PROJ)
 	  @echo VERS:   	$(VERS)
 	  @echo S3VERS: 	$(S3VERS)
+	  @echo S3VERS2:	$(S3VERS2)
 	  @echo DIR:    	$(DIR)
 	  @echo DIR_OLD:	$(DIR_OLD)
 	  @echo SRC:    	$(SRC)
