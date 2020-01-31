@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 07:27
-#+macro:version Version 0.1.17
+#+date:2020-01-31 08:22
+#+macro:version Version 0.1.18
 
 #+texinfo:@insertcopying
 
@@ -107,7 +107,8 @@
   #USER2 := $(shell echo $(JSON) | perl -MJSON::PP -e 'my $$json = JSON::PP->new->allow_barekey->decode(<STDIN>); print "WLHARVEY4";')
   #USER2 := $(shell perl -MJSON::PP -e 'open(IN, "curl -sH \"Authorization: token $(TOKEN)\" https://api.github.com/user|"); my $$json = JSON::PP->new->allow_barekey->decode(<IN>); print "WLHARVEY4";')
 
-  USER2 := $(shell perl -MJSON::PP -e 'open IN, "curl -sH \"Authorization: token $(TOKEN)\" https://api.github.com/user |"; $$/ = ""; my $$json = JSON::PP->new->allow_barekey->decode(<IN>); print $$json->{login}; close IN;')
+  #USER2 := $(shell perl -MJSON::PP -e 'open IN, "curl -sH \"Authorization: token $(TOKEN)\" https://api.github.com/user |"; $$/ = ""; my $$json = JSON::PP->new->allow_barekey->decode(<IN>); print $$json->{login}; close IN;')
+  USER2 := $(shell curl -sH "Authorization: token $(TOKEN)" https://api.github.com/user | perl -MJSON::PP -e '$$/ = ""; my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); print $$json->{login};')
 
   ### TOOLS & RESOURCES
   TOOLS  := tools
