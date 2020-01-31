@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 08:22
-#+macro:version Version 0.1.18
+#+date:2020-01-31 08:59
+#+macro:version Version 0.1.19
 
 #+texinfo:@insertcopying
 
@@ -21,7 +21,7 @@
 :appendix: t
 :END:
 
-** Makefile                                          :dependencies:env_vars:
+** Makefile                                     :dependencies:env_vars:perl:
 :PROPERTIES:
 :appendix: t
 :dependency1: "make"
@@ -39,6 +39,7 @@
 #+header: :noweb tangle
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src makefile
+
   ###############################################################################
   ### USER-DEPENDENT VARIABLES
   ### USE ENVIRONMENT VARIABLES FOR SENSITIVE DATA
@@ -50,65 +51,88 @@
   INIT_EL := init.el
 
   # the fully-qualified path to the Template file
+
   TEMPLATE := $(ORG_TEMPLATE)
 
   # your personal GitHub token for authentication
   # DO NOT HARD CODE THIS VALUE
-  TOKEN   := $(GITHUB_TOKEN)
+
+  TOKEN := $(GITHUB_TOKEN)
 
   # the AWS S3 bucket you want to use to store the html source files
-  BUCKET  := s3://$(AWS_S3_BUCKET)
+
+  BUCKET := s3://$(AWS_S3_BUCKET)
 
   # your aws command; this program uses version 2
-  AWS     := aws2
+
+  AWS := aws2
 
   # your AWS region of choice
-  REGION  := --region us-west-2
+
+  REGION := --region us-west-2
 
   ### END OF USER-DEPENDENT VARIABLES
   ###############################################################################
 
-  ### PROGRAM
-  ### NOTE: there can be only one Org file in the directory; so far this has not
-  ###       been a problem, but it might be.
-  PROJ  := $(basename $(shell ls *.org))
+  ### ORG
+  ### NOTE: there can be only one Org file in the directory;
+  ### so far this has not been a problem, but it might be.
 
-  # DIR is not necessarily the same as PROJ;
-  # it is the exported .info name found at #+texinfo_filename:<DIR>.info
-  # without its extension, used as the directory name for the html exports;
-  # use the lowercased PROJ name if there is no texinfo_filename
-  DIR   := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(shell ls *.org))
-  DIR   ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
+  PROJ := $(basename $(shell ls *.org))
 
+  # DIR is not necessarily the same as PROJ; it is the exported .info
+  # name found at #+texinfo_filename:<DIR>.info without its extension,
+  # used as the directory name for the html exports; use the lowercased
+  # PROJ name if there is no texinfo_filename in the Org file 
 
-  # If sync is run after the version number has been updated, then VERS picks up the newly-changed value.
-  # VERS used to be staticly imbedded when the Makefile was tangled, but it needs to be dynamic for development.
-  VERS      := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(shell ls *.org))
+  DIR := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(shell ls *.org))
+  DIR ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 
-  # PROJ_LIST contains the list of projects currently uploaded to the S3 bucket; each item contains the name
-  # of the project and its current version.
+  # If sync is run after the version number has been updated, then VERS
+  # picks up the newly-changed value.  VERS used to be staticly imbedded
+  # when the Makefile was tangled, but it needs to be dynamic for
+  # development.
+
+  VERS := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(shell ls *.org))
+
+  ### AWS
+  # PROJ_LIST contains the list of projects currently uploaded to
+  # the S3 bucket; each item contains the name of the project and its
+  # current version.
+
   PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(BUCKET))))
 
   # S3VERS is the version of this project currently installed in the S3 bucket
-  S3VERS    := $(subst $(DIR)-, "", $(filter $(DIR)%, $(PROJ_LIST)))
 
-  # USER is the current user's GitHub login name
-  #perl -MJSON::PP -e '\
-	open IN, \
-	  "curl -sH \"Authorization: token $ENV{GITHUB_TOKEN}\"\
-	  https://api.github.com/user |"; \
-	$/ = ""; \
-	my $json = JSON::PP->new->loose->allow_barekey->decode(<IN>); \
-	print $json->{login}; \
-	close IN;'
-  USER      := <<get-github-user-info('login')>>
-  #USER2 := $(shell node -pe 'JSON.parse(process.argv[1]).login' "$(curl -sH "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/user)")
-  #JSON := $(shell curl -sH "Authorization: token $(TOKEN)" https://api.github.com/user)
-  #USER2 := $(shell echo $(JSON) | perl -MJSON::PP -e 'my $$json = JSON::PP->new->allow_barekey->decode(<STDIN>); print "WLHARVEY4";')
-  #USER2 := $(shell perl -MJSON::PP -e 'open(IN, "curl -sH \"Authorization: token $(TOKEN)\" https://api.github.com/user|"); my $$json = JSON::PP->new->allow_barekey->decode(<IN>); print "WLHARVEY4";')
+  S3VERS := $(subst $(DIR)-, "", $(filter $(DIR)%, $(PROJ_LIST)))
 
-  #USER2 := $(shell perl -MJSON::PP -e 'open IN, "curl -sH \"Authorization: token $(TOKEN)\" https://api.github.com/user |"; $$/ = ""; my $$json = JSON::PP->new->allow_barekey->decode(<IN>); print $$json->{login}; close IN;')
-  USER2 := $(shell curl -sH "Authorization: token $(TOKEN)" https://api.github.com/user | perl -MJSON::PP -e '$$/ = ""; my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); print $$json->{login};')
+  ### GITHUB
+  # USER is the current user's GitHub login name.
+
+  # This name used to be statically embedded into the Makefile during
+  # tangle, but in an effort to make the Makefile dynamically
+  # indepedent, dynamic code has replaced the static code.  The code
+  # that placed the static name in the Makefile was a 'node' script that
+  # ran in a separate Org process during tangle.  An unfortunate fact of
+  # 'make' is that 'make' strips the quote marks from the string
+  # obtained from the 'curl' command when the 'make shell' command
+  # returns the string.  This makes the string malformed JSON and
+  # unparsable by most JSON parsers, including 'node’.  However,
+  # 'perl'’s core module JSON::PP (but not JSON::XS) has facilities to
+  # parse very malformed JSON strings.  Therefore, this dynamic code
+  # uses 'perl' and the core module JSON::PP to parse the 'curl' string
+  # into a 'perl' object which can return the login name.  This code
+  # should work with any version of 'perl' without having to install any
+  # modules.
+
+  USER := $(shell \
+		curl -sH "Authorization: token $(TOKEN)" https://api.github.com/user \
+		| \
+		perl -MJSON::PP -e \
+		    '$$/ = ""; \
+		     my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); \
+		     print $$json->{login};' \
+		)
 
   ### TOOLS & RESOURCES
   TOOLS  := tools
@@ -145,7 +169,6 @@
 
   values: check
 	  @echo USER:   	$(USER)
-	  @echo USER2:    $(USER2)
 	  @echo PROJ:   	$(PROJ)
 	  @echo VERS:   	$(VERS)
 	  @echo S3VERS: 	$(S3VERS)
@@ -155,7 +178,6 @@
 	  @echo DST_OLD:	$(DST_OLD)
 	  @echo DST_NEW:	$(DST_NEW)
 	  @echo PROJ_LIST:$(PROJ_LIST)
-	  @echo JSON:	$(JSON)
 
   check:
 	  @[[ -z $${AWS_S3_BUCKET} ]] && \
