@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 21:17
-#+macro:version Version 0.1.22
+#+date:2020-01-31 21:34
+#+macro:version Version 0.1.23
 
 #+texinfo:@insertcopying
 
@@ -332,134 +332,6 @@
 
 3. Store on GitHub a version of each other format upon a sync operation (i.e.,
    the INFO and PDF versions)
-
-** Get Org Filename
-This program simply uses the name of the buffer to obtain the name of the
-filename to add to the Makefile.
-
-#+caption:Get Org Filename program
-#+name:get-org-filename
-#+begin_src emacs-lisp :eval yes
-(file-name-base)
-#+end_src
-
-** Get Org Lowercase Filename
-This code looks for the =#+TEXINFO_FILENAME:= in the =#+TEXINFO EXPORTS=
-subtree.  If it doesn’t exist, then it will use the lower-cased filename as a
-fallback default.
-
-#+caption:Get Org Lowercase Filename program
-#+name:get-org-lc-filename
-#+header: :results value
-#+begin_src emacs-lisp :eval yes
-  (save-excursion
-    (if
-        (re-search-forward "^[[:space:]]*#\\+texinfo_filename:\\(.*\\)" nil t)
-        (file-name-sans-extension (match-string 1))
-      (downcase (file-name-base))))
-#+end_src
-
-** Get File Version
-This program scans the current buffer for the version number and places it into
-the Makefile.
-
-#+caption:Get File Version program
-#+name:get-file-version
-#+begin_src emacs-lisp :eval yes
-  (save-excursion
-    (goto-char (point-min))
-    (re-search-forward "^#\\+macro:version Version \\(\\(?:[[:digit:]]+\\.?\\)\\{3\\}\\)")
-    (concat "v" (match-string-no-properties 1) "/"))
-#+end_src
-
-** Get S3 List of Programs
-This script obtains the list of programs and their version numbers residing in
-the S3 bucket.  It returns an alist of the form ~((prog . ver))~.
-
-** Get S3 Version
-:PROPERTIES:
-:dependency: ">= bash v4"
-:END:
-This program obtains the version number of the code currently uploaded to the
-S3 bucket by obtaining a directory listing of top-level directories, which are
-in the form ~PRE <dir>-v#.#.#/~, and performs a regular expression search with
-a parenthesized match on the version numbers.  The program will exit with 'nil'
-if there is no match, but will return the version number as a string if there
-is a match.
-
-Note that the regular expression matching requires at least Bash version 4 or
-above.
-
-#+caption:Get S3 Version
-#+name:get-s3-version
-#+header: :var dir=get-org-lc-filename()
-#+header: :var file_version=get-file-version()
-#+header: :results output
-#+header: :eval yes
-#+header: :shebang "#! /usr/bin/env bash"
-#+begin_src sh
-  if [[ ${file_version} = "v0.0.0/" ]]
-  then
-      echo -n "nil"
-
-  else
-      re=${dir}'-(v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)'
-
-      # obtain a list of directories in the aws s2 bucket
-      verpre=$(aws2 s3 ls s3://${AWS_S3_BUCKET}/)
-
-      # check for a match; if one, return the version number; else return 'nil'
-      if [[ $verpre =~ $re ]]
-      then
-		echo -n ${BASH_REMATCH[1]}/
-      else
-		echo -n "nil"
-      fi
-  fi
-#+end_src
-
-#+caption:Get S3 Elisp Version
-#+name:get-s3-elisp-version
-#+header: :var dir=get-org-lc-filename()
-#+header: :var file_version=get-file-version()
-#+header: :results output
-#+header: :eval yes
-#+begin_src emacs-lisp
-  (setq re ; regexp of the form <dir>-v1.23.45/, extracting v1.23.45/
-	(concat
-	 (regexp-quote dir) ; <== use :var dir here
-	 "-\\(v\\(?:[[:digit:]]+\\.?\\)\\{3\\}\\)\\/"))
-
-  (setq str ; aws s3 ls s3://<bucket>; obtains string of directories-versions
-	(shell-command-to-string
-	 (concat
-	  "aws2 s3 ls s3://"
-	  (substitute-in-file-name "$AWS_S3_BUCKET")))) ; <== use env var here
-
-  (if (string= file_version "v0.0.0/") ; <== use :var file-version here
-      nil
-    (progn
-      (string-match re str) ; str =~ /re/, match using this directory
-      (princ
-       (match-string-no-properties 1 str)))) ; print the first subexpression, e.g. v1.23.45
-#+end_src
-
-#+RESULTS: get-s3-elisp-version
-: v0.1.9
-
-** Get GitHub User Info
-This code calls the GitHub API from ~curl~ using the token stored in the env
-var =GITHUB_TOKEN= to obtain the GitHub user’s information.  The user’s
-information is returned as a JSON string.  Ths code returns one of the values
-based on a given key.  The default key used is =html_url=, but you can ask for
-any valid key by supplying an argument in the invocation, such as:
-: get-github-user-info(login)
-
-#+name:get-github-user-info
-#+header: :var key="html_url"
-#+begin_src sh :eval yes :results value
-  node -pe 'JSON.parse(process.argv[1]).'$key "$(curl -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/user)"
-#+end_src
 
 ** Compare Replace
 
