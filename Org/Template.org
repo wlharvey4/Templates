@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 08:59
-#+macro:version Version 0.1.19
+#+date:2020-01-31 20:32
+#+macro:version Version 0.1.20
 
 #+texinfo:@insertcopying
 
@@ -104,13 +104,14 @@
 
   # S3VERS is the version of this project currently installed in the S3 bucket
 
-  S3VERS := $(subst $(DIR)-, "", $(filter $(DIR)%, $(PROJ_LIST)))
+  S3PROJ := $(filter $(DIR)%,$(PROJ_LIST))
+  S3VERS := $(subst $(DIR)-,,$(filter $(DIR)%, $(PROJ_LIST)))
 
   ### GITHUB
   # USER is the current user's GitHub login name.
 
-  # This name used to be statically embedded into the Makefile during
-  # tangle, but in an effort to make the Makefile dynamically
+  # The user name used to be statically embedded into the Makefile
+  # during tangle, but in an effort to make the Makefile dynamically
   # indepedent, dynamic code has replaced the static code.  The code
   # that placed the static name in the Makefile was a 'node' script that
   # ran in a separate Org process during tangle.  An unfortunate fact of
@@ -121,9 +122,9 @@
   # 'perl'’s core module JSON::PP (but not JSON::XS) has facilities to
   # parse very malformed JSON strings.  Therefore, this dynamic code
   # uses 'perl' and the core module JSON::PP to parse the 'curl' string
-  # into a 'perl' object which can return the login name.  This code
-  # should work with any version of 'perl' without having to install any
-  # modules.
+  # into a 'perl' JSON object which can return the login name.  This
+  # code should work with any version of 'perl' without having to
+  # install any modules.
 
   USER := $(shell \
 		curl -sH "Authorization: token $(TOKEN)" https://api.github.com/user \
@@ -152,7 +153,7 @@
   S3     := $(AWS) s3
   SRC    := $(DIR)/
 
-  DST_OLD := $(BUCKET)/$(DIR)-$(S3VERS)
+  DST_OLD := $(BUCKET)/$(S3PROJ)
   DST_NEW := $(BUCKET)/$(DIR)-$(VERS)
   EXCL_INCL := --exclude "*" --include "*.html"
   GRANTS  := --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
@@ -171,6 +172,7 @@
 	  @echo USER:   	$(USER)
 	  @echo PROJ:   	$(PROJ)
 	  @echo VERS:   	$(VERS)
+	  @echo S3PROJ: 	$(S3PROJ)
 	  @echo S3VERS: 	$(S3VERS)
 	  @echo DIR:    	$(DIR)
 	  @echo DIR_OLD:	$(DIR_OLD)
