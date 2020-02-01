@@ -3,8 +3,10 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 21:34
-#+macro:version Version 0.1.23
+#+date:2020-01-31 22:09
+#+macro:version Version 0.2.0
+
+{{{version}}} {{{date}}}
 
 #+texinfo:@insertcopying
 
@@ -145,8 +147,8 @@
   TEXI  := $(PROJ).texi
   INFO  := $(DIR).info
   PDF   := $(PROJ).pdf
-  HTML  := $(DIR)/index.html
   INDEX := index.html
+  HTML  := $(DIR)/$(INDEX)
   DIR_OLD := $(DIR)-old
 
   ### AWS
