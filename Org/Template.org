@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 22:09
-#+macro:version Version 0.2.0
+#+date:2020-01-31 22:26
+#+macro:version Version 0.2.1
 
 {{{version}}} {{{date}}}
 
@@ -81,21 +81,24 @@
   ### so far this has not been a problem, but it might be.
 
   PROJ := $(basename $(shell ls *.org))
+  ORG   := $(PROJ).org
 
   # DIR is not necessarily the same as PROJ; it is the exported .info
   # name found at #+texinfo_filename:<DIR>.info without its extension,
   # used as the directory name for the html exports; use the lowercased
   # PROJ name if there is no texinfo_filename in the Org file 
 
-  DIR := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(shell ls *.org))
+  DIR := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(ORG))
   DIR ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 
+  # VERS
+  # The version number of this Org document.
   # If sync is run after the version number has been updated, then VERS
   # picks up the newly-changed value.  VERS used to be staticly imbedded
   # when the Makefile was tangled, but it needs to be dynamic for
   # development.
 
-  VERS := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(shell ls *.org))
+  VERS := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(ORG))
 
   ### AWS
   # PROJ_LIST contains the list of projects currently uploaded to
@@ -104,6 +107,7 @@
 
   PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(BUCKET))))
 
+  # S3PROJ is the name of the current project as obtained from S3
   # S3VERS is the version of this project currently installed in the S3 bucket
 
   S3PROJ := $(filter $(DIR)%,$(PROJ_LIST))
@@ -143,7 +147,6 @@
   SAVE   := resources
 
   ### TEXINFO
-  ORG   := $(PROJ).org
   TEXI  := $(PROJ).texi
   INFO  := $(DIR).info
   PDF   := $(PROJ).pdf
