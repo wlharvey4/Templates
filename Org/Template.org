@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 20:32
-#+macro:version Version 0.1.20
+#+date:2020-01-31 21:17
+#+macro:version Version 0.1.22
 
 #+texinfo:@insertcopying
 
@@ -50,24 +50,24 @@
   EMACS_D := $(HOME)/.emacs.d
   INIT_EL := init.el
 
-  # the fully-qualified path to the Template file
+  # The fully-qualified path to the Template file
 
   TEMPLATE := $(ORG_TEMPLATE)
 
-  # your personal GitHub token for authentication
-  # DO NOT HARD CODE THIS VALUE
+  # User’s personal GitHub token for authentication
+  # DO NOT HARD-CODE THIS VALUE
 
   TOKEN := $(GITHUB_TOKEN)
 
-  # the AWS S3 bucket you want to use to store the html source files
+  # The AWS S3 bucket to use to store the html source files
 
   BUCKET := s3://$(AWS_S3_BUCKET)
 
-  # your aws command; this program uses version 2
+  # The aws command to use (version 1 or version 2)
 
   AWS := aws2
 
-  # your AWS region of choice
+  # The AWS region of choice; this can also be in .aws/config
 
   REGION := --region us-west-2
 
@@ -699,8 +699,6 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 :PROPERTIES:
 :copying:  t
 :END:
-
-{{{title}}} {{{version}}} last modified on {{{date}}}
 
 Copyright \copy 2020 by {{{author}}}
 
