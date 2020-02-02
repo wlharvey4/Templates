@@ -3,14 +3,79 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-01 21:01
-#+macro:version Version 0.2.2
+#+date:2020-02-02 09:57
+#+macro:version Version 0.2.3
 
 {{{version}}} {{{date}}}
 
 #+texinfo:@insertcopying
 
 
+* Readme
+:PROPERTIES:
+:unnumbered: t
+:END:
+- [[https://daringfireball.net/projects/markdown/][Markdown Home]]
+
+- [[https://spec.commonmark.org/0.29/][CommonMark Spec]]
+
+- [[https://guides.github.com/features/mastering-markdown/][Mastering Markdown]]
+
+- [[https://github.github.com/gfm/][GitHub Flavored Markdown Spec]]
+
+- [[https://help.github.com/en/github/writing-on-github][Writing on GitHub]]
+
+- [[https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet][Markdown Cheatsheet]]
+
+- [[https://guides.github.com/pdfs/markdown-cheatsheet-online.pdf][Markdown Syntax]]
+
+- [[https://developer.github.com/v3/markdown/][GitHub REST API v3 --- Markdown]]
+
+
+This Readme should be tangled and included in all git commits.  It’s purpose is
+to provide an introduction to viewers of the source code on GitHub.
+
+#+texinfo:@heading Using the ABSTRACT Entry
+
+Each Readme should also provide an =ABSTRACT= entry for use by the ~sync~
+command.  Each Org source file in a group of related ~.info~ blogs produces a
+directory of linked HTML files via the ~make html~ command (which runs
+~makeinfo --html <project>.texi~).  The directory of linked HTML files is
+uploaded by the AWS ~make sync~ command into a separate directory of the chosen
+AWS bucket for this group of related ~.info~ blogs.  Given a bucket name
+~project~, and an ~.info~ blog named ~all-about-something~, with a version
+number of ~v0.1.2~, the group of HTML files will be uploaded to an AWS bucket
+that can be accessed like so:
+: https://<project>.com/all-about-something-v0.1.2/
+
+At the same time, the code running the ~make sync~ command will copy the text
+from the =ABSTRACT= section of the Readme and create a directory at the domain
+level of the AWS bucket linking to the current version of the ~index.html~ of
+this subproject.  The =ABSTRACT= entry will provide some context in the
+directory at the domain level, allowing the viewer to peruse the list of
+~.info~ blogs and choose one based on its context.  In other words, by opening
+the project domain at:
+: https://<project>.com
+the user will see a list of all related subprojects which link directly to the
+most recently uploaded version.
+
+#+name:projec-readme
+#+header: :tangle README.md
+#+begin_src markdown
+# TITLE
+## Subtitle
+## Author
+## Date
+## Version
+# ABSTRACT
+This is the Org Template file.  It is the parent of all other Org Info blogs,
+and provides the source code for processing them in various different ways.
+# INTRODUCTION
+# CHAPTER
+## Section
+### Subsection
+#+end_src
+
 * Introduction
 :PROPERTIES:
 :unnumbered: t
@@ -293,8 +358,8 @@
 		  rm -vr $$dir; \
 	   done
 
-  wiped-clean: dist-clean
-	  -rm -rf Makefile $(DIR_OLD)
+  wipe-clean: dist-clean
+	  -rm -rf Makefile Readme.md $(DIR_OLD)
 
   help:
 	  @echo '"make default" makes the .texi file, the .info file, \
