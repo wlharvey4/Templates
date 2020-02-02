@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-01-31 22:26
-#+macro:version Version 0.2.1
+#+date:2020-02-01 21:01
+#+macro:version Version 0.2.2
 
 {{{version}}} {{{date}}}
 
@@ -353,30 +353,39 @@ Makefile on an initial export.  The following code is not exported.
 (org-babel-tangle-file (buffer-file-name))
 #+end_src
 
+The AWS ~sync~ command relies upon time stamps to determine whether two
+programs are identical or not, as well as content.  If two otherwise identical
+files have different time stamps, ~sync~ will assume they are different and
+will process the newer.  However, the ~texinfo~ ~makeinfo --html~ command
+produces all new files even if some files (or most files) remain unchanged.
+This means that all files will be uploaded to the AWS S3 bucket on every
+iteration, even though the majority of the files are actually unchanged.
+
 The ~cmprpl~ source code attempts to resolve the issue of identical exported
 code having different time stamps, thus defeating the benefit provided by the
 ~aws2 s3 sync~ command uploading only changed files.
 
-This program makes sure that a generated HTML directory exists: $DIR_NEW.  If it
-doesn’t, then it is in an improper state and the program stops with an error
+This program makes sure that a generated HTML directory exists: =$DIR_NEW=.  If
+it doesn’t, then it is in an improper state and the program stops with an error
 message.
 
-The program then checks if an old directory exists, $DIR_OLD.  If one doesn’t,
-then one is created by copying the current new directory.  This provides a
-baseline for comparisons going forward.  The program exits at that point.
+The program then checks if an old directory exists, =$DIR_OLD=.  If one
+doesn’t, then one is created by copying the current new directory.  This
+provides a baseline for comparisons going forward.  The program exits at that
+point.  It is very important that the =$DIR_OLD= directory not be deleted going
+forward.
 
-Given that $DIR_OLD exists, the program then loops through all files in $DIR_OLD
-and compares them to the files in $DIR_NEW.  If the files are identical, the
-$DIR_OLD file replaces the $DIR_NEW file while retaining the old time stamp.  If
-a file is different, then the $DIR_NEW file replaces the $DIR_OLD file, thus
-giving it updated content and an updated time stamp.
+Given that =$DIR_OLD= exists, the program then loops through all files in
+=$DIR_NEW= and compares them to the files in =$DIR_OLD=.  If the files are
+identical, the =$DIR_OLD= file replaces the =$DIR_NEW= file while retaining the
+old time stamp (using the ~-p~ option of ~cp~.  If a file is different, then
+the =$DIR_NEW= file replaces the =$DIR_OLD= file, thus giving it updated
+content and an updated time stamp.  If the file does not exist in the
+=$DIR_OLD= directory, then it is added.
 
-The program then loops through all of the files in the new directory and copies
-any that do not exist in the old directory.  Now both directories should be in
+The program then loops through all of the files in the old directory and deletes
+any that do not exist in the new directory.  Now both directories should be in
 sync.
-
-It is important to retain the $DIR_OLD directory for as long as possible to reap
-the most benefits from the AWS S3 ~sync~ command.
 
 #+caption:Compare Replace program
 #+name:cmprpl
@@ -390,30 +399,33 @@ the most benefits from the AWS S3 ~sync~ command.
   [[ -d $DIR_NEW ]] || { echo "ERROR: $DIR_NEW does not exist"; exit 1; }
   [[ -d $DIR_OLD ]] || { echo "CREATING: $DIR_OLD does not exist"; cp -a $DIR_NEW $DIR_OLD; exit 0; }
 
-  for oldfile in $DIR_OLD/*
-  do
-      newfile=$DIR_NEW/$(basename $oldfile)
-      if [[ -e $newfile ]]
-      then
-	      if cmp -s $newfile $oldfile
-	      then
-	          printf "${GREEN}copying OLD to NEW${CLEAR}: "
-	          cp -vp $oldfile $newfile
-	      else
-	          printf "${PURPLE}copying NEW to OLD${CLEAR}: "
-	          cp -vp $newfile $oldfile
-	      fi
-      else
-	      printf "${RED}removing OLD:${CLEAR} "
-	      rm -v $oldfile
-      fi
-  done
-
   for newfile in $DIR_NEW/*
   do
       oldfile=$DIR_OLD/$(basename $newfile)
-      [[ -e $oldfile ]] || { printf "${BLUE}adding NEW to OLD${CLEAR}: "
-			     cp -vp $newfile $oldfile; }
+      if [[ -e $oldfile ]]
+      then
+	 if cmp -s $newfile $oldfile
+	 then
+	     printf "${GREEN}copying OLD to NEW${CLEAR}: "
+	     cp -vp $oldfile $newfile
+	 else
+	     printf "${PURPLE}copying NEW to OLD${CLEAR}: "
+	     cp -vp $newfile $oldfile
+	 fi
+      else
+	  printf "${BLUE}creating NEW in OLD${CLEAR}: "
+	  cp -vp $newfile $oldfile
+      fi
+  done
+
+  for oldfile in $DIR_OLD/*
+  do
+      newfile=$DIR_NEW/$(basename $oldfile)
+      if [[ ! -e $newfile ]]
+      then
+	  printf "${RED}removing $oldfile${CLEAR}"
+	  rm -v $oldfile
+      fi
   done
 #+end_src
 
