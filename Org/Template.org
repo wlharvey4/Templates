@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-02 19:13
-#+macro:version Version 0.2.4
+#+date:2020-02-03 00:33
+#+macro:version Version 0.2.5
 
 {{{version}}} {{{date}}}
 
@@ -153,7 +153,7 @@ and provides the source code for processing them in various different ways.
   # used as the directory name for the html exports; use the lowercased
   # PROJ name if there is no texinfo_filename in the Org file 
 
-  DIR := $(shell sed -nEe '/^\#\+texinfo_filename:(.*)\.info/ { s//\1/p; q; }' $(ORG))
+  DIR := $(shell sed -nEe '/^[[:space:]]*\#\+(texinfo_filename|TEXINFO_FILENAME):(.*)\.info/ { s//\2/p; q; }' $(ORG))
   DIR ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 
   # VERS
@@ -163,7 +163,7 @@ and provides the source code for processing them in various different ways.
   # when the Makefile was tangled, but it needs to be dynamic for
   # development.
 
-  VERS := $(shell sed -Ene '/^\#\+macro:version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\1\//p; q; }' $(ORG))
+  VERS := $(shell sed -Ene '/^\#\+(macro|MACRO):version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\2\//p; q; }' $(ORG))
 
   ### AWS
   # PROJ_LIST contains the list of projects currently uploaded to
@@ -488,7 +488,7 @@ sync.
       newfile=$DIR_NEW/$(basename $oldfile)
       if [[ ! -e $newfile ]]
       then
-	  printf "${RED}removing $oldfile${CLEAR}"
+	  printf "${RED}removing OLD${CLEAR}: "
 	  rm -v $oldfile
       fi
   done
@@ -532,12 +532,12 @@ script from the new Org project file.
     cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org"
     printf "${CLEAR}\n"
 
-    sed -i '' -Ee '/^\#\+title:/ s/TITLE/'"$1"'/' \
-		  -Ee '/^\#\+macro:version Version/ s/[[:digit:].]+/0.0.0/' \
-		  -Ee '/^\#\+texinfo_printed_title:/ s/PRINTED TITLE/'"$1"'/' \
+    sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
+		  -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
+		  -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
 		  "$1/$1.org"
     [[ $# -eq 2 ]] && \
-	sed -i '' -Ee '/^\#\+author:/ s/AUTHOR/'"$2"'/' "$1/$1.org"
+	sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
     printf "${CYAN}"
     emacs --batch --eval \
@@ -597,6 +597,16 @@ then run interactively from within the project Org as =M-x update-build-tools=.
 	  (save-buffer)
 	  (org-babel-tangle))))
 #+end_src
+** Add Readme
+This script adds the README.md template to a project.  It should not be
+included with the update script because once it becomes associated with a
+project, it will be customized, and thus unique to the project.
+
+#+name:add-readme
+#+header: :shebang "#!/usb/bin/env bash"
+#+begin_src shell
+#+end_src
+
 ** Switch Emacs Init
 This script allows the user to switch into using a different Emacs
 initialization setup.  The script first lists the currently-selected
