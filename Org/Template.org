@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-12 23:54
-#+macro:version Version 0.2.6
+#+date:2020-02-13 08:07
+#+macro:version Version 0.2.7
 
 {{{version}}} {{{date}}}
 
@@ -502,6 +502,9 @@ sync.
 :PROPERTIES:
 :dependency1: ":tangle ~/Dev/bin/org-template"
 :dependency2: "cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org
+:dependency3: "COLORS from profile"
+:dependency4: tree
+:dependency5: git
 :END:
 This code is a script file to create a new project from this template.  It is
 called from the command line as ~org-template <project> [<author>].  It takes
@@ -517,45 +520,73 @@ script from the new Org project file.
 #+name:create-script
 #+header: :tangle ~/Dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :noweb tangle
 #+begin_src sh -n
-    # $1 := Title
-    [[ ($# -eq 1) || ($# -eq 2) ]] || {
-	  printf "${RED}ERROR: ${YELLOW}\'org-template ${RED}<TITLE>${YELLOW} [<AUTHOR>]\'${CLEAR}"
-	  exit 1
-    }
-    printf "${PURPLE}"
-    read -N 1 -p "Create new directory '$1' (y/n) ?"
-    printf "${CLEAR}\n\n"
-    [[ $REPLY =~ [yY] ]] && printf "${GREEN}" || exit 0
+  # $1 :=: Title
+  [[ ($# -eq 1) || ($# -eq 2) ]] || {
+	printf "${RED}ERROR: ${YELLOW}\'org-template ${RED}<TITLE>${YELLOW} [<AUTHOR>]\'${CLEAR}"
+	exit 1
+  }
+  printf "${PURPLE}"
+  read -N 1 -p "Create new directory '$1' (y/n) ?"
+  printf "${CLEAR}\n\n"
+  [[ $REPLY =~ [yY] ]] && printf "${GREEN}" || exit 0
 
-    mkdir -v "$1"
-    printf "copy "
-    cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org"
-    printf "${CLEAR}\n"
+  mkdir -v "$1"
+  printf "copy "
+  cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org"
+  printf "${CLEAR}\n"
 
-    sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
-		  -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
-		  -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
-		  "$1/$1.org"
-    [[ $# -eq 2 ]] && \
-	sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
+  sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
+		-Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
+		-Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
+		"$1/$1.org"
+  [[ $# -eq 2 ]] && \
+      sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
-    printf "${CYAN}"
-    emacs --batch --eval \
-      '(progn 
-	 (require (quote org))
-	 (require (quote ob))
-	 (require (quote ob-shell))
-	 (setq org-confirm-babel-evaluate nil)
-	 (find-file '\"$1/$1.org\"')
-	 (search-forward "** Create Script")
-	 (org-cut-subtree)
-	 (search-backward "** Makefile")
-	 (org-babel-tangle 4)
-	 (save-buffer 0))'
+  printf "${CYAN}"
+  emacs --batch --eval \
+    '(progn 
+       (require (quote org))
+       (require (quote ob))
+       (require (quote ob-shell))
+       (setq org-confirm-babel-evaluate nil)
+       (find-file '\"$1/$1.org\"')
+       (search-forward "** Create Script")
+       (org-cut-subtree)
+       (search-backward "** Makefile")
+       (org-babel-tangle 4)
+       (save-buffer 0))'
 
   printf "${CLEAR}\n"
+
+  cd $1 && {
+      rm *~
+      printf "${YELLOWBOLD}"
+      git init
+      printf "${CLEAR}"
+
+      echo "\
+  .gitignore
+  Makefile
+  ,*~
+  .*~
+  ,*.texi
+  ,*.info
+  ,*.html
+  ,*-old
+  tools" > .gitignore
+
+      git add .
+      git commit -m "Initial commit of Project $1"
+      git log --stat
+
+      cd ..
+      printf "${PURPLEBOLD}\n"
+      pwd
+      printf "${CLEAR}"
+      tree -aI .git $1
+  }
+
 #+end_src
 ** Update Script                                                   :env_var:
 :PROPERTIES:
