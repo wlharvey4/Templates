@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-03 00:33
-#+macro:version Version 0.2.5
+#+date:2020-02-12 23:54
+#+macro:version Version 0.2.6
 
 {{{version}}} {{{date}}}
 
@@ -59,7 +59,7 @@ the project domain at:
 the user will see a list of all related subprojects which link directly to the
 most recently uploaded version.
 
-#+name:projec-readme
+#+name:project-readme
 #+header: :tangle README.md
 #+begin_src markdown
 # TITLE
@@ -113,9 +113,11 @@ and provides the source code for processing them in various different ways.
   ### ALL OTHERS CAN BE HARD-CODED
   ### YOU ALSO NEED ~/.aws/credentials
 
-  EMACS   := /Applications/MacPorts/EmacsMac.app/Contents/MacOS/bin/emacs-26.3
-  EMACS_D := $(HOME)/.emacs.d
-  INIT_EL := init.el
+  # EMACS   := /Applications/MacPorts/EmacsMac.app/Contents/MacOS/bin/emacs-26.3
+  EMACS := $(EMACS)
+  EMACS_PREFIX=$(HOME)/.emacs.d
+  # EMACS_D := $(HOME)/.emacs.d
+  INIT_EL := $(EMACS_PREFIX)/init.el
 
   # The fully-qualified path to the Template file
 
@@ -261,7 +263,7 @@ and provides the source code for processing them in various different ways.
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	  @$(EMACS) --batch --load="$(EMACS_D)/$(INIT_EL)" --eval '\
+	  @$(EMACS) --batch --load="$(INIT_EL)" --eval '\
 		  (progn \
 			  (if \
 				  (member (quote texinfo) org-export-backends) \
@@ -389,7 +391,7 @@ and provides the source code for processing them in various different ways.
 	  @echo
 
 	  @echo '"make clean" removes the .texi, .info, and backup files ("*~")'
-	  @echo '"make clean-dist" cleans, removes the html distribution, \
+	  @echo '"make dist-clean" cleans, removes the html distribution, \
 	  and removes the build directory'
 
 #+end_src
