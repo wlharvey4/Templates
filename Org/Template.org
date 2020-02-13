@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-13 08:07
-#+macro:version Version 0.2.7
+#+date:2020-02-13 08:29
+#+macro:version Version 0.2.8
 
 {{{version}}} {{{date}}}
 
@@ -507,14 +507,32 @@ sync.
 :dependency5: git
 :END:
 This code is a script file to create a new project from this template.  It is
-called from the command line as ~org-template <project> [<author>].  It takes
+called from the command line as ~org-template <project> [<author>]~.  It takes
 one required, and one optional argument.  The required argument is the name of
-the project.  The optional argument is the name of the author.  It creates a
-new directory in the current working directory using the =project= argument,
-then copies this template into it as a new Org file using, again, the name of
-the project.  It then updates the title to the project name, and optionally the
-author, using the =author= argument if it was given.  Finally, it deletes this
-script from the new Org project file.
+the project.  The optional argument is the name of the author.  Here are the
+steps it takes:
+
+1. It creates a new directory in the current working directory using the
+   =project= argument.
+
+2. It copies this template into it as a new Org file using, again, the name
+   of the project.
+
+3. It then updates the title to the project name, and optionally the author,
+   using the =author= argument if it was given.
+
+4. It then deletes this script from the new Org project file.  
+
+5. It then tangles the ~README.md~ and the ~tools/cmprpl~ files into the
+   project.
+
+6. It initializes a new Git repository, creates a basic ~.gitignore~ file in
+   it, adds the Org file and the ~README.md~ file and makes an initial Git
+   commit.
+
+7. Finally, it prints an outline of the project’s structure using the ~tree~
+   command.
+
 
 #+caption:Create Script
 #+name:create-script
@@ -599,12 +617,13 @@ the current project’s Org file and delete’s the old, outdated Build Tools
 subtree.
 
 Note that there is also a version of this script in the Makefile that is run
-with the Make command ~make update~ from the command line.  This code is an
+from the command line using the ~make update~ command.  This code is an
 interactive Elisp function that can be loaded into memory using =C-x C-e= and
 then run interactively from within the project Org as =M-x update-build-tools=.
 
+#+captin:Update Build Tools Script
 #+name:update-build-tools
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp -n
   (defun update-build-tools (of-filenm)
     "Update the Build Tools of the argument file, which should be
   an Org file with a current Build Tools subtree."
