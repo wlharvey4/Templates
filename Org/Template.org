@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-14 10:15
-#+macro:version Version 0.2.9
+#+date:2020-02-14 10:29
+#+macro:version Version 0.2.10
 
 {{{version}}} {{{date}}}
 
@@ -557,8 +557,7 @@ steps it takes:
 
 #+caption:Create Script
 #+name:create-script
-#+header: :dir /usr/local/dev/bin
-#+header: :tangle org-template
+#+header: :tangle /Users/pine/Dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # $1 :=: Title
@@ -695,8 +694,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 
 #+name:switch-emacs-init
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :dir /usr/local/dev/bin
-#+header: :tangle switch-emacs-init
+#+header: :tangle /Users/pine/Dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
