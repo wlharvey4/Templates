@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-15 21:21
-#+macro:version Version 0.2.11
+#+date:2020-02-15 22:12
+#+macro:version Version 0.2.12
 
 {{{version}}} {{{date}}}
 
@@ -171,27 +171,30 @@ and provides the source code for processing them in various different ways.
   PROJ := $(basename $(shell ls *.org))
   ORG  := $(PROJ).org
 
-  # DIR 
+  # DIR:
   # This is not necessarily the same as PROJ; it is the exported .info
   # name found at #+texinfo_filename:<DIR>.info without its extension,
   # used as the directory name for the html export directory; use the
   # lowercased PROJ name if there is no texinfo_filename in the Org file
 
   DIR := $(shell $(EMACS) -Q --batch --eval '\
-    (with-temp-buffer \
-      (insert-file-contents "$(ORG)")\
+    (with-temp-buffer (insert-file-contents "$(ORG)") \
       (re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$") \
-      (print (match-string 1)))')
+      (princ (match-string 1)))')
   DIR ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 
-  # VERS
+  # VERS: v1.2.33/
   # The version number of this Org document.
   # If sync is run after the version number has been updated, then VERS
   # picks up the newly-changed value.  VERS used to be staticly imbedded
   # when the Makefile was tangled, but it needs to be dynamic for
   # development.
+  # QUERY: should this number be formatted like this, or should it be just the numbers?
 
-  VERS := $(shell sed -Ene '/^\#\+(macro|MACRO):version Version (([[:digit:]]+[[:punct:]]?){3})/ { s//v\2\//p; q; }' $(ORG))
+  VERS := v$(shell $(EMACS) -Q --batch --eval '\
+    (with-temp-buffer (insert-file-contents "$(ORG)") \
+      (re-search-forward "^ *.\\+\\(?:macro\\|MACRO\\):version Version \\(\\([[:digit:]]+[[:punct:]]?\\)\\{3\\}\\)") \
+      (princ (match-string 1)))')/
 
   ### AWS
   # PROJ_LIST contains the list of projects currently uploaded to
