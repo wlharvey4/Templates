@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-16 14:31
-#+macro:version Version 0.2.15
+#+date:2020-02-16 15:03
+#+macro:version Version 0.2.16
 
 {{{version}}} {{{date}}}
 
@@ -821,6 +821,8 @@ Copyright \copy 2020 by {{{author}}}
 
 
 * Export Configurations                                            :noexport:
+
+#+options: H:4
 
 #+texinfo_class: info
 #+texinfo_header:
