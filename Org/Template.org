@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-15 22:12
-#+macro:version Version 0.2.12
+#+date:2020-02-15 23:08
+#+macro:version Version 0.2.13
 
 {{{version}}} {{{date}}}
 
@@ -181,7 +181,9 @@ and provides the source code for processing them in various different ways.
     (with-temp-buffer (insert-file-contents "$(ORG)") \
       (re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$") \
       (princ (match-string 1)))')
-  DIR ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
+  ifeq ($(DIR),$(empty))
+  DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
+  endif
 
   # VERS: v1.2.33/
   # The version number of this Org document.
@@ -207,7 +209,14 @@ and provides the source code for processing them in various different ways.
   # S3VERS is the version of this project currently installed in the S3 bucket
 
   S3PROJ := $(filter $(DIR)%,$(PROJ_LIST))
+  ifeq ($(S3PROJ),$(empty))
+  S3PROJ := $(DIR)-$(VERS)
+  endif
+
   S3VERS := $(subst $(DIR)-,,$(filter $(DIR)%, $(PROJ_LIST)))
+  ifeq ($(S3VERS), $(empty))
+  S3VERS := $(VERS)
+  endif
 
   ### GITHUB
   # USER is the current user's GitHub login name.
