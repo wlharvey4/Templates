@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-14 10:29
-#+macro:version Version 0.2.10
+#+date:2020-02-15 21:21
+#+macro:version Version 0.2.11
 
 {{{version}}} {{{date}}}
 
@@ -134,20 +134,20 @@ and provides the source code for processing them in various different ways.
   ### ALL OTHERS CAN BE HARD-CODED
   ### YOU ALSO NEED ~/.aws/credentials
 
-  # EMACS   := /Applications/MacPorts/EmacsMac.app/Contents/MacOS/bin/emacs-26.3
-  EMACS := $(EMACS)
-  EMACS_PREFIX=$(HOME)/.emacs.d
-  # EMACS_D := $(HOME)/.emacs.d
-  INIT_EL := $(EMACS_PREFIX)/init.el
+  # Emacs binary and init file
 
-  # The fully-qualified path to the Template file
+  EMACS        := $(EMACS)
+  EMACS_PREFIX := $(HOME)/.emacs.d
+  EMACS_INIT   := $(EMACS_PREFIX)/init.el
 
-  TEMPLATE := $(ORG_TEMPLATE)
+  # The absolute path to this Template file
+
+  TEMPLATE := $(SYNC_ORG_TEMPLATE)
 
   # User’s personal GitHub token for authentication
   # DO NOT HARD-CODE THIS VALUE
 
-  TOKEN := $(GITHUB_TOKEN)
+  GH_TOKEN := $(GITHUB_TOKEN)
 
   # The AWS S3 bucket to use to store the html source files
 
@@ -165,18 +165,23 @@ and provides the source code for processing them in various different ways.
   ###############################################################################
 
   ### ORG
-  ### NOTE: there can be only one Org file in the directory;
+  ### NOTE: there can be only one Org file in the project directory;
   ### so far this has not been a problem, but it might be.
 
   PROJ := $(basename $(shell ls *.org))
-  ORG   := $(PROJ).org
+  ORG  := $(PROJ).org
 
-  # DIR is not necessarily the same as PROJ; it is the exported .info
+  # DIR 
+  # This is not necessarily the same as PROJ; it is the exported .info
   # name found at #+texinfo_filename:<DIR>.info without its extension,
-  # used as the directory name for the html exports; use the lowercased
-  # PROJ name if there is no texinfo_filename in the Org file 
+  # used as the directory name for the html export directory; use the
+  # lowercased PROJ name if there is no texinfo_filename in the Org file
 
-  DIR := $(shell sed -nEe '/^[[:space:]]*\#\+(texinfo_filename|TEXINFO_FILENAME):(.*)\.info/ { s//\2/p; q; }' $(ORG))
+  DIR := $(shell $(EMACS) -Q --batch --eval '\
+    (with-temp-buffer \
+      (insert-file-contents "$(ORG)")\
+      (re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$") \
+      (print (match-string 1)))')
   DIR ?= $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 
   # VERS
@@ -221,7 +226,7 @@ and provides the source code for processing them in various different ways.
   # install any modules.
 
   USER := $(shell \
-		curl -sH "Authorization: token $(TOKEN)" https://api.github.com/user \
+		curl -sH "Authorization: token $(GH_TOKEN)" https://api.github.com/user \
 		| \
 		perl -MJSON::PP -e \
 		    '$$/ = ""; \
@@ -284,7 +289,7 @@ and provides the source code for processing them in various different ways.
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	  @$(EMACS) --batch --load="$(INIT_EL)" --eval '\
+	  @$(EMACS) --batch --load="$(EMACS_INIT)" --eval '\
 		  (progn \
 			  (if \
 				  (member (quote texinfo) org-export-backends) \
@@ -341,7 +346,7 @@ and provides the source code for processing them in various different ways.
 
   homepage: $(ORG)
 	  curl -i \
-	       -H "Authorization: token $(TOKEN)" \
+	       -H "Authorization: token $(GH_TOKEN)" \
 	       -H "Content-Type: application/json" \
 	       -X PATCH \
 	       -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)"}' \
