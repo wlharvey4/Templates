@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-15 23:08
-#+macro:version Version 0.2.13
+#+date:2020-02-16 10:35
+#+macro:version Version 0.2.14
 
 {{{version}}} {{{date}}}
 
@@ -108,7 +108,6 @@ and provides the source code for processing them in various different ways.
 :PROPERTIES:
 :appendix: t
 :END:
-
 ** Makefile                                     :dependencies:env_vars:perl:
 :PROPERTIES:
 :appendix: t
@@ -164,34 +163,61 @@ and provides the source code for processing them in various different ways.
   ### END OF USER-DEPENDENT VARIABLES
   ###############################################################################
 
-  ### ORG
+  ### PROJ AND ORG
+  # ORG is the name of this Org file with extension
+  # PROJ is the name of this Org file without extension.
+
   ### NOTE: there can be only one Org file in the project directory;
-  ### so far this has not been a problem, but it might be.
+  # so far this has not been a problem, but it might be.
 
-  PROJ := $(basename $(shell ls *.org))
-  ORG  := $(PROJ).org
+  ### NOTE: S is needed only for the Template file because of the way it is nested
+  # one level deep in the Templates GitHub repo, which uses the plural form
+  # of Templates, whereas this file uses the singular form, Template.  So when
+  # the homepage link is updated, the curl command must be told to use the plural
+  # form.  This is obviously a hack only for my own use and can be removed once
+  # I clean up this anomaly.
 
-  # DIR:
+  ORG  := $(shell ls *.org)
+  PROJ := $(basename $(ORG))
+
+  ifeq ($(PROJ),$(basename $(notdir $(TEMPLATE))))
+  S := s
+  endif
+
+  ### DIR:
   # This is not necessarily the same as PROJ; it is the exported .info
   # name found at #+texinfo_filename:<DIR>.info without its extension,
   # used as the directory name for the html export directory; use the
   # lowercased PROJ name if there is no texinfo_filename in the Org file
 
+  # NOTE: 're-search-forward' will either return an error or 'nil',
+  # depending on the value of the third argument, if the search fails.
+  # If it returns an error, then that error shows up in the shell
+  # output.  It might be advantageous to let it so you are aware that
+  # there is no 'texinfo_filename', but for now it is set to return
+  # 'nil' on failure, and then assign the backup value.
+
   DIR := $(shell $(EMACS) -Q --batch --eval '\
     (with-temp-buffer (insert-file-contents "$(ORG)") \
-      (re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$") \
+      (re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
       (princ (match-string 1)))')
-  ifeq ($(DIR),$(empty))
+  ifeq ($(DIR),nil)
   DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
   endif
 
-  # VERS: v1.2.33/
+  ### VERS: v1.2.34/
   # The version number of this Org document.
   # If sync is run after the version number has been updated, then VERS
   # picks up the newly-changed value.  VERS used to be staticly imbedded
   # when the Makefile was tangled, but it needs to be dynamic for
   # development.
+
   # QUERY: should this number be formatted like this, or should it be just the numbers?
+  # The reason it includes them is the S3PROJ obtains the name from the S3 bucket, and
+  # it includes them.  But it only includes them because I have made it so.  Not a good
+  # reason just by itself.  The ending slash is not actually a part of the version, but
+  # comes from the way the 'aws2 ls' command returns its values.  So VERS should probably
+  # not include the trailing slash, although it doesn’t hurt anything.
 
   VERS := v$(shell $(EMACS) -Q --batch --eval '\
     (with-temp-buffer (insert-file-contents "$(ORG)") \
@@ -205,8 +231,14 @@ and provides the source code for processing them in various different ways.
 
   PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(BUCKET))))
 
-  # S3PROJ is the name of the current project as obtained from S3
-  # S3VERS is the version of this project currently installed in the S3 bucket
+  ### S3PROJ
+  # The name of the current project as obtained from S3: 'proj-v1.2.34/'
+  # If there is no current project in the S3 bucket, then assign a value equal to
+  # the Org project and version instead.
+  ### S3VERS
+  # The version of this project currently installed in the S3 bucket: 'v1.2.34/'
+  # If there is no current version in the S3 bucket, then assign the version from
+  # this Org file instead.
 
   S3PROJ := $(filter $(DIR)%,$(PROJ_LIST))
   ifeq ($(S3PROJ),$(empty))
@@ -280,7 +312,8 @@ and provides the source code for processing them in various different ways.
 
   values: check
 	  @echo USER:   	$(USER)
-	  @echo PROJ:   	$(PROJ)
+	  @echo ORG:    	$(ORG)
+	  @echo PROJ:   	$(PROJ) $S
 	  @echo VERS:   	$(VERS)
 	  @echo S3PROJ: 	$(S3PROJ)
 	  @echo S3VERS: 	$(S3VERS)
@@ -356,13 +389,16 @@ and provides the source code for processing them in various different ways.
 	  $(S3SYNC)
 	  [[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
+  ### NOTE the use of the S variable at the end of PROJ; this is to handle
+  # the singular case of the GitHub repo using the plural form, Templates
+  # whereas the the Template.org file uses the singular form.
   homepage: $(ORG)
 	  curl -i \
 	       -H "Authorization: token $(GH_TOKEN)" \
 	       -H "Content-Type: application/json" \
 	       -X PATCH \
 	       -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)"}' \
-	       https://api.github.com/repos/$(USER)/$(PROJ)
+	       https://api.github.com/repos/$(USER)/$(PROJ)$S
 
   update: $(ORG)
 	  $(EMACS) -Q --batch --eval \
@@ -785,7 +821,7 @@ Copyright \copy 2020 by {{{author}}}
 
 
 * Export Configurations                                            :noexport:
-#+texinfo_filename:template.info
+
 #+texinfo_class: info
 #+texinfo_header:
 #+texinfo_post_header:
