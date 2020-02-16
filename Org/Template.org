@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-16 10:35
-#+macro:version Version 0.2.14
+#+date:2020-02-16 14:31
+#+macro:version Version 0.2.15
 
 {{{version}}} {{{date}}}
 
@@ -115,7 +115,7 @@ and provides the source code for processing them in various different ways.
 :dependency2: "AWS Account with ~/.aws/credentials and ~/.aws/config"
 :dependency3: "S3 bucket set up for serving a static web pages"
 :dependency4: "GitHub Account with personal token"
-:env_var1: ORG_TEMPLATE
+:env_var1: SYNC_ORG_TEMPLATE
 :env_var2: EMACSLOADPATH
 :env_var3: AWS_S3_BUCKET
 :env_var4: GITHUB_TOKEN
@@ -682,7 +682,7 @@ steps it takes:
 #+end_src
 ** Update Script                                                   :env_var:
 :PROPERTIES:
-:env_var1: (find-file-noselect (getenv "ORG_TEMPLATE"))
+:env_var1: (find-file-noselect (getenv "SYNC_ORG_TEMPLATE"))
 :END:
 This code is a script file to update the Build Tools subtree in a current
 project with the updated Build Tools subtree from this template.  It copies the
@@ -705,7 +705,7 @@ then run interactively from within the project Org as =M-x update-build-tools=.
     (require (quote org))
     (save-current-buffer
 	(set-buffer
-	 (find-file-noselect (getenv "ORG_TEMPLATE")))
+	 (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
 	(save-excursion
 	  (goto-char (point-min))
 	  (search-forward "* Build Tools")
