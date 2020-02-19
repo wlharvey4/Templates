@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-19 15:22
-#+macro:version Version 0.2.23
+#+date:2020-02-19 15:33
+#+macro:version Version 0.2.24
 
 {{{version}}} {{{date}}}
 
@@ -402,7 +402,7 @@ and provides the source code for processing them in various different ways.
 		 -H "Authorization: token $(GH_TOKEN)" \
 		 https://api.github.com/repos/$(USER)/$(PROJ)$S | \
 		 perl -ne 'if (s/^\s*\"description\": //) { \
-		   s/[",\/]|(?:\s*v\s*(?:\d+\.?)+)//g; \
+		   s/[",\/]|(?::\s*v(?:\d+\.?)+)|\s*$$//g; \
 		   print "$$_: $(VERS)"; }')
 
   ### NOTE the use of the S variable at the end of PROJ; this is to handle
