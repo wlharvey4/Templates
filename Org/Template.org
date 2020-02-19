@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-19 11:21
-#+macro:version Version 0.2.18
+#+date:2020-02-19 11:30
+#+macro:version Version 0.2.19
 
 {{{version}}} {{{date}}}
 
@@ -396,16 +396,24 @@ and provides the source code for processing them in various different ways.
   # the singular case of the GitHub repo using the plural form, Templates
   # whereas the the Template.org file uses the singular form.
   homepage: $(ORG)
-	  description=$(shell curl -i \
-	      -H "Authorization: token $(GH_TOKEN)" \
-	      https://api.github.com/repos/$(USER)/$(PROJ)$S) && \
 	  curl -i \
 	       -H "Authorization: token $(GH_TOKEN)" \
 	       -H "Content-Type: application/json" \
 	       -X PATCH \
-	       -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)",\
-		   {"description":"$(description): $(DIR)-$(VERS)"}' \
+	       -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)"}' \
 	       https://api.github.com/repos/$(USER)/$(PROJ)$S
+
+  # homepage: $(ORG)
+  # 	description=$(shell curl -i \
+  # 	    -H "Authorization: token $(GH_TOKEN)" \
+  # 	    https://api.github.com/repos/$(USER)/$(PROJ)$S) && \
+  # 	curl -i \
+  # 	     -H "Authorization: token $(GH_TOKEN)" \
+  # 	     -H "Content-Type: application/json" \
+  # 	     -X PATCH \
+  # 	     -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)",\
+  # 		 {"description":"$(description): $(DIR)-$(VERS)"}' \
+  # 	     https://api.github.com/repos/$(USER)/$(PROJ)$S
 
   update: $(ORG)
 	  $(EMACS) -Q --batch --eval \
