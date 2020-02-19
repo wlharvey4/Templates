@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-16 15:03
-#+macro:version Version 0.2.16
+#+date:2020-02-19 09:33
+#+macro:version Version 0.2.17
 
 {{{version}}} {{{date}}}
 
@@ -393,11 +393,15 @@ and provides the source code for processing them in various different ways.
   # the singular case of the GitHub repo using the plural form, Templates
   # whereas the the Template.org file uses the singular form.
   homepage: $(ORG)
+	  description=$(shell curl -i \
+	      -H "Authorization: token $(GH_TOKEN)" \
+	      https://api.github.com/repos/$(USER)/$(PROJ)$S) && \
 	  curl -i \
 	       -H "Authorization: token $(GH_TOKEN)" \
 	       -H "Content-Type: application/json" \
 	       -X PATCH \
-	       -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)"}' \
+	       -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)",\
+		   {"description":"$(description): $(DIR)-$(VERS)"}' \
 	       https://api.github.com/repos/$(USER)/$(PROJ)$S
 
   update: $(ORG)
@@ -610,7 +614,8 @@ steps it takes:
 
 #+caption:Create Script
 #+name:create-script
-#+header: :tangle /Users/pine/Dev/bin/org-template
+#+header: :mkdirp yes
+#+header: :tangle ~/Dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # $1 :=: Title
@@ -746,8 +751,9 @@ up by the user, with its name given after a dash, such as =~/.emacs.d-original=
 or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 
 #+name:switch-emacs-init
+#+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle /Users/pine/Dev/bin/switch-emacs-init
+#+header: :tangle ~/Dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -755,7 +761,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
   echo
   select choice in $(ls -1d ~/.emacs.d-*) "abort"
   do
-      echo -n You chose 
+      echo -n 'You chose '
       printf " ${B_YELLOW}${F_BLACK}$choice${CLEAR}  "
       [[ $choice = "abort" ]] && exit 0
       rm ~/.emacs.d
