@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-19 09:33
-#+macro:version Version 0.2.17
+#+date:2020-02-19 11:21
+#+macro:version Version 0.2.18
 
 {{{version}}} {{{date}}}
 
@@ -112,13 +112,16 @@ and provides the source code for processing them in various different ways.
 :PROPERTIES:
 :appendix: t
 :dependency1: "make"
-:dependency2: "AWS Account with ~/.aws/credentials and ~/.aws/config"
+:dependency2: "aws2; AWS Account with ~/.aws/credentials and ~/.aws/config"
 :dependency3: "S3 bucket set up for serving a static web pages"
 :dependency4: "GitHub Account with personal token"
+:dependency5: "texinfo @6.7.0"
 :env_var1: SYNC_ORG_TEMPLATE
 :env_var2: EMACSLOADPATH
 :env_var3: AWS_S3_BUCKET
 :env_var4: GITHUB_TOKEN
+:env_var5: EMACS
+:env_var6: EMACS_INIT
 :END:
 
 #+name:Makefile
@@ -136,8 +139,7 @@ and provides the source code for processing them in various different ways.
   # Emacs binary and init file
 
   EMACS        := $(EMACS)
-  EMACS_PREFIX := $(HOME)/.emacs.d
-  EMACS_INIT   := $(EMACS_PREFIX)/init.el
+  EMACS_INIT   := $(EMACS_INIT)
 
   # The absolute path to this Template file
 
@@ -336,6 +338,7 @@ and provides the source code for processing them in various different ways.
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
 	  @$(EMACS) --batch --load="$(EMACS_INIT)" --eval '\
 		  (progn \
+			  (require (quote org)) \
 			  (if \
 				  (member (quote texinfo) org-export-backends) \
 				  (princ "texinfo backend: INSTALLED in org-export-backends") \
@@ -374,7 +377,7 @@ and provides the source code for processing them in various different ways.
 
   html: $(HTML)
   $(HTML): $(TEXI)
-	  makeinfo --html $(TEXI)
+	  makeinfo --html -o $(DIR) $(TEXI)
 	  $(CMPRPL) $(DIR) $(DIR_OLD)
   open-html: html
 	  open $(HTML)
@@ -427,6 +430,24 @@ and provides the source code for processing them in various different ways.
 	     (setq org-confirm-babel-evaluate nil) \
 	     (org-babel-tangle-file "$(ORG)"))'
 
+  ### INSTALL AWS2
+  # Run this 'make' command to install the 'aws2' command-line tools into
+  #   /usr/local/aws-cli;
+  # this will install the commands 'aws2' and 'aws2_completer' into
+  #   /usr/local/bin
+  # NOTE: the install script must be run as 'root' via 'sudo' on macos to install
+  #       into /usr/local
+  # USAGE: sudo make install-aws2
+  #        aws2 configure
+  # NOTE: This should probably go into a scripts file to be run upon configuration,
+  #       not in this Makefile, as it will only be needed once.  But maybe the Makefile
+  #       can do all of the configuration.  Wait and see.
+  install-aws2:
+	  curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
+	  unzip awscliv2.zip
+	  sudo ./aws/install
+	  aws2 --version
+
   clean:
 	  -rm *~
 
@@ -467,6 +488,9 @@ and provides the source code for processing them in various different ways.
 	  in the default web browser'
 	  @echo '"make open-pdf" opens the .pdf file'
 	  @echo
+
+	  @echo '"sudo make install-aws2" installs the "aws2" command-line tools'
+	  @echo 'You also need to run "aws2 configure" and supply your Access Key and Secret Access Key'
 
 	  @echo '"make clean" removes the .texi, .info, and backup files ("*~")'
 	  @echo '"make dist-clean" cleans, removes the html distribution, \
