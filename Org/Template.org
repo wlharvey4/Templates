@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-19 15:33
-#+macro:version Version 0.2.24
+#+date:2020-02-19 17:29
+#+macro:version Version 0.2.25
 
 {{{version}}} {{{date}}}
 
@@ -392,18 +392,20 @@ and provides the source code for processing them in various different ways.
 	    $(S3SYNC)
 	    [[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
-  # This is a target-specific variable for updating the “description” key
-  # on the GitHub repo page with the current version number.  It first
-  # makes a curl call to the GitHub project repo, finds the “description”
-  # line, strips the value of embedded quotes and the prior version number,
-  # and finally prints the value with the current version number.  This
-  # value is used by the “homepage:” target in the PATCH call.
+  # This is a target-specific variable for updating the “description”
+  # key on the GitHub repo page with the current version number.  It
+  # first makes a curl call to the GitHub project repo, finds the
+  # “description” line, pulls out the description only (leaving the old
+  # version) and then prints the value with the current version number.
+  # This value is used by the “homepage:” target in the PATCH call.
+  # This method is arguably harder to code but faster to run than using
+  # Perl with the JSON::PP module.
   homepage: description = $(shell curl -s \
 		 -H "Authorization: token $(GH_TOKEN)" \
 		 https://api.github.com/repos/$(USER)/$(PROJ)$S | \
-		 perl -ne 'if (s/^\s*\"description\": //) { \
-		   s/[",\/]|(?::\s*v(?:\d+\.?)+)|\s*$$//g; \
-		   print "$$_: $(VERS)"; }')
+		 perl -ne 'if (/(?:^\s*\"description\":)\s*\"(.*)(?::\s*v(?:(?:\d+\.?)+\/)?\",)$$/) { \
+		      print "$$1: $(VERS)"; \
+		  }')
 
   ### NOTE the use of the S variable at the end of PROJ; this is to handle
   # the singular case of the GitHub repo using the plural form, Templates
