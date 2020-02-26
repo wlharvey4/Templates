@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-19 17:31
-#+macro:version Version 0.3.0
+#+date:2020-02-26 11:47
+#+macro:version Version 0.3.1
 
 {{{version}}} {{{date}}}
 
@@ -113,15 +113,16 @@ and provides the source code for processing them in various different ways.
 :appendix: t
 :dependency1: "make"
 :dependency2: "aws2; AWS Account with ~/.aws/credentials and ~/.aws/config"
+:dependency2.1: "aws2 is now [2020-02-26] aws"
 :dependency3: "S3 bucket set up for serving a static web pages"
 :dependency4: "GitHub Account with personal token"
 :dependency5: "texinfo @6.7.0"
-:env_var1: SYNC_ORG_TEMPLATE
-:env_var2: EMACSLOADPATH
-:env_var3: AWS_S3_BUCKET
-:env_var4: GITHUB_TOKEN
-:env_var5: EMACS
-:env_var6: EMACS_INIT
+:env_var1: SYNC_ORG_TEMPLATE: the path to this Template.org file
+:env_var2: EMACSLOADPATH: maybe no longer needed
+:env_var3: AWS_S3_BUCKET: the name of the S3 bucket to use, e.g. "pinecone-forest.com"
+:env_var4: GITHUB_TOKEN: a personal access token stored on GitHub
+:env_var5: EMACS: the 'emacs' command to call for batch operations
+:env_var6: EMACS_INIT: the path to Emac’s 'init' file
 :END:
 
 #+name:Makefile
@@ -154,9 +155,16 @@ and provides the source code for processing them in various different ways.
 
     BUCKET := s3://$(AWS_S3_BUCKET)
 
-    # The aws command to use (version 1 or version 2)
+    # The AWS Command Line Interface (AWS CLI) is an open source tool
+    # that enables you to interact with AWS services using commands in
+    # your command-line shell.
 
-    AWS := aws2
+    # DEPRICATION: The aws command to use (version 1 or version 2)
+    # NOTE: aws version 1.x is apparently depricated. [2020-02-26]
+    # NOTE: aws2 was version 2.0.0dev2; when this Template file was created.
+    # aws v2.x is now plain 'aws', and is at version 2.0.1 [2020-02-26]
+
+    AWS := aws
 
     # The AWS region of choice; this can also be in .aws/config
 
