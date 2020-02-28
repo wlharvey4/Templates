@@ -3,8 +3,11 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-26 11:47
-#+macro:version Version 0.3.1
+#+date:2020-02-27 22:08
+#+macro:version Version 0.3.2
+:BUCKET:
+:bucket_url: https://pinecone-forest.com
+:END:
 
 {{{version}}} {{{date}}}
 
@@ -744,7 +747,7 @@ from the command line using the ~make update~ command.  This code is an
 interactive Elisp function that can be loaded into memory using =C-x C-e= and
 then run interactively from within the project Org as =M-x update-build-tools=.
 
-#+captin:Update Build Tools Script
+#+caption:Update Build Tools Script
 #+name:update-build-tools
 #+begin_src emacs-lisp -n
   (defun update-build-tools (of-filenm)
@@ -822,6 +825,41 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
   done
   /Applications/MacPorts/EmacsMac.app/Contents/MacOS/Emacs --eval '(progn (server-start)(desktop-read "~/.emacs.d-original/"))' &
 #+end_src
+
+** Get Bucket
+
+#+name:get-bucket
+#+header: :results output
+#+begin_src emacs-lisp
+  (save-excursion
+    (goto-char (point-min))
+    (search-forward "#+bucket:")
+    (let* (
+	   (el (org-element-at-point))
+	   (el-type (type-of el))
+	   (bucket (nth 1 el))
+	   (bucket-type (type-of bucket))
+	   (value (plist-get bucket :value))
+	   )
+      (princ el)(terpri)
+      (princ el-type)(terpri)
+      (princ (safe-length el))(terpri)
+      (princ bucket)(terpri)
+      (princ (listp bucket))(terpri)
+      (princ bucket-type)(terpri)
+      (princ (safe-length bucket))(terpri)
+      (princ value)(terpri)))
+#+end_src
+
+#+RESULTS: get-bucket
+: (keyword (:key BUCKET :value pinecone-forest.com :begin 143 :end 173 :post-blank 1 :post-affiliated 143 :parent nil))
+: cons
+: 2
+: (:key BUCKET :value pinecone-forest.com :begin 143 :end 173 :post-blank 1 :post-affiliated 143 :parent nil)
+: t
+: cons
+: 14
+: pinecone-forest.com
 
 * List of Programs
 :PROPERTIES:
