@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-27 22:08
-#+macro:version Version 0.3.2
+#+date:2020-02-27 22:26
+#+macro:version Version 0.3.3
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -162,8 +162,8 @@ and provides the source code for processing them in various different ways.
     # that enables you to interact with AWS services using commands in
     # your command-line shell.
 
-    # DEPRICATION: The aws command to use (version 1 or version 2)
-    # NOTE: aws version 1.x is apparently depricated. [2020-02-26]
+    # DEPRECATION: The aws command to use (version 1 or version 2)
+    # NOTE: aws version 1.x is apparently deprecated. [2020-02-26]
     # NOTE: aws2 was version 2.0.0dev2; when this Template file was created.
     # aws v2.x is now plain 'aws', and is at version 2.0.1 [2020-02-26]
 
@@ -453,7 +453,7 @@ and provides the source code for processing them in various different ways.
 	       (setq org-confirm-babel-evaluate nil) \
 	       (org-babel-tangle-file "$(ORG)"))'
 
-    ### INSTALL AWS2
+    ### INSTALL AWS2 ***DEPRECATED**
     # Run this 'make' command to install the 'aws2' command-line tools into
     #   /usr/local/aws-cli;
     # this will install the commands 'aws2' and 'aws2_completer' into
@@ -465,13 +465,13 @@ and provides the source code for processing them in various different ways.
     # NOTE: This should probably go into a scripts file to be run upon configuration,
     #       not in this Makefile, as it will only be needed once.  But maybe the Makefile
     #       can do all of the configuration.  Wait and see.
-    install-aws2:
-	    curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
-	    unzip awscliv2.zip
-	    sudo ./aws/install
-	    aws2 --version
+    # install-aws2:
+    # 	  curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
+    # 	  unzip awscliv2.zip
+    # 	  sudo ./aws/install
+    # 	  aws2 --version
 
-    clean:
+    # clean:
 	    -rm *~
 
     dist-clean: clean
