@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-02-27 22:26
-#+macro:version Version 0.3.3
+#+date:2020-03-01 10:39
+#+macro:version Version 0.3.4
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -88,6 +88,7 @@ and provides the source code for processing them in various different ways.
 [2020-02-14 Fri 10:12]
 - [ ] like ~aws2~
 - [ ] Org-mode > 9.1.9
+
 *** TODO Get rid of hard-coded directories
 - [ ] ~create-script~
   [2020-02-14 Fri 09:45]
@@ -98,6 +99,7 @@ and provides the source code for processing them in various different ways.
   How about =SyncOrg=?  So the environment variable would be =SYNC_ORG_BIN=.  A
   possible value would =~/Dev/bin= or =/usr/local/dev/bin=, depending on the
   system.
+
 *** TODO Add check for existence of environment variables
 [2020-02-14 Fri 09:57]
 - [ ] it appears environment variables do not expand inside header lines? Check
@@ -105,6 +107,14 @@ and provides the source code for processing them in various different ways.
 - [ ] if environment variables do not expand, then need to provide a script to
   update them upon installation
 - [ ] such as =SYNC_ORG_BIN=
+
+*** TODO Update Date
+
+- State "TODO"       from              [2020-03-01 Sun 10:36] \\
+  When creating a new project from this template, update the #+date: to
+  the current day and time instead of leaving it to when this template
+  was last updated.
+
 * Chapter
 
 * Build Tools
@@ -908,7 +918,8 @@ Copyright \copy 2020 by {{{author}}}
 * Footnotes
 
 
-* Export Configurations                                            :noexport:
+* Configuration                                                    :noexport:
+#+todo: SOMEDAY(s@) TODO(t@) INPROGRESS(i@) WAIT(w@) | CANCEL(c@) DONE(d!)
 
 #+options: H:4
 
