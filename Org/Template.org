@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-01 10:39
-#+macro:version Version 0.3.4
+#+date:2020-03-01 14:09
+#+macro:version Version 0.3.5
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -115,6 +115,14 @@ and provides the source code for processing them in various different ways.
   the current day and time instead of leaving it to when this template
   was last updated.
 
+*** TODO Make Update independent of the project
+
+- State "TODO"       from              [2020-03-01 Sun 14:07] \\
+  I just tried to update a project, but the command AWS :=: aws2 did not
+  work because it has changed to aws version 2.  If the update program
+  had been independent and based upon Template's most recent code, then
+  that would not have happened.  Who knows what the next problem will be
+  causing the project's out-of-date code to fail to update.
 * Chapter
 
 * Build Tools
