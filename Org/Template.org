@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-01 14:09
-#+macro:version Version 0.3.5
+#+date:2020-03-02 21:13
+#+macro:version Version 0.3.6
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -108,8 +108,9 @@ and provides the source code for processing them in various different ways.
   update them upon installation
 - [ ] such as =SYNC_ORG_BIN=
 
-*** TODO Update Date
+*** DONE Update Date
 
+- State "DONE"       from "TODO"       [2020-03-02 Mon 21:12]
 - State "TODO"       from              [2020-03-01 Sun 10:36] \\
   When creating a new project from this template, update the #+date: to
   the current day and time instead of leaving it to when this template
@@ -123,6 +124,8 @@ and provides the source code for processing them in various different ways.
   had been independent and based upon Template's most recent code, then
   that would not have happened.  Who knows what the next problem will be
   causing the project's out-of-date code to fail to update.
+*** DONE Make adding git repo an option
+- State "DONE"       from              [2020-03-02 Mon 21:13]
 * Chapter
 
 * Build Tools
@@ -651,9 +654,10 @@ sync.
 :END:
 This code is a script file to create a new project from this template.  It is
 called from the command line as ~org-template <project> [<author>]~.  It takes
-one required, and one optional argument.  The required argument is the name of
-the project.  The optional argument is the name of the author.  Here are the
-steps it takes:
+one required, and up to two optional arguments.  The required argument is the
+name of the project.  One optional argument is the name of the author.  The
+other optional argument is the term =git=, meaning to initialize a =git=
+repository for the project.  Here are the steps it takes:
 
 1. It creates a new directory in the current working directory using the
    =project= argument.
@@ -664,14 +668,14 @@ steps it takes:
 3. It then updates the title to the project name, and optionally the author,
    using the =author= argument if it was given.
 
-4. It then deletes this script from the new Org project file.  
+4. It then deletes this script from the new Org project file.
 
 5. It then tangles the ~README.md~ and the ~tools/cmprpl~ files into the
    project.
 
-6. It initializes a new Git repository, creates a basic ~.gitignore~ file in
-   it, adds the Org file and the ~README.md~ file and makes an initial Git
-   commit.
+6. If the term ='git'= is supplied, it initializes a new Git repository,
+   creates a basic ~.gitignore~ file in it, adds the Org file and the
+   ~README.md~ file and makes an initial Git commit.
 
 7. Finally, it prints an outline of the project’s structure using the ~tree~
    command.
@@ -684,8 +688,8 @@ steps it takes:
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # $1 :=: Title
-  [[ ($# -eq 1) || ($# -eq 2) ]] || {
-	printf "${RED}ERROR: ${YELLOW}\'org-template ${RED}<TITLE>${YELLOW} [<AUTHOR>]\'${CLEAR}"
+  [[ ($# -ge 1) && ($# -le 3) ]] || {
+  printf "${RED}ERROR: ${YELLOW}\'org-template ${RED}<TITLE>${YELLOW} [<AUTHOR>] ['git']\'${CLEAR}\n"
 	exit 1
   }
   printf "${PURPLE}"
@@ -699,15 +703,16 @@ steps it takes:
   printf "${CLEAR}\n"
 
   sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
+		-Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
 		-Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
 		-Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
 		"$1/$1.org"
-  [[ $# -eq 2 ]] && \
+  [[ $# -ge 2 ]] && \
       sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
   printf "${CYAN}"
   emacs --batch --eval \
-    '(progn 
+    '(progn
        (require (quote org))
        (require (quote ob))
        (require (quote ob-shell))
@@ -721,13 +726,15 @@ steps it takes:
 
   printf "${CLEAR}\n"
 
-  cd $1 && {
-      rm *~
-      printf "${YELLOWBOLD}"
-      git init
-      printf "${CLEAR}"
+  if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
+  then
+      cd $1 && {
+	  rm *~
+	  printf "${YELLOWBOLD}"
+	  git init
+	  printf "${CLEAR}"
 
-      echo "\
+	  echo "\
   .gitignore
   Makefile
   ,*~
@@ -738,16 +745,18 @@ steps it takes:
   ,*-old
   tools" > .gitignore
 
-      git add .
-      git commit -m "Initial commit of Project $1"
-      git log --stat
+	  git add .
+	  git commit -m "Initial commit of Project $1"
+	  git log --stat
 
-      cd ..
-      printf "${PURPLEBOLD}\n"
-      pwd
-      printf "${CLEAR}"
-      tree -aI .git $1
-  }
+      }
+  fi
+
+  cd ..
+  printf "${PURPLEBOLD}\n"
+  pwd
+  printf "${CLEAR}"
+  tree -aI .git $1
 
 #+end_src
 ** Update Script                                                   :env_var:
