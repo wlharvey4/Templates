@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-15 19:34
-#+macro:version Version 0.3.7
+#+date:2020-03-16 09:31
+#+macro:version Version 0.3.8
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -851,6 +851,79 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
       break
   done
   /Applications/MacPorts/EmacsMac.app/Contents/MacOS/Emacs --eval '(progn (server-start)(desktop-read "~/.emacs.d-original/"))' &
+#+end_src
+
+** Update RC Files
+This code synchronizes the following configuration files:
+- /etc/profile
+- /etc/bashrc
+- ~/.bash_profile
+- ~/.bashrc
+- ~/.tmux.conf
+
+
+It first verifies that the files differ; then it will copy a newer file over an
+older file.  If a  local file is updated with a newer  template file, then this
+program updates the  Emacs ~server-socket-dir~ variable, if such  exists.  If a
+template   is   updated   with   a   newer  local   file,   then   delete   the
+~server-socket-dir~ value.
+
+#+header: :tangle ~/Dev/bin/syncrc
+#+header: :shebang "#!/usr/bin/env bash"
+#+begin_src shell
+  [ -v TEMPLATES ] || { printf "${RED}ERROR: missing \$TEMPLATES env var${CLEAR}\n"; exit 1; }
+
+  comp () {
+      if ! cmp -s $1 $2
+      then
+		[[ $1 -nt $2 ]] && {
+			[[ -d $(dirname "$2") ]] || {
+				mkdir -vp $(dirname "$2")
+			} || { :; }
+
+			printf "${BLUE}";cp -pv "$1" "$2";printf "${CLEAR}"
+
+			grep -q "EMACS_SERVER_SOCKET_DIR=" "$2" && {
+			    	printf "${WHITE}UNSETTING socket_dir...${CLEAR}\n"
+				sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1=TBD!' "$2"
+			} || { :; }
+
+		} || {
+			[[ "$2" -nt "$1" ]] && {
+				[[ -w "$1" ]] && {
+					printf "${PURPLE}";cp -pv "$2" "$1";printf "${CLEAR}"
+				} || {
+					printf "${RED}You must authenticate... ${CLEAR}"
+					printf "${PURPLE}";sudo cp -pv "$2" "$1";printf "${CLEAR}"
+				}
+
+				grep -q "EMACS_SERVER_SOCKET_DIR=" "$1" && {
+					socket_dir=$(emacsclient --eval '(princ (file-name-as-directory server-socket-dir))')
+					printf "${WHITE}SETTING socket_dir=${socket_dir}${CLEAR}...\n"
+					sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' $1
+				} || { :; }
+
+			} || {
+				printf "${REDBOLD}ERROR: the files don't match but are the same age?${CLEAR}\n"
+			}
+		}
+      else
+		printf "${CYAN}No difference.${CLEAR}\n"
+      fi
+  }
+
+  for file in /etc/profile /etc/bashrc ~/.bash_profile ~/.bashrc ~/.tmux.conf
+  do
+      printf "Considering ${GREEN}$file... ${CLEAR}"
+
+      case $file in
+	    ?etc?profile)   comp $file $TEMPLATES/rc/etc/profile  ;;
+	    ?etc?bashrc)    comp $file $TEMPLATES/rc/etc/bashrc   ;;
+	    ,*bash_profile) comp $file $TEMPLATES/rc/bash_profile ;;
+	    ,*bashrc)       comp $file $TEMPLATES/rc/bashrc       ;;
+	    ,*tmux?conf)    comp $file $TEMPLATES/rc/tmux.conf    ;;
+      esac
+  done
 #+end_src
 
 ** Get Bucket
