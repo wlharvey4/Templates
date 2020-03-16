@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-02 21:13
-#+macro:version Version 0.3.6
+#+date:2020-03-15 19:34
+#+macro:version Version 0.3.7
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -492,7 +492,7 @@ and provides the source code for processing them in various different ways.
     # 	  sudo ./aws/install
     # 	  aws2 --version
 
-    # clean:
+    clean:
 	    -rm *~
 
     dist-clean: clean
