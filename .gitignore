@@ -1,3 +1,5 @@
 *.lodestone
 Makefile
 tools
+*.bak
+*/template-old/

@@ -11,7 +11,7 @@
 
 ################################
 export COMP=$(hostname -s)
-export <COMP>_DEBUG=${DEBUG:-0} # <-- set COMP
+#export <COMP>_DEBUG=${DEBUG:-0} # <-- set COMP
 ################################
 
 
@@ -117,7 +117,7 @@ fi
 ################################################################################
 ### System-wide editor settings
 
-export SHELL=/usr/local/bin/bash # <-- set for environment
+#export SHELL=/usr/local/bin/bash # <-- set for environment
 export EDITOR=emacsclient
 set -o emacs
 export TERMSERVER=termserver

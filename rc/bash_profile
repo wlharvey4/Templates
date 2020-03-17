@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bash_profile
-# 2018-11-06T10:55
+# Time-stamp: <2020-03-16 09:30:07 pine>
 
 # User's .bash_profile
 ################################################################################
@@ -12,16 +12,28 @@
 ################################################################################
 ### USER'S Emacs Environment Variables
 
-## The directory used by Emacs to hold the server sockets appears to vary wildly
-## between systems and builds and must be checked.  The directory is revealed by
-## Emacs when you do a '(server-force-delete)'.
+## Set up the GUI Emacs as an edit server.  Emacs should be started from init.el
+## using '(server-start)'.   The default  server name is  'server'.  Set  up the
+## terminal emacs as a daemon, which calls '(server-start)' when it initializes.
+## Give a terminal emacs daemon the server name 'termserver' to distinguish it.
+
+## Once  an Emacs  server is  started, use  the shell  command 'emacsclient'  to
+## connect to the Emacs process, passing a  server name to select either the GUI
+## server or the terminal server.
+
+## Set the EDITOR env var to the  value 'emacsclient'.  TeX uses the TEXEDIT env
+## var set to the value 'emacsclient  +%d %s'.  This allows external programs to
+## use the Emacs server for editing purposes.
+
+## An Emacs server usually listens to connections on a local Unix domain socket.
+## The  Emacs  variable  'server-socket-dir'  determines  where  the  socket  is
+## established, which will not necessarily be the same for any given system.
 
 export EMACS_HOME=${HOME}/.emacs.d
 export EMACS_INIT=init.el
 export EMACS_WIDTH=250
 export TERMSERVER=termserver
-# export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501   # <-- lolh
-# export EMACS_SERVER_DIR=/var/folders/x_ # /.../emacs501 <-- pine
+export EMACS_SERVER_SOCKET_DIR=TBD
 ################################################################################
 
 
@@ -97,16 +109,16 @@ termserver() {
 
 
 guiserver() {
-    # The  Emacs  GUI  server  establishes  a  socket  in  a  temporary  folder
-    # somewhere; this  location appears  to be  very dependent  on a  number of
-    # factors of which I am not aware;  Emacs will reveal its location when you
-    # force delete it  using (server-force-delete).  This function  looks for a
-    # socket  named   'server'  in   this  directory,   which  I   have  called
-    # $EMACS_SERVER_DIR.   To start  a server,  invoke Emacs  with the  command
-    # (server-start).  To kill the server,  invoke emacsclient with the command
+    # The Emacs GUI server establishes a socket in a temporary folder somewhere;
+    # this location appears to be very dependent on a number of factors of which
+    # I am not  aware; Emacs will reveal  its location when you  force delete it
+    # using  (server-force-delete).   This function  looks  for  a socket  named
+    # 'server' in this directory,  which I have called $EMACS_SERVER_SOCKET_DIR.
+    # To start a server, invoke Emacs  with the command (server-start).  To kill
+    # the      server,     invoke      emacsclient     with      the     command
     # (save-buffers-kill-terminal).
 
-    if [ $(find ${EMACS_SERVER_DIR} -path \*/emacs501/server 2>/dev/null) ]
+    if [ $(find ${EMACS_SERVER_SOCKET_DIR} -path \*/emacs501/server 2>/dev/null) ]
     then
 	printf "${YELLOWBOLD}Found a running guiserver.${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
@@ -174,7 +186,7 @@ show_guiserver() {
     ps -f $(pgrep -f Emacs) | \
 	sed -n \
 	    -e '1p' \
-	    -e '2 s|'${EMACS_SERVER_DIR}'.*Emacs|'${EMACS_SERVER_DIR}'/...Emacs|p'
+	    -e '2 s|'${EMACS_SERVER_SOCKET_DIR}'.*Emacs|'${EMACS_SERVER_SOCKET_DIR}'/...Emacs|p'
 } # END show_guiserver()
 
 
@@ -215,7 +227,7 @@ test -r /Users/pine/.opam/opam-init/init.sh && \
 ###################################
 ### USER's Perlbrew
 
-source ~/perl5/perlbrew/etc/bashrc
+#source ~/perl5/perlbrew/etc/bashrc
 ###################################
 
 
