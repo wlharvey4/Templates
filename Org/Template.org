@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-18 08:47
-#+macro:version Version 0.3.12
+#+date:2020-03-18 09:07
+#+macro:version Version 0.3.13
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -900,11 +900,13 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 	exit $1
   }
 
-  # force update of either system or rc files
+  # force update of either system or rc file
   touchup () {
 	case $from in
-	    "system") printf "${BLUE}Touching $1${CLEAR}" ;;
-	    "rc")     printf "${BLUE}Touching $2${CLEAR}" ;;
+	    "system") printf "${BLUE}Touching $1${CLEAR}"
+		      touch $1 ;;
+	    "rc")     printf "${BLUE}Touching $2${CLEAR}"
+		      touch $2 ;;
 	esac
   }
 
@@ -917,12 +919,13 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 		touchup $1 $2
 	    } || { :; }
 	    [[ $1 -nt $2 ]] && { # system file is newer
-			  [[ -d $(dirname "$2") ]] || { # make sure rc dir exists
-				  mkdir -vp $(dirname "$2")
-			  } || { :; }
+		[[ -d $(dirname "$2") ]] || { # make sure rc dir exists
+		    printf "${BLUE}creating directory ${YELLOW} $(dirname $2)${CLEAR}\n"
+		    mkdir -vp $(dirname "$2")
+		} || { :; }
 
 			  printf "${BLUE}";
-			  #cp -pv "$1" "$2";
+			  cp -ipv "$1" "$2";
 			  printf "Copying $1 to $2\n"
 			  printf "${CLEAR}"
 
@@ -936,13 +939,13 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 			  [[ "$2" -nt "$1" ]] && { # rc file is newer
 				  [[ -w "$1" ]] && { # check if the system file is writable
 				      printf "${PURPLE}";
-				      #cp -pv "$2" "$1";
+				      cp -ipv "$2" "$1";
 				      printf "Copying $2 to $1\n"
 				      printf "${CLEAR}"
 				  } || {
 					  printf "${RED}You must authenticate... ${CLEAR}"
 					  printf "${PURPLE}";
-					  #sudo cp -pv "$2" "$1";
+					  sudo cp -ipv "$2" "$1";
 					  printf "sudo Copying $2 to $1\n"
 					  printf "${CLEAR}"
 				  }
