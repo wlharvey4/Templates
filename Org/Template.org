@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-17 21:08
-#+macro:version Version 0.3.9
+#+date:2020-03-18 07:39
+#+macro:version Version 0.3.10
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -874,34 +874,62 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 #+begin_src shell
   [ -v TEMPLATES ] || { printf "${RED}ERROR: missing \$TEMPLATES env var${CLEAR}\n"; exit 1; }
 
+  set -e
+
+  usage () {
+      printf "${GREEN}USAGE: ${YELLOW}syncrc ${BLUE}[${CYAN}-f system|rc -t rc|system${BLUE}]${CLEAR}\n"
+      printf "force sync rc files '-f'rom '-t'o\n"
+      exit $1
+  }
+
+  touchup () {
+      case $from in
+	  "system") printf "${BLUE}Touching $1${CLEAR}" ;;
+	  "rc")     printf "${BLUE}Touching $2${CLEAR}" ;;
+      esac
+  }
+
   comp () {
+      [[ -e $1 && -e $2 ]] && {
       if ! cmp -s $1 $2
       then
+	  [[ -n $from ]] && {
+	      touchup $1 $2
+	  }
 		[[ $1 -nt $2 ]] && {
 			[[ -d $(dirname "$2") ]] || {
 				mkdir -vp $(dirname "$2")
 			} || { :; }
 
-			printf "${BLUE}";cp -pv "$1" "$2";printf "${CLEAR}"
+			printf "${BLUE}";
+			#cp -pv "$1" "$2";
+			printf "Copying $1 to $2\n"
+			printf "${CLEAR}"
 
 			grep -q "EMACS_SERVER_SOCKET_DIR=" "$2" && {
 				printf "${WHITE}UNSETTING socket_dir...${CLEAR}\n"
-				sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1=TBD!' "$2"
+				#sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1=TBD!' "$2"
 			} || { :; }
 
 		} || {
 			[[ "$2" -nt "$1" ]] && {
 				[[ -w "$1" ]] && {
-					printf "${PURPLE}";cp -pv "$2" "$1";printf "${CLEAR}"
+				    printf "${PURPLE}";
+				    #cp -pv "$2" "$1";
+				    printf "Copying $2 to $1\n"
+				    printf "${CLEAR}"
 				} || {
 					printf "${RED}You must authenticate... ${CLEAR}"
-					printf "${PURPLE}";sudo cp -pv "$2" "$1";printf "${CLEAR}"
+					printf "${PURPLE}";
+					#sudo cp -pv "$2" "$1";
+					printf "sudo Copying $2 to $1\n"
+					printf "${CLEAR}"
 				}
 
 				grep -q "EMACS_SERVER_SOCKET_DIR=" "$1" && {
 					socket_dir=$(emacsclient --eval '(princ (file-name-as-directory server-socket-dir))')
 					printf "${WHITE}SETTING socket_dir=${socket_dir}${CLEAR}...\n"
-					sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' $1
+					#sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' $1
 				} || { :; }
 
 			} || {
@@ -911,9 +939,53 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
       else
 		printf "${CYAN}No difference.${CLEAR}\n"
       fi
+      } || {
+	  printf "${WHITE}one file does not exist...${CLEAR}\n"
+      }
   }
 
-  for file in /private/etc/profile /private/etc/bashrc /private/etc/tmux.conf ~/.bash_profile ~/.bashrc ~/.tmux.conf
+  declare -a rcfiles=(/private/etc/profile /private/etc/bashrc /private/etc/tmux.conf ~/.bash_profile ~/.bashrc ~/.tmux.conf)
+
+  while getopts "f:t:h" opt
+  do
+      case $opt in
+	  'f') printf "Found ${GREEN}$opt: ${CYAN}${OPTARG}${CLEAR}\n"; from=${OPTARG}; ;;&
+	  't') printf "Found ${YELLOW}$opt: ${MAGENTA}${OPTARG}${CLEAR}\n";to=${OPTARG}; ;;&
+	  'h') usage 0; ;;
+	  '?') printf "${RED}ERROR ${CLEAR}\n"; usage 1; ;;
+	  ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n" ;;
+      esac
+  done
+
+  if [[ $OPTIND -gt 1 && $OPTIND -ne 5 ]]
+  then
+      printf "${RED}ERROR: need both -f and -t${CLEAR}\n"
+      usage 1
+  fi
+
+  if [[ -n $from ]]
+  then
+      if [[ $from == "system" ]]
+      then
+	  if [[ $to != "rc" ]]
+	  then
+	      printf "${RED}ERROR: incorrect combination: $from -- $to${CLEAR}\n"
+	      usage 1
+	  fi
+      elif [[ $from == "rc" ]]
+      then
+	  if [[ $to != "system" ]]
+	  then
+	      printf "${RED}ERROR: incorrect combination: $from -- $to${CLEAR}\n"
+	      usage 1
+	  fi
+      else
+	  printf "${RED}ERROR; incorrect combination: $from -- $to${CLEAR}\n"
+	  usage 1
+      fi
+  fi
+
+  for file in "${rcfiles[@]}"
   do
       printf "Considering ${GREEN}$file... ${CLEAR}"
 
