@@ -5,7 +5,7 @@
 
 # TEMPLATE: System-wide profile for sh(1)
 ###############################################################################
-
+export TEMPLATES=~/Dev/Templates
 
 
 
@@ -121,7 +121,6 @@ fi
 export EDITOR=emacsclient
 set -o emacs
 export TERMSERVER=termserver
-export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- set for environment
 ################################################################################
 
 

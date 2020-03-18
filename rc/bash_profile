@@ -1,7 +1,7 @@
 # -*- MODE: SH -*-
 
 # TEMPLATE: ~/.bash_profile
-# Time-stamp: <2020-03-16 09:30:07 pine>
+# Time-stamp: <2020-03-16 19:06:48 pine>
 
 # User's .bash_profile
 ################################################################################
@@ -30,8 +30,9 @@
 ## established, which will not necessarily be the same for any given system.
 
 export EMACS_HOME=${HOME}/.emacs.d
-export EMACS_INIT=init.el
+export EMACS_INIT=${EMACS_HOME}/init.el
 export EMACS_WIDTH=250
+export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name Emacs\*)
 export TERMSERVER=termserver
 export EMACS_SERVER_SOCKET_DIR=TBD
 ################################################################################
@@ -74,7 +75,7 @@ termserver() {
     #        without any options, display status and exit
     # --------------------------------------------------------------------------
 
-    termserver=$(pgrep -P 1 -f termserver)
+    termserver=$(pgrep -f termserver)
     if [[ -n $termserver ]]
     then
 	printf "${YELLOWBOLD}Found a running termserver:${WHITEBOLD}\n"
@@ -118,11 +119,12 @@ guiserver() {
     # the      server,     invoke      emacsclient     with      the     command
     # (save-buffers-kill-terminal).
 
-    if [ $(find ${EMACS_SERVER_SOCKET_DIR} -path \*/emacs501/server 2>/dev/null) ]
+    if [ $(find ${EMACS_SERVER_SOCKET_DIR} -path \*/server\* 2>/dev/null) ]
     then
 	printf "${YELLOWBOLD}Found a running guiserver.${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
-	show_guiserver
+        ps -f $(pgrep Emacs)
+	#show_guiserver
 	echo ---------------------------------------------------------------------------
 
 	if [[ $1 == --kill ]]
@@ -139,12 +141,15 @@ guiserver() {
 	if [[ $1 == --start ]]
 	then
 	    printf "${BLUE}Starting guiserver...${CYAN}\n"
-	    open -jb org.gnu.Emacs --args --eval '(server-start)' && \
+            # $EMACS_INIT must include the '(server-start)' command
+            open $EMACS_APP --eval '(suspend-frame)' & && \
+	    # open -jb org.gnu.Emacs --args --eval '(server-start)' && \
 		printf "${GREEN}started${CLEAR}\n" || \
 	        printf "${BLINK}${F_RED}not started${CLEAR}\n"
 	    printf "${WHITEBOLD}"
 	    echo ---------------------------------------------------------------------------
-	    show_guiserver
+            ps -f $(pgrep Emacs)
+	    #show_guiserver
 	    echo ---------------------------------------------------------------------------
 	fi
     fi
