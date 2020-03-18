@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-18 09:07
-#+macro:version Version 0.3.13
+#+date:2020-03-18 10:04
+#+macro:version Version 0.3.14
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -903,10 +903,8 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
   # force update of either system or rc file
   touchup () {
 	case $from in
-	    "system") printf "${BLUE}Touching $1${CLEAR}"
-		      touch $1 ;;
-	    "rc")     printf "${BLUE}Touching $2${CLEAR}"
-		      touch $2 ;;
+	    "system") touch $1 ;;
+	    "rc")     touch $2 ;;
 	esac
   }
 
@@ -920,19 +918,17 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 	    } || { :; }
 	    [[ $1 -nt $2 ]] && { # system file is newer
 		[[ -d $(dirname "$2") ]] || { # make sure rc dir exists
-		    printf "${BLUE}creating directory ${YELLOW} $(dirname $2)${CLEAR}\n"
 		    mkdir -vp $(dirname "$2")
 		} || { :; }
 
 			  printf "${BLUE}";
 			  cp -ipv "$1" "$2";
-			  printf "Copying $1 to $2\n"
 			  printf "${CLEAR}"
 
 			  ## delete the value of the emacs server-socket-dir in the rc file
 			  grep -q "EMACS_SERVER_SOCKET_DIR=" "$2" && {
-				  printf "${WHITE}UNSETTING socket_dir...${CLEAR}\n"
-				  #sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1=TBD!' "$2"
+				  #printf "${WHITE}UNSETTING socket_dir...${CLEAR}\n"
+				  sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1=TBD!' "$2"
 			  } || { :; }
 
 		  } || {
@@ -940,13 +936,11 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 				  [[ -w "$1" ]] && { # check if the system file is writable
 				      printf "${PURPLE}";
 				      cp -ipv "$2" "$1";
-				      printf "Copying $2 to $1\n"
 				      printf "${CLEAR}"
 				  } || {
 					  printf "${RED}You must authenticate... ${CLEAR}"
 					  printf "${PURPLE}";
 					  sudo cp -ipv "$2" "$1";
-					  printf "sudo Copying $2 to $1\n"
 					  printf "${CLEAR}"
 				  }
 
@@ -954,7 +948,7 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 				  grep -q "EMACS_SERVER_SOCKET_DIR=" "$1" && {
 					  socket_dir=$(emacsclient --eval '(princ (file-name-as-directory server-socket-dir))')
 					  printf "${WHITE}SETTING socket_dir=${socket_dir}${CLEAR}...\n"
-					  #sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' $1
+					  sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' $1
 				  } || { :; }
 
 			  } || {
@@ -965,7 +959,18 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 		  printf "${CYAN}No difference.${CLEAR}\n"
 	fi
 	} || {
-	    printf "${WHITE}one file does not exist...${CLEAR}\n"
+	    tocreate=$( if test -e "$1"; then echo "$2"; else echo "$1"; fi; )
+	    printf "${WHITE}one file: ${RED}${tocreate} ${WHITE}does not exist...Create?${CLEAR}"
+	    read -sn 1
+	    if [[ $REPLY == [yY] ]]
+	    then
+		echo " Creating"
+		outof=$( if test -e "$1"; then echo $1; else echo "$2"; fi; )
+		mkdir -pv $(dirname "${tocreate}")
+		cp -ivp "${outof}" "${tocreate}"
+	    else
+		echo " Not creating"
+	    fi
 	}
     } # end of comp()
 
@@ -975,11 +980,11 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
     while getopts "f:t:h" opt
     do
 	  case $opt in
-	    'f') printf "Found ${GREEN}$opt: ${CYAN}${OPTARG}${CLEAR}\n"; from=${OPTARG}; ;;&
-	    't') printf "Found ${YELLOW}$opt: ${MAGENTA}${OPTARG}${CLEAR}\n";to=${OPTARG}; ;;&
-	    'h') usage 0; ;;
+	    'f') printf from=${OPTARG} ;;
+	    't') printf to=${OPTARG}   ;;
+	    'h') usage 0               ;;
 	    '?') printf "${RED}ERROR ${CLEAR}\n"; usage 1; ;;
-	    ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n" ;;
+	     ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n" ;;
 	  esac
     done
 
