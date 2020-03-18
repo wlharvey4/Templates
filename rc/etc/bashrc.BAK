@@ -1,0 +1,107 @@
+# -*- MODE: SH -*-
+
+# TEMPLATE: /etc/bashrc
+# 2018-11-06T08:40
+
+# System-wide .bashrc file for interactive bash(1) shells.
+################################################################################
+
+
+
+
+##############################
+### Return if non-interactive
+
+if [ -z "$PS1" ]; then
+   return
+fi
+##############################
+
+
+
+
+################################################################################
+### System-wide prompts
+
+export PS1='\h:\W \u\$ '
+export PS2="${B_WHITE}${F_BLACK}...${CLEAR} $ "
+
+### SOME ALTERNATE ideas:
+#export PS1='\033[33m[\!]\033[36m{\u@\H}\033[34;4m\w\033[0m
+#export PS1="\[\033[36m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[33;1m\]\w\[\033[m\]\$ "
+#export PS1='\n\[${BOLD}${F_RED}\]\w\[${CLEAR}\]
+#export PS1="\n${F_RED}[\!]${CLEAR} ${F_CYAN}{\u@\H}${CLEAR} ${F_GREEN}${BOLD}\D{%F}@\A${CLEAR}\n${F_BLUE}${UNDERSCORE}\w${CLEAR} ${F_MAGENTA}${BOLD}${CLEAR}\n->"
+#\[${F_YELLOW}{\!}\[${CLEAR}\] \[${UNDERSCORE}${F_BLUE}\]\u@\H\[${CLEAR}\] \[${F_MAGENTA}\d \A\[${CLEAR}\]
+#\[${BOLD}${F_BLUE}\]=> \[${CLEAR}\]'
+
+#export PS2='\[${BOLD}${CYAN}\]==>$\[${CLEAR}\]'
+################################################################################
+
+
+
+
+##############################################################
+### Make bash check its window size after a process completes
+
+shopt -s checkwinsize
+##############################################################
+
+
+
+
+####################################################################
+### TODO: figure out what bashrc_$TERM_PROGRAM does
+
+[ -r "/etc/bashrc_$TERM_PROGRAM" ] && . "/etc/bashrc_$TERM_PROGRAM"
+####################################################################
+
+
+
+
+#####################################################################
+### Tell the terminal about the working directory at each prompt.
+
+if [ "$TERM_PROGRAM" == "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ];
+then
+    update_terminal_cwd() {
+        # Identify the directory using a "file:" scheme URL,
+        # including the host name to disambiguate local vs.
+        # remote connections. Percent-escape spaces.
+	local SEARCH=' '
+	local REPLACE='%20'
+	local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
+	printf '\e]7;%s\a' "$PWD_URL"
+    }
+    PROMPT_COMMAND="update_terminal_cwd; $PROMPT_COMMAND"
+fi
+#####################################################################
+
+
+
+
+###################################
+### HISTORY
+
+export FCEDIT=/opt/local/bin/emacs  # <-- set for local system
+export HISTTIMEFORMAT='%c  '
+alias h='fc -l '
+###################################
+
+
+
+
+################################################################################
+### System-wide Aliases
+
+alias edprofile='sudo  emacs -Q /private/etc/profile'
+alias edbashrc='sudo   emacs -Q /private/etc/bashrc'
+alias edtmuxconf='sudo emacs -Q /private/etc/tmux.conf'
+
+alias ls='ls -FGh'
+alias lsl='ls -lAFG'
+#alias lsl='ls -lh'
+alias lsd='lsl | grep ^d | sed -Ee s/^.*\(\[\ \]\)\(\[^\ \]*\)$/\\2/'
+
+alias brewtasks='for task in doctor cleanup prune update; \
+do echo "===> Now on task ${task}" && brew ${task}; done;'
+################################################################################

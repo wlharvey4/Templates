@@ -1,0 +1,55 @@
+# ~/.bashrc -*- mode:sh; -*-
+
+printf "${MAGENTA}Sourcing ~/.bashrc...${CLEAR}\n"
+#################################################
+# Local .bashrc for Bash			#
+# ==============================================#
+# Time-stamp: <2020-03-17 19:59:07 dt1>		#
+#################################################
+
+#export PS0=
+export PS1="[${MAGENTABOLD}!\!:#\#:\j:\s v\v:\l] ${CYANBOLD}\u:\h ${GREENBOLD}\D{%a %b %d} \A ${BLUEBOLD}\w \e${CLEAR}\n\$ "
+export PS2="${B_WHITE}${F_BLACK}...${CLEAR}>"
+#export PS3=
+#export PS4=
+
+#################################################
+### User’s Aliases
+
+alias ect='emacsclient -qa "" -s termserver'
+alias ecg='$ECG -qs server'
+
+alias toul='pushd $USRL;lsl'
+alias ctoul='dirs -c;pushd $USRL;lsl'
+alias toulb='pushd $USRLB;lsl'
+
+alias toh='pushd $HOME'
+alias ctoh='dirs -c; pushd $HOME'
+alias tod='pushd $DEV;lss'
+alias ctod='dirs -c;tod'
+alias tode='pushd $DEV_EMACS;lsl'
+alias todl='pushd $DEV_LANG;lsl'
+
+alias tow='pushd $WORK'
+alias ctow='dirs -c;tow'
+alias towc='printf "\e[0;33m";pushd $WORKCUR;printf"\e[0m";lss'
+alias towl='pushd $WORKLOG;lss'
+alias towd='pushd $WORKDEV;lss'
+alias towo='pushd $WORKORG;lss'
+alias towb='pushd $WORKBIN;lss'
+
+alias ed.bp='ect "${HOME}/.bash_profile"'
+alias ed.rc='ect "${HOME}/.bashrc"'
+alias ed.tm='ect "${HOME}/.tmux.conf"'
+alias ed.init='ect "${EMACS_INIT}"'
+
+alias src.bp='source ${HOME}/.bash_profile'
+alias src.rc='source ${HOME}/.bashrc'
+#################################################
+
+if ! pgrep -qf Emacs
+then
+    open ${EMACS_APP} --args --eval '(suspend-frame)'
+fi
+
+# end of ~/.bashrc

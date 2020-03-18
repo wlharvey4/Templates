@@ -1,0 +1,150 @@
+# -*- MODE: SH -*-
+
+# .../Templates/rc/profile_system
+# 2018-11-06T08:00
+
+# TEMPLATE: System-wide profile for sh(1)
+###############################################################################
+
+
+
+
+################################
+export COMP=$(hostname -s)
+#export <COMP>_DEBUG=${DEBUG:-0} # <-- set COMP
+################################
+
+
+
+
+#######################################
+### SYSTEM-WIDE COLORS
+
+export CLICOLOR=1
+export LSCOLORS=GxFxCxDxBxegedabagaced # <-- dark
+#export LSCOLORS=ExFxBxDxCxegedabagacad # <-- light
+
+### PLAIN (NOTE: these CLEAR first)
+export BLACK="\e[0;30m"
+export RED="\e[0;31m"
+export GREEN="\e[0;32m"
+export YELLOW="\e[0;33m"
+export BLUE="\e[0;34m"
+export PURPLE="\e[0;35m"
+export CYAN="\e[0;36m"
+export WHITE="\e[0;37m"
+export CLEAR="\e[0m"
+### PLAIN BOLD
+export BLACKBOLD="\e[1;30m"
+export REDBOLD="\e[1;31m"
+export GREENBOLD="\e[1;32m"
+export YELLOWBOLD="\e[1;33m"
+export BLUEBOLD="\e[1;34m"
+export PURPLEBOLD="\e[1;35m"
+export CYANBOLD="\e[1;36m"
+export WHITEBOLD="\e[1;37m"
+### FOREGROUND
+export F_BLACK=$'\e[30m'
+export F_RED=$'\e[31m'
+export F_GREEN=$'\e[32m'
+export F_YELLOW=$'\e[33m'
+export F_BLUE=$'\e[34m'
+export F_MAGENTA=$'\e[35m'
+export F_CYAN=$'\e[36m'
+export F_WHITE=$'\e[37m'
+### BACKGROUND
+export B_BLACK=$'\e[40m'
+export B_RED=$'\e[41m'
+export B_GREEN=$'\e[42m'
+export B_YELLOW=$'\e[43m'
+export B_BLUE=$'\e[44m'
+export B_MAGENTA=$'\e[45m'
+export B_CYAN=$'\e[46m'
+export B_WHITE=$'\e[47m'
+### ATTRIBUTES
+export CLEAR=$'\e[0m'
+export BOLD=$'\e[1m'
+export UNDERSCORE=$'\e[4m'
+export BLINK=$'\e[5m'
+export REVERSE=$'\e[7m'
+export CONCEAL=$'\e[8m'
+#######################################
+
+
+
+
+################################################################################
+### New Path Marker Function
+
+## This function receives two arguments that  are PATH variabes; the first is a
+## PATH before it is altered, and the second is a path after it is altered, and
+## it returns a colored PATH indicating the new portion.  The old portion is in
+## yellow, while the new portion is in purple.
+
+## -----------------------------------------------------------------------------
+## USAGE: new_path_marker OLD_PATH NEW_PATH ==> COLORED_PATH
+## -----------------------------------------------------------------------------
+
+new_path_marker() {
+    # colors the new portion of a PATH alteration
+    OLD_PATH="${1}"
+    NEW_PATH="${2}"
+
+    echo "${PURPLE}${NEW_PATH}${CLEAR}" | sed \
+	-e 's#'"${OLD_PATH}"'#'\\${YELLOWBOLD}$"${OLD_PATH}"\\${PURPLE}'#' |
+        tr ':' '\n'
+}
+################################################################################
+
+
+
+
+################################################################################
+### Set system-wide path using path_helper
+
+## NOTE:new_path_marker() and colors need to come first to use them in this file
+
+if [ -x /usr/libexec/path_helper ]; then
+    unset PATH
+    export PATH=/usr/bin:/bin:/usr/sbin:sbin
+    eval `/usr/libexec/path_helper -s`
+fi
+################################################################################
+
+
+
+
+################################################################################
+### System-wide editor settings
+
+#export SHELL=/usr/local/bin/bash # <-- set for environment
+export EDITOR=emacsclient
+set -o emacs
+export TERMSERVER=termserver
+export EMACS_SERVER_DIR=/usr/local/dev/tmp/emacs501 # <-- set for environment
+################################################################################
+
+
+
+
+################################################################################
+### SOURCE SYSTEM BASHRC
+
+if [ "${BASH-no}" != "no" ]; then
+   [ -r /etc/bashrc ] && . /etc/bashrc
+fi
+################################################################################
+
+
+
+
+################################################################################
+### bash-completion has the following notes:
+
+## To use bash_completion, add the following lines at the end of your
+## .bash_profile:
+
+if [ -f /opt/local/etc/profile.d/bash_completion.sh ]; then
+    . /opt/local/etc/profile.d/bash_completion.sh
+fi
+################################################################################

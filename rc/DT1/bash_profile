@@ -1,0 +1,32 @@
+# ~/.bash_profile -*- mode:sh; -*-
+
+printf "${CYAN}Sourcing ~/.bash_profile...${CLEAR}"
+#################################################
+# Local .bash_profile for Bash			#
+# ==============================================#
+# Time-stamp: <2020-03-17 19:12:30 dt1>	#
+#################################################
+
+
+#################################################
+### USER-DEPENDENT DATA
+# ==============================================#
+
+## AWS
+export AWS_S3_BUCKET=pinecone-forest.com
+#################################################
+
+
+#################################################
+### USER’S CONFIDENTIAL DATA
+#================================================
+
+## GITHUB
+export GITHUB_TOKEN='source ${HOME}/.config/github/token'
+#################################################
+
+
+# local::lib
+eval "$(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib)"
+
+[ -r ~/.bashrc ] && source ~/.bashrc
