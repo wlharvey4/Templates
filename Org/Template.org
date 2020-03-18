@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-18 08:39
-#+macro:version Version 0.3.11
+#+date:2020-03-18 08:47
+#+macro:version Version 0.3.12
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -884,6 +884,9 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 
   set -e
 
+  ## usage: syncrc [-f system|rc -t rc|system -h]
+  ## if no options, process by natural age
+  ## if -f and -t options, force update from ... to ...
   usage () {
 	printf "\n${GREEN}USAGE: ${YELLOW}syncrc \
   ${WHITEBOLD}[${CYAN}-f ${MAGENTA}system|rc \
@@ -1013,12 +1016,12 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 	  printf "Considering ${GREEN}$file... ${CLEAR}"
 
 	  case $file in
-	      ,*etc?profile)   comp $file $TEMPLATES/rc/etc/profile   ;;
-	      ,*etc?bashrc)    comp $file $TEMPLATES/rc/etc/bashrc    ;;
-	      ,*etc?tmux.conf) comp $file $TEMPLATES/rc/etc/tmux.conf ;;
-	      ,*bash_profile)  comp $file $TEMPLATES/rc/bash_profile  ;;
-	      ,*bashrc)        comp $file $TEMPLATES/rc/bashrc        ;;
-	      ,*tmux?conf)     comp $file $TEMPLATES/rc/tmux.conf     ;;
+	      ,*etc?profile)   comp $file $TEMPLATES/rc/etc/${COMP}/profile   ;;
+	      ,*etc?bashrc)    comp $file $TEMPLATES/rc/etc/${COMP}/bashrc    ;;
+	      ,*etc?tmux.conf) comp $file $TEMPLATES/rc/etc/${COMP}/tmux.conf ;;
+	      ,*bash_profile)  comp $file $TEMPLATES/rc/${COMP}/bash_profile  ;;
+	      ,*bashrc)        comp $file $TEMPLATES/rc/${COMP}/bashrc        ;;
+	      ,*tmux?conf)     comp $file $TEMPLATES/rc/${COMP}/tmux.conf     ;;
 	  esac
     done
 #+end_src
