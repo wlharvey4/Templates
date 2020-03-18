@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-16 09:31
-#+macro:version Version 0.3.8
+#+date:2020-03-17 21:08
+#+macro:version Version 0.3.9
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -857,6 +857,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 This code synchronizes the following configuration files:
 - /etc/profile
 - /etc/bashrc
+- /etc/tmux.conf
 - ~/.bash_profile
 - ~/.bashrc
 - ~/.tmux.conf
@@ -884,7 +885,7 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 			printf "${BLUE}";cp -pv "$1" "$2";printf "${CLEAR}"
 
 			grep -q "EMACS_SERVER_SOCKET_DIR=" "$2" && {
-			    	printf "${WHITE}UNSETTING socket_dir...${CLEAR}\n"
+				printf "${WHITE}UNSETTING socket_dir...${CLEAR}\n"
 				sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1=TBD!' "$2"
 			} || { :; }
 
@@ -912,16 +913,17 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
       fi
   }
 
-  for file in /etc/profile /etc/bashrc ~/.bash_profile ~/.bashrc ~/.tmux.conf
+  for file in /private/etc/profile /private/etc/bashrc /private/etc/tmux.conf ~/.bash_profile ~/.bashrc ~/.tmux.conf
   do
       printf "Considering ${GREEN}$file... ${CLEAR}"
 
       case $file in
-	    ?etc?profile)   comp $file $TEMPLATES/rc/etc/profile  ;;
-	    ?etc?bashrc)    comp $file $TEMPLATES/rc/etc/bashrc   ;;
-	    ,*bash_profile) comp $file $TEMPLATES/rc/bash_profile ;;
-	    ,*bashrc)       comp $file $TEMPLATES/rc/bashrc       ;;
-	    ,*tmux?conf)    comp $file $TEMPLATES/rc/tmux.conf    ;;
+	    ,*etc?profile)   comp $file $TEMPLATES/rc/etc/profile   ;;
+	    ,*etc?bashrc)    comp $file $TEMPLATES/rc/etc/bashrc    ;;
+	    ,*etc?tmux.conf) comp $file $TEMPLATES/rc/etc/tmux.conf ;;
+	    ,*bash_profile)  comp $file $TEMPLATES/rc/bash_profile  ;;
+	    ,*bashrc)        comp $file $TEMPLATES/rc/bashrc        ;;
+	    ,*tmux?conf)     comp $file $TEMPLATES/rc/tmux.conf     ;;
       esac
   done
 #+end_src
