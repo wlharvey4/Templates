@@ -1,0 +1,292 @@
+# -*- MODE: SH -*-
+
+# TEMPLATE: ~/.bash_profile
+# Time-stamp: <2020-03-16 19:18:09 pine>
+
+# User's .bash_profile
+################################################################################
+
+
+
+
+################################################################################
+### USER'S Emacs Environment Variables
+
+## Set up the GUI Emacs as an edit server.  Emacs should be started from init.el
+## using '(server-start)'.   The default  server name is  'server'.  Set  up the
+## terminal emacs as a daemon, which calls '(server-start)' when it initializes.
+## Give a terminal emacs daemon the server name 'termserver' to distinguish it.
+
+## Once  an Emacs  server is  started, use  the shell  command 'emacsclient'  to
+## connect to the Emacs process, passing a  server name to select either the GUI
+## server or the terminal server.
+
+## Set the EDITOR env var to the  value 'emacsclient'.  TeX uses the TEXEDIT env
+## var set to the value 'emacsclient  +%d %s'.  This allows external programs to
+## use the Emacs server for editing purposes.
+
+## An Emacs server usually listens to connections on a local Unix domain socket.
+## The  Emacs  variable  'server-socket-dir'  determines  where  the  socket  is
+## established, which will not necessarily be the same for any given system.
+
+export EMACS_HOME=${HOME}/.emacs.d
+export EMACS_INIT=${EMACS_HOME}/init.el
+export EMACS_WIDTH=250
+export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name Emacs\*)
+export TERMSERVER=termserver
+export EMACS_SERVER_SOCKET_DIR="/var/folders/x_/v2pfz45s7h3245q6wlvvvnyh0000gn/T//emacs501/"
+################################################################################
+
+
+
+
+################################################################################
+### Emacs server functions
+
+##    termserver()    : start and stop the terminal daemon
+##    guiserver()     : start and stop the GUI server
+##    emacsservers()  : start and stop both
+##    show_guiserver():helper function
+
+termserver() {
+    # The terminal  server runs as a  daemon; to determine whether  a daemon is
+    # currently running, look for daemon=termserver as a process using 'pgrep';
+    # to kill the daemon, kill the  process; force-deleting the server in emacs
+    # breaks the connection  with the process, but leaves  the process running;
+    # starting  a new  daemon thereafter  just accumulates  processes.  Execute
+    # this  function from  ~/.bashrc with  `--start'  option to  always have  a
+    # running terminal server  (or use `emacsserver --startall')  to start both
+    # the termserver and the guiserver at the same time.
+
+    # NOTE: There seems to be a kind of  bug in Bash; when a variable is empty,
+    # (including unset) `test -n  $VAR' ( `[ -n $VAR ]'  ) produces 'true', but
+    # [[ -n $VAR ]] produces 'false'.  `test  -z $VAR' ( `[ -z $VAR ]' produces
+    # true for any variable that contains either "" or " ".
+
+    # NOTE: there  was a glitch  in finding  the termserver using  `pgrep' when
+    # starting tmux  for the first  time; it would  find a number  of processes
+    # that  did  not  survive,  probably   because  they  included  the  phrase
+    # 'termserver' in  them; I found  that restricting  the PPID to  1 filtered
+    # just  the process  that  was needed.   This only  happened  on the  first
+    # invocation of tmux when no server was running.
+
+    # --------------------------------------------------------------------------
+    # USAGE: termserver [ --start | --kill ]
+    #        without any options, display status and exit
+    # --------------------------------------------------------------------------
+
+    termserver=$(pgrep -f termserver)
+    if [[ -n $termserver ]]
+    then
+	printf "${YELLOWBOLD}Found a running termserver:${WHITEBOLD}\n"
+	echo ---------------------------------------------------------------------------
+	ps -f $termserver
+	echo ---------------------------------------------------------------------------
+	if [[ $1 == --kill ]]
+	then
+	    printf "${BLUE}Killing termserver..."
+	    pkill -f termserver && \
+		printf "${GREEN}killed${CLEAR}\n" || \
+		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
+	fi
+	echo
+
+    else
+	printf "${YELLOW}Did not find a running termserver.${CLEAR}\n"
+	if [[ $1 == --start ]]
+	then
+	    printf "${BLUE}starting termserver...${CYAN}\n"
+	    emacs --bg-daemon=${TERMSERVER}
+	    [ $(pgrep -f ${TERMSERVER}) ] && \
+		printf "${GREEN}started${WHITEBOLD}\n" || \
+		printf "${BLINK}${F_RED}failed to start${CLEAR}\n"
+	    echo ---------------------------------------------------------------------------
+	    ps -f $(pgrep -f ${TERMSERVER})
+	    echo ---------------------------------------------------------------------------
+	    printf "${CLEAR}\n"
+	fi
+    fi
+} # END termserver()
+
+
+guiserver() {
+    # The Emacs GUI server establishes a socket in a temporary folder somewhere;
+    # this location appears to be very dependent on a number of factors of which
+    # I am not  aware; Emacs will reveal  its location when you  force delete it
+    # using  (server-force-delete).   This function  looks  for  a socket  named
+    # 'server' in this directory,  which I have called $EMACS_SERVER_SOCKET_DIR.
+    # To start a server, invoke Emacs  with the command (server-start).  To kill
+    # the      server,     invoke      emacsclient     with      the     command
+    # (save-buffers-kill-terminal).
+
+    if [ $(find ${EMACS_SERVER_SOCKET_DIR} -path \*/server\* 2>/dev/null) ]
+    then
+	printf "${YELLOWBOLD}Found a running guiserver.${WHITEBOLD}\n"
+	echo ---------------------------------------------------------------------------
+        ps -f $(pgrep Emacs)
+	#show_guiserver
+	echo ---------------------------------------------------------------------------
+
+	if [[ $1 == --kill ]]
+	then
+	    printf "${BLUE}Killing guiserver..."
+	    emacsclient -s server --eval '(save-buffers-kill-terminal 0)' && \
+		printf "${GREEN}killed${CLEAR}\n" || \
+		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
+	fi
+	echo
+
+    else
+	printf "${YELLOW}Did not find a running guiserver.${CLEAR}\n"
+	if [[ $1 == --start ]]
+	then
+	    printf "${BLUE}Starting guiserver...${CYAN}\n"
+            # $EMACS_INIT must include the '(server-start)' command
+            open $EMACS_APP --args --eval '(suspend-frame)' && \
+	    # open -jb org.gnu.Emacs --args --eval '(server-start)' && \
+		printf "${GREEN}started${CLEAR}\n" || \
+	        printf "${BLINK}${F_RED}not started${CLEAR}\n"
+	    printf "${WHITEBOLD}"
+	    echo ---------------------------------------------------------------------------
+            ps -f $(pgrep Emacs)
+	    #show_guiserver
+	    echo ---------------------------------------------------------------------------
+	fi
+    fi
+    printf "${CLEAR}"
+} # END guiserver()
+
+
+emacsservers() {
+    # This is  a wrapper  function for  the termserver  and the  guiserver.  It
+    # starts and kills both with a single command.
+
+    # --------------------------------------------------------------------------
+    # USAGE: emacsservers --status | --startall | --killall | -h | --help
+    #---------------------------------------------------------------------------
+
+    printf "${WHITEBOLD}"
+    case $1 in
+	--status)    { termserver; guiserver; } ;;
+	--startall)  { termserver --start; guiserver --start; } ;;
+	--killall)   { termserver --kill; guiserver --kill; } ;;
+	--help|-h)   {
+	    echo ===============================================================================
+	    echo \'ecg FILE \&\' runs \'emacsclient FILE \&\' using the EmacsMac server \'server\'
+	    echo \'ect FILE\' runs \'emacsclient FILE\' using the terminal emacs server \'termserver\'
+	    echo termserver [--start \| --kill] \(no option gives status\)
+	    echo guiserver  [--start \| --kill] \(no option gives status\)
+	    echo emacsservers --status \| --startall \| --killall
+	    echo ===============================================================================
+	} ;;
+	*) echo Ignoring unrecognized option `$1` ;;
+    esac
+    printf "${CLEAR}"
+} # END emacsservers()
+
+
+show_guiserver() {
+    # Helper function for guiserver()
+
+    ps -f $(pgrep -f Emacs) | \
+	sed -n \
+	    -e '1p' \
+	    -e '2 s|'${EMACS_SERVER_SOCKET_DIR}'.*Emacs|'${EMACS_SERVER_SOCKET_DIR}'/...Emacs|p'
+} # END show_guiserver()
+
+
+ecg() {
+    # function to run the GUI server with emacsclient and arguments in the
+    # background with '&'
+
+    emacsclient -qs server "$@" &
+} # END ecg()
+
+################################################################################
+
+
+
+
+################################################################################
+### Edit Emacs' Init File
+
+initEmacs() {
+    # TODO: reinitialize when done
+    emacs -Q ${EMACS_HOME}/${EMACS_INIT}
+} # END 
+################################################################################
+
+
+
+
+################################################################################
+### USER'S OPAM CONFIGURATION
+
+test -r /Users/pine/.opam/opam-init/init.sh && \
+    . /Users/pine/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
+################################################################################
+
+
+
+
+###################################
+### USER's Perlbrew
+
+#source ~/perl5/perlbrew/etc/bashrc
+###################################
+
+
+
+
+################################################################################
+### USER's Golang
+
+## A valid GOPATH is required to use the `go get` command.
+## If $GOPATH is not specified, $HOME/go will be used by default:
+##   https://golang.org/doc/code.html#GOPATH
+
+#export GOPATH=~/Dev/Programs/go # <-- set for development
+################################################################################
+
+
+
+
+#######################################
+### Source ~/.bashrc
+
+[[ -s ~/.bashrc ]] && source ~/.bashrc
+#######################################
+
+
+
+
+################################################################################
+### HOMEBREW OPENSSL NOTES
+# openssl is keg-only, which means it was not symlinked into /usr/local,
+# because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.
+
+# export PATH="/usr/local/opt/openssl/bin:$PATH"
+
+# For compilers to find openssl you may need to set:
+#   export LDFLAGS="-L/usr/local/opt/openssl/lib"
+#   export CPPFLAGS="-I/usr/local/opt/openssl/include"
+
+# For pkg-config to find openssl you may need to set:
+#   export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
+################################################################################
+
+
+
+
+################################################################################
+### HOMEBREW GETTEXT
+# gettext is keg-only, which means it was not symlinked into /usr/local,
+# because macOS provides the BSD gettext library & some software gets confused if both are in the library path.
+
+# If you need to have gettext first in your PATH run:
+#   echo 'export PATH="/usr/local/opt/gettext/bin:$PATH"' >> ~/.bash_profile
+
+# For compilers to find gettext you may need to set:
+#   export LDFLAGS="-L/usr/local/opt/gettext/lib"
+#   export CPPFLAGS="-I/usr/local/opt/gettext/include"
+################################################################################

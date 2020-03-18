@@ -1,0 +1,54 @@
+# ~/.bashrc -*- MODE: SH -*-
+
+# User's .bashrc
+################################################################################
+# Time-stamp: <2020-03-17 11:20:15 pine>
+
+
+
+################################################################################
+### Set up USER'S prompts PS1, PS2, PS3, PS4
+
+export PS1="[${PURPLEBOLD}\!:\j] ${CYANBOLD}\u:\h ${GREENBOLD}\D{%a %b %d} \A ${BLUEBOLD}\w \e${CLEAR}\n$ "
+#export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
+# export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
+
+# I think these can be used inside a prompt...
+# ϟ ☭ Ѫ ൿ ൠ ඞ ෴ ஃ ৯ ॐ Ճ ҂ Ω Δ π ʃ ɐ Ɣ ƒ Ŀ Ħ × ¿ ∑ ∀ ∃ ∄ ∞ ∫ ∮ ∬ ∨∧ ∻ ∴ ∵ ≠ ⊕ ⊗
+# ⊢ ⊣ ♅ ♆ ♡ ♥ ⚒ ⚙ ⚛ ✾ ❉ ❯ ❳ ➙ ➤ ➳ ➺ ➻ ⟗ ⟞ ⟢ ⟫ ⟶ ⟹ ⟿ 𐄡 𐄨 𐅍 𐌈 𐌎 𐌇 𐐝 𝄞 𝄢 𝄆 ᐉ ᗚ ᕯ Ꮬ
+# ⊶ ⊾ ⊿ ⋈ ⋊ ⋗ ⊙ ⊚ ≣ ░ ▓ ▞ ▣ ◈ ◉ ☠ ☢ ☣ ☬ ៚
+################################################################################
+
+
+
+
+##################################################
+### Start Emacs servers
+
+## Start the both the termserver and guiserver
+## Use 'emacservers --killall' to kill them all
+
+emacsservers --startall
+####################################################
+
+
+
+
+######################################################
+### USER's Configuration Alias Shortcuts
+
+alias ect='emacsclient -a "" -s termserver "$@"'
+alias ed.bp='ect ~/.bash_profile'
+alias ed.rc='ect ~/.bashrc'
+alias ed.tm='ect ~/.tmux.conf'
+alias ed.src='source ~/.bash_profile'
+######################################################
+
+
+
+
+################################################################################
+### Secrets ssshhhh...
+
+export SECRET_SAUCE=
+################################################################################
