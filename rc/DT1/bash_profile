@@ -4,7 +4,7 @@ printf "${CYAN}Sourcing ~/.bash_profile...${CLEAR}"
 #################################################
 # Local .bash_profile for Bash			#
 # ==============================================#
-# Time-stamp: <2020-03-17 19:12:30 dt1>	#
+# Time-stamp: <2020-03-18 20:24:35 dt1>	#
 #################################################
 
 
@@ -22,7 +22,7 @@ export AWS_S3_BUCKET=pinecone-forest.com
 #================================================
 
 ## GITHUB
-export GITHUB_TOKEN='source ${HOME}/.config/github/token'
+export GITHUB_TOKEN=$(cat ${HOME}/.config/github/token)
 #################################################
 
 

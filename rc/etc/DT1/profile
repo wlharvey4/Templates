@@ -34,7 +34,7 @@ export EMACS_APP=/Applications/MacPorts/Emacs.app
 export EMACS=${EMACS_APP}/Contents/MacOS/Emacs
 export ECG=${EMACS_APP}/Contents/MacOS/bin/emacsclient
 export TEXEDIT='${ECG} +%d %s'
-export EMACS_SERVER_SOCKET_DIR=
+export EMACS_SERVER_SOCKET_DIR=TBD
 
 ## TEMPLATES
 export TEMPLATES=${HOME}/Dev/Templates
