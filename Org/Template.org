@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-18 22:18
-#+macro:version Version 0.3.17
+#+date:2020-03-19 09:45
+#+macro:version Version 0.3.18
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -951,9 +951,9 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 
 				  ## update the value of the emacs server-socket-dir in the system file
 				  grep -q "EMACS_SERVER_SOCKET_DIR=" "$1" && {
-					  socket_dir=$(emacsclient --eval '(princ (file-name-as-directory server-socket-dir))')
+					  socket_dir=$(${EMACS} -Q --batch --eval '(progn (require (quote server))(princ (file-name-as-directory server-socket-dir)))')
 					  printf "${WHITE}SETTING socket_dir=${socket_dir}${CLEAR}...\n"
-					  sed -i'.bak' -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' $1
+					  sed -i'.bak'-$$ -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' "$1"
 				  } || { :; }
 
 			  } || {
