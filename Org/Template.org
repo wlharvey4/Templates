@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-18 16:33
-#+macro:version Version 0.3.16
+#+date:2020-03-18 22:18
+#+macro:version Version 0.3.17
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -902,9 +902,10 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 
   # force update of either system or rc file
   touchup () {
+    printf "In touchup with \$from: $from\n";
 	case $from in
-	    "system") touch $1 ;;
-	    "rc")     touch $2 ;;
+	    "system") printf "${WHITEBOLD}Touching $1..."; sudo touch $1; printf "${CLEAR}" ;;
+	    "rc")     printf "${WHITEBOLD}Touching $2..."; touch $2; printf "${CLEAR}" ;;
 	esac
   }
 
@@ -921,6 +922,8 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 		    mkdir -vp $(dirname "$2")
 		} || { :; }
 
+		printf "${YELLOW}system is newer than rc${CLEAR}\n"
+		echo; ls -l $1 $2; echo
 			  printf "${BLUE}";
 			  cp -ipv "$1" "$2";
 			  printf "${CLEAR}"
@@ -932,15 +935,17 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 			  } || { :; }
 
 		  } || {
-			  [[ "$2" -nt "$1" ]] && { # rc file is newer
+		    [[ "$2" -nt "$1" ]] && { # rc file is newer
+		    printf "${YELLOW}rc is newer than system${CLEAR}\n"
+		    echo; ls -l $2 $1; echo
 				  [[ -w "$1" ]] && { # check if the system file is writable
-				      printf "${PURPLE}";
-				      cp -ipv "$2" "$1";
+				      printf "${PURPLE}"
+				      cp -ipv "$2" "$1"
 				      printf "${CLEAR}"
 				  } || {
 					  printf "${RED}You must authenticate... ${CLEAR}"
-					  printf "${PURPLE}";
-					  sudo cp -ipv "$2" "$1";
+					  printf "${PURPLE}"
+					  sudo cp -ipv "$2" "$1"
 					  printf "${CLEAR}"
 				  }
 
@@ -980,9 +985,9 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
     while getopts "f:t:h" opt
     do
 	  case $opt in
-	    'f') printf from=${OPTARG} ;;
-	    't') printf to=${OPTARG}   ;;
-	    'h') usage 0               ;;
+	    'f') from=${OPTARG} ;;
+	    't') to=${OPTARG}   ;;
+	    'h') usage 0        ;;
 	    '?') printf "${RED}ERROR ${CLEAR}\n"; usage 1; ;;
 	     ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n" ;;
 	  esac
