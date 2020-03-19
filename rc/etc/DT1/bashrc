@@ -5,7 +5,7 @@ printf "${YELLOW}Sourcing /etc/bashrc...${CLEAR}"
 #########################################################
 # System-wide bashrc file for interactive bash(1) shells#
 # ======================================================#
-# Time-stamp: <2020-03-17 20:55:56 dt1>			#
+# Time-stamp: <2020-03-18 20:41:10 dt1>			#
 #########################################################
 
 
@@ -40,6 +40,7 @@ alias srcpr='source /private/etc/profile'
 alias srcrc='source /private/etc/bashrc'
 alias srcall='srcpr; src.bp'
 
+alias ls='ls -FGh'
 alias lss='ls -xAFG'
 alias lsl='ls -lhiAFGOT@'
 alias lst='ls -lhitAFGOT@'
