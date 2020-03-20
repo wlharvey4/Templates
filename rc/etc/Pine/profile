@@ -4,7 +4,7 @@ printf "\e[31m Sourcing /etc/profile...\e[0m"
 #################################################
 ### System-wide profile for sh(1)		#
 ### ============================================#
-### Time-stamp: <2020-03-20 01:38:41 pine>	#
+### Time-stamp: <2020-03-20 02:10:57 pine>	#
 #################################################
 
 if [ -x /usr/libexec/path_helper ]; then
@@ -15,10 +15,8 @@ set -o emacs
 
 #################################################
 export COMP=$(hostname -s)
-export ${COMP}_DEBUG=${DEBUG:-0}
 export SHELL=$(which bash)
-export TEMPLATES=${HOME}/Dev/Templates
-export SYNC_ORG_TEMPLATE=${TEMPLATES}/Org/Template.org
+#export ${COMP}_DEBUG=${DEBUG:-0}
 #################################################
 
 
@@ -28,7 +26,7 @@ export EDITOR='emacsclient -qtua "" -s termserver'
 export SUDO_EDITOR='emacsclient -s sysserver'
 export EMACS_PREFIX=${HOME}/.emacs.d
 export EMACS_INIT=${EMACS_PREFIX}/init.el
-export EMACS_APP=(find /Applications/MacPorts -depth 1 \name \*Emacs\*)
+export EMACS_APP=$(find /Applications/MacPorts -depth 1 \name \*Emacs\*)
 export EMACS=${EMACS_APP}/Contents/MacOS/Emacs
 export ECG=${EMACS_APP}/Contents/MacOS/bin/emacsclient
 export EMACS_SERVER_SOCKET_DIR=TBD
