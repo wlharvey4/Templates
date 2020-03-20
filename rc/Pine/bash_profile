@@ -1,12 +1,57 @@
-# -*- MODE: SH -*-
+# ~/.bash_profile -*- mode:sh; -*-
 
-# TEMPLATE: ~/.bash_profile
-# Time-stamp: <2020-03-16 19:18:09 pine>
+printf "${CYAN}Sourcing ~/.bash_profile...${CLEAR}"
+#################################################
+# Local .bash_profile for Bash			#
+# ==============================================#
+# Time-stamp: <2020-03-20 09:13:09 pine>	#
+#################################################
 
-# User's .bash_profile
-################################################################################
+
+#################################################
+### USER-DEPENDENT DATA
+# ==============================================#
+
+## AWS
+export AWS_S3_BUCKET=pinecone-forest.com
+export TEMPLATES=${HOME}/Dev/Templates
+export SYNC_ORG_TEMPLATE=${TEMPLATES}/Org/Template.org
+export TERMSERVER=termserver
+#################################################
 
 
+#################################################
+### USER’S CONFIDENTIAL DATA
+#================================================
+
+## GITHUB_TOKEN
+set -o allexport
+source ${HOME}/.config/github/token
+unset allexport
+#################################################
+
+
+#################################################
+### USER'S DIRECTORIES
+
+## DEV
+export DEV=${HOME}/Dev
+export DEV_BIN=${DEV}/bin
+export DEV_EMACS=${DEV}/Emacs
+export DEV_LANG=${DEV}/Languages
+
+## WORK
+export WORK=${HOME}/Documents/Data/LO/Work/work
+export WORKBIN=${WORK}/workbin
+export WORKCON=${WORK}/workcon
+export WORKCUR=${WORK}/workcur
+export WORKDEV=${WORK}/workdev
+export WORKFIN=${WORK}/workfin
+export WORKLAW=${WORK}/worklaw
+export WORKLIB=${WORK}/worklib
+export WORKLOG=${WORK}/worklog
+export WORKORG=${WORK}/workorg
+#################################################
 
 
 ################################################################################
@@ -29,15 +74,13 @@
 ## The  Emacs  variable  'server-socket-dir'  determines  where  the  socket  is
 ## established, which will not necessarily be the same for any given system.
 
-export EMACS_HOME=${HOME}/.emacs.d
-export EMACS_INIT=${EMACS_HOME}/init.el
-export EMACS_WIDTH=250
-export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name Emacs\*)
-export TERMSERVER=termserver
-export EMACS_SERVER_SOCKET_DIR="/var/folders/x_/v2pfz45s7h3245q6wlvvvnyh0000gn/T//emacs501/"
+# export EMACS_HOME=${HOME}/.emacs.d
+# export EMACS_INIT=${EMACS_HOME}/init.el
+# export EMACS_WIDTH=250
+# export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name Emacs\*)
+# export TERMSERVER=termserver
+# export EMACS_SERVER_SOCKET_DIR=TBD
 ################################################################################
-
-
 
 
 ################################################################################
@@ -75,33 +118,31 @@ termserver() {
     #        without any options, display status and exit
     # --------------------------------------------------------------------------
 
-    termserver=$(pgrep -f termserver)
-    if [[ -n $termserver ]]
+    if pgrep -qf ${TERMSERVER}
     then
 	printf "${YELLOWBOLD}Found a running termserver:${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
-	ps -f $termserver
+	ps $(pgrep -f ${TERMSERVER})
 	echo ---------------------------------------------------------------------------
 	if [[ $1 == --kill ]]
 	then
 	    printf "${BLUE}Killing termserver..."
-	    pkill -f termserver && \
+	    pkill -f ${TERMSERVER} && \
 		printf "${GREEN}killed${CLEAR}\n" || \
 		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
 	fi
 	echo
 
     else
-	printf "${YELLOW}Did not find a running termserver.${CLEAR}\n"
+	printf "${YELLOWBOLD}Did not find a running termserver.${CLEAR}\n"
 	if [[ $1 == --start ]]
 	then
-	    printf "${BLUE}starting termserver...${CYAN}\n"
-	    emacs --bg-daemon=${TERMSERVER}
-	    [ $(pgrep -f ${TERMSERVER}) ] && \
+	    printf "${BLUE}starting ${TERMSERVER}...${CYAN}"
+	    emacs -nw --daemon=${TERMSERVER} && \
 		printf "${GREEN}started${WHITEBOLD}\n" || \
 		printf "${BLINK}${F_RED}failed to start${CLEAR}\n"
 	    echo ---------------------------------------------------------------------------
-	    ps -f $(pgrep -f ${TERMSERVER})
+	    ps $(pgrep -f ${TERMSERVER})
 	    echo ---------------------------------------------------------------------------
 	    printf "${CLEAR}\n"
 	fi
@@ -119,12 +160,11 @@ guiserver() {
     # the      server,     invoke      emacsclient     with      the     command
     # (save-buffers-kill-terminal).
 
-    if [ $(find ${EMACS_SERVER_SOCKET_DIR} -path \*/server\* 2>/dev/null) ]
+    if pgrep -qf Emacs
     then
 	printf "${YELLOWBOLD}Found a running guiserver.${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
-        ps -f $(pgrep Emacs)
-	#show_guiserver
+        ps $(pgrep -f Emacs)
 	echo ---------------------------------------------------------------------------
 
 	if [[ $1 == --kill ]]
@@ -137,19 +177,17 @@ guiserver() {
 	echo
 
     else
-	printf "${YELLOW}Did not find a running guiserver.${CLEAR}\n"
+	printf "${YELLOWBOLD}Did not find a running guiserver.${CLEAR}\n"
 	if [[ $1 == --start ]]
 	then
-	    printf "${BLUE}Starting guiserver...${CYAN}\n"
+	    printf "${BLUE}Starting guiserver...${CYAN}"
             # $EMACS_INIT must include the '(server-start)' command
             open $EMACS_APP --args --eval '(suspend-frame)' && \
-	    # open -jb org.gnu.Emacs --args --eval '(server-start)' && \
 		printf "${GREEN}started${CLEAR}\n" || \
 	        printf "${BLINK}${F_RED}not started${CLEAR}\n"
 	    printf "${WHITEBOLD}"
 	    echo ---------------------------------------------------------------------------
-            ps -f $(pgrep Emacs)
-	    #show_guiserver
+            ps $(pgrep -f Emacs)
 	    echo ---------------------------------------------------------------------------
 	fi
     fi
@@ -210,10 +248,10 @@ ecg() {
 ################################################################################
 ### Edit Emacs' Init File
 
-initEmacs() {
-    # TODO: reinitialize when done
-    emacs -Q ${EMACS_HOME}/${EMACS_INIT}
-} # END 
+# initEmacs() {
+#     # TODO: reinitialize when done
+#     emacs -Q ${EMACS_HOME}/${EMACS_INIT}
+# } # END 
 ################################################################################
 
 
@@ -229,15 +267,6 @@ test -r /Users/pine/.opam/opam-init/init.sh && \
 
 
 
-###################################
-### USER's Perlbrew
-
-#source ~/perl5/perlbrew/etc/bashrc
-###################################
-
-
-
-
 ################################################################################
 ### USER's Golang
 
@@ -247,8 +276,6 @@ test -r /Users/pine/.opam/opam-init/init.sh && \
 
 #export GOPATH=~/Dev/Programs/go # <-- set for development
 ################################################################################
-
-
 
 
 #######################################

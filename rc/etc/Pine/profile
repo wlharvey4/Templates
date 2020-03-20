@@ -1,20 +1,37 @@
-# -*- MODE: SH -*-
+# /etc/profile -*- mode: sh; eval:(linum-mode); -*-
 
-# .../Templates/rc/profile_system
-# 2018-11-06T08:00
+printf "\e[31m Sourcing /etc/profile...\e[0m"
+#################################################
+### System-wide profile for sh(1)		#
+### ============================================#
+### Time-stamp: <2020-03-20 09:11:00 pine>	#
+#################################################
 
-# TEMPLATE: System-wide profile for sh(1)
-###############################################################################
-export TEMPLATES=~/Dev/Templates
+if [ -x /usr/libexec/path_helper ]; then
+	eval `/usr/libexec/path_helper -s`
+fi
 
+set -o emacs
 
-
-################################
+#################################################
 export COMP=$(hostname -s)
-#export <COMP>_DEBUG=${DEBUG:-0} # <-- set COMP
-################################
+export SHELL=$(which bash)
+#export ${COMP}_DEBUG=${DEBUG:-0}
+#################################################
 
 
+#################################################
+### EMACS
+export EDITOR='emacsclient -qtua "" -s termserver'
+export SUDO_EDITOR='emacsclient -s sysserver'
+export EMACS_PREFIX=${HOME}/.emacs.d
+export EMACS_INIT=${EMACS_PREFIX}/init.el
+export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name \*Emacs\*)
+export EMACS=${EMACS_APP}/Contents/MacOS/Emacs
+export ECG=${EMACS_APP}/Contents/MacOS/bin/emacsclient
+export EMACS_SERVER_SOCKET_DIR=TBD
+export TEXEDIT='${ECG} +%d %s'
+#################################################
 
 
 #######################################
@@ -24,16 +41,15 @@ export CLICOLOR=1
 export LSCOLORS=GxFxCxDxBxegedabagaced # <-- dark
 #export LSCOLORS=ExFxBxDxCxegedabagacad # <-- light
 
-### PLAIN (NOTE: these CLEAR first)
-export BLACK="\e[0;30m"
-export RED="\e[0;31m"
-export GREEN="\e[0;32m"
-export YELLOW="\e[0;33m"
-export BLUE="\e[0;34m"
-export PURPLE="\e[0;35m"
-export CYAN="\e[0;36m"
-export WHITE="\e[0;37m"
-export CLEAR="\e[0m"
+## PLAIN
+export BLACK="\e[30m"
+export RED="\e[31m"
+export GREEN="\e[32m"
+export YELLOW="\e[33m"
+export BLUE="\e[34m"
+export MAGENTA="\e[35m"
+export CYAN="\e[36m"
+export WHITE="\e[37m"
 ### PLAIN BOLD
 export BLACKBOLD="\e[1;30m"
 export REDBOLD="\e[1;31m"
@@ -70,7 +86,14 @@ export REVERSE=$'\e[7m'
 export CONCEAL=$'\e[8m'
 #######################################
 
+#######################################
+### SYSTEM-WIDE DIRECTORIES
 
+## USR
+export USR=/usr/local
+export BIN=${USR}/bin
+
+#######################################
 
 
 ################################################################################
@@ -115,19 +138,6 @@ fi
 
 
 ################################################################################
-### System-wide editor settings
-
-#export SHELL=/usr/local/bin/bash # <-- set for environment
-export EDITOR=emacsclient
-export SUDO_EDITOR='emacsclient -s termserver'
-set -o emacs
-export TERMSERVER=termserver
-################################################################################
-
-
-
-
-################################################################################
 ### SOURCE SYSTEM BASHRC
 
 if [ "${BASH-no}" != "no" ]; then
@@ -148,3 +158,5 @@ if [ -f /opt/local/etc/profile.d/bash_completion.sh ]; then
     . /opt/local/etc/profile.d/bash_completion.sh
 fi
 ################################################################################
+
+# /etc/profile ends here
