@@ -3,7 +3,7 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-19 09:45
+#+date:2020-03-19 10:46
 #+macro:version Version 0.3.18
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
@@ -936,32 +936,32 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 
 		  } || {
 		    [[ "$2" -nt "$1" ]] && { # rc file is newer
-		    printf "${YELLOW}rc is newer than system${CLEAR}\n"
-		    echo; ls -l $2 $1; echo
-				  [[ -w "$1" ]] && { # check if the system file is writable
-				      printf "${PURPLE}"
-				      cp -ipv "$2" "$1"
-				      printf "${CLEAR}"
-				  } || {
-					  printf "${RED}You must authenticate... ${CLEAR}"
-					  printf "${PURPLE}"
-					  sudo cp -ipv "$2" "$1"
-					  printf "${CLEAR}"
-				  }
+		      printf "${YELLOW}rc is newer than system${CLEAR}\n"
+		      echo; ls -l $2 $1; echo
+		      [[ -w "$1" ]] && { # check if the system file is writable
+			printf "${PURPLE}"
+			cp -ipv "$2" "$1"
+			printf "${CLEAR}"
+		      } || {
+			printf "${RED}You must authenticate... ${CLEAR}"
+			printf "${PURPLE}"
+			sudo cp -ipv "$2" "$1"
+			printf "${CLEAR}"
+		      }
 
-				  ## update the value of the emacs server-socket-dir in the system file
-				  grep -q "EMACS_SERVER_SOCKET_DIR=" "$1" && {
-					  socket_dir=$(${EMACS} -Q --batch --eval '(progn (require (quote server))(princ (file-name-as-directory server-socket-dir)))')
-					  printf "${WHITE}SETTING socket_dir=${socket_dir}${CLEAR}...\n"
-					  sed -i'.bak'-$$ -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' "$1"
-				  } || { :; }
+		      ## update the value of the emacs server-socket-dir in the system file
+		      grep -q "EMACS_SERVER_SOCKET_DIR=" "$1" && {
+			socket_dir=$(${EMACS} -Q --batch --eval '(progn (require (quote server))(princ (file-name-as-directory server-socket-dir)))')
+			printf "${WHITE}SETTING socket_dir=${socket_dir}${CLEAR}...\n"
+			sed -i'.bak'-$$ -Ee '/(EMACS_SERVER_SOCKET_DIR)=.*$/ s!!\1='"$socket_dir"'!' "$1"
+		      } || { :; }
 
-			  } || {
-				  printf "${REDBOLD}ERROR: the files don't match but are the same age?${CLEAR}\n"
-			  }
-		  }
+		      } || {
+			printf "${REDBOLD}ERROR: the files don't match but are the same age?${CLEAR}\n"
+		      }
+	      }
 	else
-		  printf "${CYAN}No difference.${CLEAR}\n"
+	      printf "${CYAN}No difference.${CLEAR}\n"
 	fi
 	} || {
 	    tocreate=$( if test -e "$1"; then echo "$2"; else echo "$1"; fi; )
@@ -989,7 +989,7 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 	    't') to=${OPTARG}   ;;
 	    'h') usage 0        ;;
 	    '?') printf "${RED}ERROR ${CLEAR}\n"; usage 1; ;;
-	     ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n" ;;
+	     ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n"; usage 1; ;;
 	  esac
     done
 
