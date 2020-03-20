@@ -1,11 +1,11 @@
-# /etc/bashrc -*- mode: sh; eval:(linum-mode) -*-
+# /etc/bashrc -*- mode: sh -*-
 if [ -z "$PS1" ]; then return; fi
 
 printf "${YELLOW}Sourcing /etc/bashrc...${CLEAR}"
 #########################################################
 # System-wide bashrc file for interactive bash(1) shells#
 #=======================================================#
-# Time-stamp: <2020-03-18 20:38:52 dt1>		#
+# Time-stamp: <2020-03-20 01:07:22 pine>		#
 #########################################################
 
 
@@ -13,8 +13,8 @@ printf "${YELLOW}Sourcing /etc/bashrc...${CLEAR}"
 ### System-wide prompts
 
 export PS1='\h:\W \u\$ '
+#export PS2="${B_WHITE}${F_BLACK}...${CLEAR} $ "
 #########################################################
-
 
 ### SOME ALTERNATE ideas:
 #export PS1='\033[33m[\!]\033[36m{\u@\H}\033[34;4m\w\033[0m
@@ -27,32 +27,28 @@ export PS1='\h:\W \u\$ '
 #export PS2='\[${BOLD}${CYAN}\]==>$\[${CLEAR}\]'
 
 
-#########################################################
+##############################################################
 ### Make bash check its window size after a process completes
 
 shopt -s checkwinsize
-
-# Change directory with just a directory name
 shopt -s autocd
 shopt -s cdspell
-#shopt -s checkjobs
-
-[ -r "/etc/bashrc_$TERM_PROGRAM" ] && . "/etc/bashrc_$TERM_PROGRAM"
-#########################################################
+##############################################################
 
 
-#########################################################
-### System-wide Aliases
+##############################################################
+### System-wide aliases
 
 alias edpr='sudo -e /private/etc/profile'
 alias edrc='sudo -e /private/etc/bashrc'
 alias edtm='sudo -e /private/etc/tmux.conf'
 
 alias srcpr='source /private/etc/profile'
-alias srcrc='source /private/etc/bash_profile'
+alias srcrc='source /private/etc/bashrc'
 alias srcall='srcpr; src.bp'
 
 alias ls='ls -FGh'
+alias lsa='ls -xAFG'
 alias lsl='ls -lhiAFGOT@'
 alias lst='ls -lhitAFGOT@'
 alias lsd='lsl | grep ^d | sed -Ee s/^.*\(\[\ \]\)\(\[^\ \]*\)$/\\2/'
@@ -61,19 +57,30 @@ alias sp='echo $PATH | tr : "\n"'
 
 alias brewtasks='for task in doctor cleanup prune update; \
 do echo "===> Now on task ${task}" && brew ${task}; done;'
-#########################################################
+##############################################################
 
 
-#########################################################
-### HISTORY
+##############################################################
+### System-wide Functions
 
-export FCEDIT=/opt/local/bin/emacs  # <-- set for local system
-export HISTTIMEFORMAT='%c  '
-alias h='fc -l '
-#########################################################
+cdl () { pushd "$1"; ls; }
+to  () { echo; echo "------>${B_YELLOW}${F_WHITE}$1${CLEAR}<------"; cd "$1"; }
+
+LABEL="----->${B_YELLOW}${F_RED}${REVERSE}"
+PRE='echo ; echo ${LABEL}'
+POST='${CLEAR}; cdl '
+##############################################################
 
 
-#########################################################
+##############################################################
+### TODO: figure out what bashrc_$TERM_PROGRAM does
+###       something to do with "Apple_Terminal"
+
+[ -r "/etc/bashrc_$TERM_PROGRAM" ] && . "/etc/bashrc_$TERM_PROGRAM"
+##############################################################
+
+
+##############################################################
 ### Tell the terminal about the working directory at each prompt.
 
 if [ "$TERM_PROGRAM" == "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ];
@@ -89,4 +96,25 @@ then
     }
     PROMPT_COMMAND="update_terminal_cwd; $PROMPT_COMMAND"
 fi
-#########################################################
+##############################################################
+
+
+##############################################################
+### HISTORY
+
+export FCEDIT=/opt/local/bin/emacs  # <-- set for local system
+export HISTTIMEFORMAT='%c  '
+alias h='fc -l '
+##############################################################
+
+
+##############################################################
+### Start the sysserver
+
+if ! pgrep -qf sysserver
+then
+    emacs -Q -nw --daemon=sysserver \
+	  --eval '(add-hook (quote before-save-hook) (quote time-stamp))'
+fi
+##############################################################
+# end of /etc/bashrc

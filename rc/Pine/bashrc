@@ -1,16 +1,23 @@
-# ~/.bashrc -*- MODE: SH -*-
+# ~/.bashrc -*- mode:sh; -*-
 
-# User's .bashrc
-################################################################################
-# Time-stamp: <2020-03-18 20:37:56 dt1>
+printf "${MAGENTA}Sourcing ~/.bashrc...${CLEAR}\n"
+#################################################
+# Local .bashrc for Bash			#
+# ==============================================#
+# Time-stamp: <2020-03-20 01:34:34 pine>	#
+#################################################
 
 
+#################################################
+### Set up USER'S prompts PS0, PS1, PS2, PS3, PS4
 
-################################################################################
-### Set up USER'S prompts PS1, PS2, PS3, PS4
-
+#export PS0=
 export PS1="[${PURPLEBOLD}\!:\j] ${CYANBOLD}\u:\h ${GREENBOLD}\D{%a %b %d} \A ${BLUEBOLD}\w \e${CLEAR}\n$ "
-export PS2="${B_WHITE}${F_BLACK}...${CLEAR} $ "
+export PS2="${B_WHITE}${F_BLACK}...${CLEAR}>"
+#export PS3=
+#export PS4=
+#################################################
+
 #export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
 # export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
 
@@ -18,9 +25,41 @@ export PS2="${B_WHITE}${F_BLACK}...${CLEAR} $ "
 # ϟ ☭ Ѫ ൿ ൠ ඞ ෴ ஃ ৯ ॐ Ճ ҂ Ω Δ π ʃ ɐ Ɣ ƒ Ŀ Ħ × ¿ ∑ ∀ ∃ ∄ ∞ ∫ ∮ ∬ ∨∧ ∻ ∴ ∵ ≠ ⊕ ⊗
 # ⊢ ⊣ ♅ ♆ ♡ ♥ ⚒ ⚙ ⚛ ✾ ❉ ❯ ❳ ➙ ➤ ➳ ➺ ➻ ⟗ ⟞ ⟢ ⟫ ⟶ ⟹ ⟿ 𐄡 𐄨 𐅍 𐌈 𐌎 𐌇 𐐝 𝄞 𝄢 𝄆 ᐉ ᗚ ᕯ Ꮬ
 # ⊶ ⊾ ⊿ ⋈ ⋊ ⋗ ⊙ ⊚ ≣ ░ ▓ ▞ ▣ ◈ ◉ ☠ ☢ ☣ ☬ ៚
-################################################################################
+#################################################
 
 
+######################################################
+### USER's Configuration Alias Shortcuts
+
+alias ect='emacsclient -qa "" -s termserver "$@"'
+#alias ecg='$ECG -qs server'
+alias ed.bp='ect ~/.bash_profile'
+alias ed.rc='ect ~/.bashrc'
+alias ed.tm='ect ~/.tmux.conf'
+alias ed.init='ect "${EMACS_INIT}"'
+alias src.bp='source ${HOME}/.bash_profile'
+alias src.rc='source ${HOME}/.bashrc'
+
+
+alias toul='pushd $USRL;lsl'
+alias ctoul='dirs -c;pushd $USRL;lsl'
+alias toulb='pushd $USRLB;lsl'
+
+alias toh='pushd $HOME'
+alias ctoh='dirs -c; pushd $HOME'
+alias tod='pushd $DEV;lss'
+alias ctod='dirs -c;tod'
+alias tode='pushd $DEV_EMACS;lsl'
+alias todl='pushd $DEV_LANG;lsl'
+
+alias tow='pushd $WORK'
+alias ctow='dirs -c;tow'
+alias towc='printf "\e[0;33m";pushd $WORKCUR;printf"\e[0m";lss'
+alias towl='pushd $WORKLOG;lss'
+alias towd='pushd $WORKDEV;lss'
+alias towo='pushd $WORKORG;lss'
+alias towb='pushd $WORKBIN;lss'
+######################################################
 
 
 ##################################################
@@ -33,23 +72,4 @@ emacsservers --startall
 ####################################################
 
 
-
-
-######################################################
-### USER's Configuration Alias Shortcuts
-
-alias ect='emacsclient -a "" -s termserver "$@"'
-alias ed.bp='ect ~/.bash_profile'
-alias ed.rc='ect ~/.bashrc'
-alias ed.tm='ect ~/.tmux.conf'
-alias ed.src='source ~/.bash_profile'
-######################################################
-
-
-
-
-################################################################################
-### Secrets ssshhhh...
-
-export SECRET_SAUCE=
-################################################################################
+# end of ~/.bashrc

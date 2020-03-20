@@ -1,12 +1,31 @@
-# -*- MODE: SH -*-
+# ~/.bash_profile -*- mode:sh; -*-
 
-# TEMPLATE: ~/.bash_profile
-# Time-stamp: <2020-03-16 19:18:09 pine>
+printf "${CYAN}Sourcing ~/.bash_profile...${CLEAR}"
+#################################################
+# Local .bash_profile for Bash			#
+# ==============================================#
+# Time-stamp: <2020-03-20 01:24:45 pine>	#
+#################################################
 
-# User's .bash_profile
-################################################################################
+
+#################################################
+### USER-DEPENDENT DATA
+# ==============================================#
+
+## AWS
+export AWS_S3_BUCKET=pinecone-forest.com
+#################################################
 
 
+#################################################
+### USER’S CONFIDENTIAL DATA
+#================================================
+
+## GITHUB_TOKEN
+set -o allexport
+source ${HOME}/.config/github/token
+unset allexport
+#################################################
 
 
 ################################################################################
@@ -29,15 +48,13 @@
 ## The  Emacs  variable  'server-socket-dir'  determines  where  the  socket  is
 ## established, which will not necessarily be the same for any given system.
 
-export EMACS_HOME=${HOME}/.emacs.d
-export EMACS_INIT=${EMACS_HOME}/init.el
-export EMACS_WIDTH=250
-export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name Emacs\*)
-export TERMSERVER=termserver
-export EMACS_SERVER_SOCKET_DIR="/var/folders/x_/v2pfz45s7h3245q6wlvvvnyh0000gn/T//emacs501/"
+# export EMACS_HOME=${HOME}/.emacs.d
+# export EMACS_INIT=${EMACS_HOME}/init.el
+# export EMACS_WIDTH=250
+# export EMACS_APP=$(find /Applications/MacPorts -depth 1 -name Emacs\*)
+# export TERMSERVER=termserver
+# export EMACS_SERVER_SOCKET_DIR=TBD
 ################################################################################
-
-
 
 
 ################################################################################
@@ -210,10 +227,10 @@ ecg() {
 ################################################################################
 ### Edit Emacs' Init File
 
-initEmacs() {
-    # TODO: reinitialize when done
-    emacs -Q ${EMACS_HOME}/${EMACS_INIT}
-} # END 
+# initEmacs() {
+#     # TODO: reinitialize when done
+#     emacs -Q ${EMACS_HOME}/${EMACS_INIT}
+# } # END 
 ################################################################################
 
 
@@ -229,15 +246,6 @@ test -r /Users/pine/.opam/opam-init/init.sh && \
 
 
 
-###################################
-### USER's Perlbrew
-
-#source ~/perl5/perlbrew/etc/bashrc
-###################################
-
-
-
-
 ################################################################################
 ### USER's Golang
 
@@ -247,8 +255,6 @@ test -r /Users/pine/.opam/opam-init/init.sh && \
 
 #export GOPATH=~/Dev/Programs/go # <-- set for development
 ################################################################################
-
-
 
 
 #######################################
