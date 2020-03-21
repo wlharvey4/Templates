@@ -4,7 +4,7 @@ printf "${CYAN}Sourcing ~/.bash_profile...${CLEAR}"
 #################################################
 # Local .bash_profile for Bash			#
 # ==============================================#
-# Time-stamp: <2020-03-20 09:13:09 pine>	#
+# Time-stamp: <2020-03-21 09:06:35 pine>	#
 #################################################
 
 
@@ -17,6 +17,7 @@ export AWS_S3_BUCKET=pinecone-forest.com
 export TEMPLATES=${HOME}/Dev/Templates
 export SYNC_ORG_TEMPLATE=${TEMPLATES}/Org/Template.org
 export TERMSERVER=termserver
+export SYSSERVER=sysserver
 #################################################
 
 
@@ -91,7 +92,7 @@ export WORKORG=${WORK}/workorg
 ##    emacsservers()  : start and stop both
 ##    show_guiserver():helper function
 
-termserver() {
+X() {
     # The terminal  server runs as a  daemon; to determine whether  a daemon is
     # currently running, look for daemon=termserver as a process using 'pgrep';
     # to kill the daemon, kill the  process; force-deleting the server in emacs

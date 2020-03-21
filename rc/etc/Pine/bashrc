@@ -5,7 +5,7 @@ printf "${YELLOW}Sourcing /etc/bashrc...${CLEAR}"
 #########################################################
 # System-wide bashrc file for interactive bash(1) shells#
 #=======================================================#
-# Time-stamp: <2020-03-20 02:21:24 pine>		#
+# Time-stamp: <2020-03-20 09:38:37 pine>		#
 #########################################################
 
 
@@ -113,8 +113,10 @@ alias h='fc -l '
 
 if ! pgrep -qf sysserver
 then
+    printf "\e[32msyserver: "
     emacs -Q -nw --daemon=sysserver \
 	  --eval '(add-hook (quote before-save-hook) (quote time-stamp))'
+    printf "\e[0m"
 fi
 ##############################################################
 # end of /etc/bashrc
