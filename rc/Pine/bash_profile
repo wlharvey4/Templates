@@ -4,7 +4,7 @@ printf "${CYAN}Sourcing ~/.bash_profile...${CLEAR}"
 #################################################
 # Local .bash_profile for Bash			#
 # ==============================================#
-# Time-stamp: <2020-03-21 09:06:35 pine>	#
+# Time-stamp: <2020-03-21 09:30:33 pine>	#
 #################################################
 
 
@@ -92,7 +92,7 @@ export WORKORG=${WORK}/workorg
 ##    emacsservers()  : start and stop both
 ##    show_guiserver():helper function
 
-X() {
+termserver() {
     # The terminal  server runs as a  daemon; to determine whether  a daemon is
     # currently running, look for daemon=termserver as a process using 'pgrep';
     # to kill the daemon, kill the  process; force-deleting the server in emacs
@@ -123,12 +123,12 @@ X() {
     then
 	printf "${YELLOWBOLD}Found a running termserver:${WHITEBOLD}\n"
 	echo ---------------------------------------------------------------------------
-	ps $(pgrep -f ${TERMSERVER})
+	ps $(pgrep -f ${TERMSERVER} ${SYSSERVER})
 	echo ---------------------------------------------------------------------------
 	if [[ $1 == --kill ]]
 	then
 	    printf "${BLUE}Killing termserver..."
-	    pkill -f ${TERMSERVER} && \
+	    kill $(pgrep -f ${TERMSERVER} ${SYSSERVER}) && \
 		printf "${GREEN}killed${CLEAR}\n" || \
 		printf "${BLINK}${F_RED}not killed${CLEAR}\n"
 	fi
