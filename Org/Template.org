@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-20 21:18
-#+macro:version Version 0.3.20
+#+date:2020-03-20 22:06
+#+macro:version Version 0.3.21
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -183,11 +183,6 @@ BUCKET := s3://$(AWS_S3_BUCKET)
 # that enables you to interact with AWS services using commands in
 # your command-line shell.
 
-# DEPRECATION: The aws command to use (version 1 or version 2)
-# NOTE: aws version 1.x is apparently deprecated. [2020-02-26]
-# NOTE: aws2 was version 2.0.0dev2; when this Template file was created.
-# aws v2.x is now plain 'aws', and is at version 2.0.1 [2020-02-26]
-
 AWS := aws
 
 # The AWS region of choice; this can also be in .aws/config
@@ -339,90 +334,91 @@ S3MOVE  := $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 default: check texi info html pdf
 
 PHONY: check default all \
-texi info html pdf \
-open-org open-texi open-html open-pdf \
-clean dist-clean wiped-clean \
-help sync update values
+	texi info html pdf \
+	open-org open-texi open-html open-pdf \
+	clean dist-clean wiped-clean \
+	help sync update values
+	install-aws-cli
 
 values: check
-@echo USER:   	$(USER)
-@echo ORG:    	$(ORG)
-@echo PROJ:   	$(PROJ) $S
-@echo VERS:   	$(VERS)
-@echo S3PROJ: 	$(S3PROJ)
-@echo S3VERS: 	$(S3VERS)
-@echo DIR:    	$(DIR)
-@echo DIR_OLD:	$(DIR_OLD)
-@echo SRC:    	$(SRC)
-@echo DST_OLD:	$(DST_OLD)
-@echo DST_NEW:	$(DST_NEW)
-@echo PROJ_LIST:$(PROJ_LIST)
+	@echo USER:   	$(USER)
+	@echo ORG:    	$(ORG)
+	@echo PROJ:   	$(PROJ) $S
+	@echo VERS:   	$(VERS)
+	@echo S3PROJ: 	$(S3PROJ)
+	@echo S3VERS: 	$(S3VERS)
+	@echo DIR:    	$(DIR)
+	@echo DIR_OLD:	$(DIR_OLD)
+	@echo SRC:    	$(SRC)
+	@echo DST_OLD:	$(DST_OLD)
+	@echo DST_NEW:	$(DST_NEW)
+	@echo PROJ_LIST:$(PROJ_LIST)
 
 check:
-@[[ -z $${AWS_S3_BUCKET} ]] && \
-   { printf "$${RED}\$$AWS_S3_BUCKET $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
-   printf "$${GREEN}AWS_S3_BUCKET: $${CYAN}$${AWS_S3_BUCKET}$${CLEAR}\n";
-@[[ -z $${GITHUB_TOKEN} ]] && \
-   { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
-   printf "$${GREEN}GITHUB_TOKEN: set$${CLEAR}\n";
-@[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
-   printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
-   { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-@$(EMACS) --batch --load="$(EMACS_INIT)" --eval '\
-        (progn \
-                (require (quote org)) \
-                (if \
-                        (member (quote texinfo) org-export-backends) \
-                        (princ "texinfo backend: INSTALLED in org-export-backends") \
-                        (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
-                (terpri) \
-                (if \
-                        org-confirm-babel-evaluate \
-                        (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-                        (princ "org-confirm-babel-evaluate: SET to nil")) \
-                (terpri))'
+	@[[ -z $${AWS_S3_BUCKET} ]] && \
+	   { printf "$${RED}\$$AWS_S3_BUCKET $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
+	   printf "$${GREEN}AWS_S3_BUCKET: $${CYAN}$${AWS_S3_BUCKET}$${CLEAR}\n";
+	@[[ -z $${GITHUB_TOKEN} ]] && \
+	   { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
+	   printf "$${GREEN}GITHUB_TOKEN: set$${CLEAR}\n";
+	@[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
+	   printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
+	   { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
+	@$(EMACS) -Q --batch --load="$(EMACS_INIT)" --eval '\
+	        (progn \
+	                (require (quote org)) \
+	                (if \
+	                        (member (quote texinfo) org-export-backends) \
+	                        (princ "texinfo backend: INSTALLED in org-export-backends") \
+	                        (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
+	                (terpri) \
+	                (if \
+	                        org-confirm-babel-evaluate \
+	                        (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
+	                        (princ "org-confirm-babel-evaluate: SET to nil")) \
+	                (terpri))'
 
 open-org: $(ORG)
-emacsclient $(ORG) &
+	emacsclient $(ORG) &
 $(ORG):
-@echo 'THERE IS NO $(ORG) FILE!!!'
-exit 1
+	@echo 'THERE IS NO $(ORG) FILE!!!'
+	exit 1
 
 texi: $(TEXI)
-$(TEXI): $(ORG)
-$(EMACS) --batch --eval '\
-(progn \
-  (require (quote org)) \
-  (require (quote ob-shell)) \
-  (setq org-confirm-babel-evaluate nil) \
-  (find-file "$(ORG)") \
-  (org-texinfo-export-to-texinfo))'
+	$(TEXI): $(ORG)
+	$(EMACS) --batch --eval '\
+	(progn \
+	  (require (quote org)) \
+	  (require (quote ob-shell)) \
+	  (setq org-confirm-babel-evaluate nil) \
+	  (find-file "$(ORG)") \
+	  (org-texinfo-export-to-texinfo))'
 
 open-texi: texi
-emacsclient $(TEXI) &
+	emacsclient $(TEXI) &
 
 info: $(INFO)
-$(INFO): $(TEXI)
-makeinfo $(TEXI)
+	$(INFO): $(TEXI)
+	makeinfo $(TEXI)
 open-info: info
-emacsclient $(INFO)
+	emacsclient $(INFO)
 
 html: $(HTML)
-$(HTML): $(TEXI)
-makeinfo --html -o $(DIR) $(TEXI)
-$(CMPRPL) $(DIR) $(DIR_OLD)
+	$(HTML): $(TEXI)
+	makeinfo --html -o $(DIR) $(TEXI)
+	$(CMPRPL) $(DIR) $(DIR_OLD)
 open-html: html
-open $(HTML)
+	open $(HTML)
 
 pdf: $(PDF)
-$(PDF): $(TEXI)
-pdftexi2dvi --quiet --build=clean $(TEXI)
+	$(PDF): $(TEXI)
+	pdftexi2dvi --quiet --build=clean $(TEXI)
 open-pdf: pdf
-open $(PDF)
+	open $(PDF)
 
 sync: $(HTML)
-$(S3SYNC)
-[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
+	$(S3SYNC)
+	[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
 # key on the GitHub repo page with the current version number.  It
@@ -433,99 +429,100 @@ $(S3SYNC)
 # This method is arguably harder to code but faster to run than using
 # Perl with the JSON::PP module.
 homepage: description = $(shell curl -s \
-     -H "Authorization: token $(GH_TOKEN)" \
-     https://api.github.com/repos/$(USER)/$(PROJ)$S | \
-     perl -ne 'if (/(?:^\s*\"description\":)\s*\"(.*)(?::\s*v(?:(?:\d+\.?)+\/)?\",)$$/) { \
-          print "$$1: $(VERS)"; \
-      }')
+	     -H "Authorization: token $(GH_TOKEN)" \
+	     https://api.github.com/repos/$(USER)/$(PROJ)$S | \
+	     perl -ne 'if (/(?:^\s*\"description\":)\s*\"(.*)(?::\s*v(?:(?:\d+\.?)+\/)?\",)$$/) { \
+	          print "$$1: $(VERS)"; \
+	      }')
 
 ### NOTE the use of the S variable at the end of PROJ; this is to handle
 # the singular case of the GitHub repo using the plural form, Templates
 # whereas the the Template.org file uses the singular form.
 homepage: $(ORG)
-curl -i \
-   -H "Authorization: token $(GH_TOKEN)" \
-   -H "Content-Type: application/json" \
-   -X PATCH \
-   -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
-        "description":"$(description)"}' \
-   https://api.github.com/repos/$(USER)/$(PROJ)$S
+	curl -i \
+	   -H "Authorization: token $(GH_TOKEN)" \
+	   -H "Content-Type: application/json" \
+	   -X PATCH \
+	   -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
+	        "description":"$(description)"}' \
+	   https://api.github.com/repos/$(USER)/$(PROJ)$S
 
 update: $(ORG)
-$(EMACS) -Q --batch --eval \
-'(progn \
-   (require (quote org)) \
-   (require (quote ob)) \
-   (require (quote ob-shell)) \
-   (find-file "$(TEMPLATE)") \
-   (goto-char (point-min)) \
-   (search-forward "* Build Tools") \
-   (org-beginning-of-line) \
-   (org-copy-subtree) \
-   (kill-buffer) \
-   (find-file "$(ORG)") \
-   (goto-char (point-min)) \
-   (search-forward "* Build Tools") \
-   (org-beginning-of-line) \
-   (org-yank) \
-   (org-cut-subtree) \
-   (save-buffer) \
-   (kill-buffer) \
-   (setq org-confirm-babel-evaluate nil) \
-   (org-babel-tangle-file "$(ORG)"))'
+	$(EMACS) -Q --batch --eval \
+	'(progn \
+	   (require (quote org)) \
+	   (require (quote ob)) \
+	   (require (quote ob-shell)) \
+	   (find-file "$(TEMPLATE)") \
+	   (goto-char (point-min)) \
+	   (search-forward "* Build Tools") \
+	   (org-beginning-of-line) \
+	   (org-copy-subtree) \
+	   (kill-buffer) \
+	   (find-file "$(ORG)") \
+	   (goto-char (point-min)) \
+	   (search-forward "* Build Tools") \
+	   (org-beginning-of-line) \
+	   (org-yank) \
+	   (org-cut-subtree) \
+	   (save-buffer) \
+	   (kill-buffer) \
+	   (setq org-confirm-babel-evaluate nil) \
+	   (org-babel-tangle-file "$(ORG)"))'
 
 install-aws-cli:
 	curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
 	sudo installer -pkg AWSCLIV2.pkg -target / && \
 	which aws && aws --version
+	rm -rf AWSCLIV2.pkg
 
 clean:
--rm *~
+	-rm *~
 
 dist-clean: clean
--rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
--for dir in *; \
- do \
-        [ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
-        rm -vr $$dir; \
- done
+	-rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
+	-for dir in *; \
+	do \
+	        [ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
+	        rm -vr $$dir; \
+	 done
 
 wipe-clean: dist-clean
--rm -rf Makefile Readme.md $(DIR_OLD)
+	-rm -rf Makefile Readme.md $(DIR_OLD)
 
 help:
-@echo '"make default" makes the .texi file, the .info file, \
-the html files, and the .pdf file.'
-@echo
+	@echo '"make default" makes the .texi file, the .info file, \
+	the html files, and the .pdf file.'
+	@echo
 
-@echo '"make check" checks for prerequistes'
-@echo '"make values" runs check and prints variable values'
-@echo
+	@echo '"make check" checks for prerequistes'
+	@echo '"make values" runs check and prints variable values'
+	@echo
 
-@echo '"make sync" syncs the html files in the AWS S3 bucket BUCKET; \
-you must have your AWS S3 bucket name in the env var AWS_S3_BUCKET; \
-You must have your AWS credentials installed in ~/.aws/credentials'
-@echo
+	@echo '"make sync" syncs the html files in the AWS S3 bucket BUCKET; \
+	you must have your AWS S3 bucket name in the env var AWS_S3_BUCKET; \
+	You must have your AWS credentials installed in ~/.aws/credentials'
+	@echo
 
-@echo '"make texi" makes the .texi file'
-@echo '"make info" makes the .info file'
-@echo '"make html" makes the html distribution in a subdirectory'
-@echo '"make pdf" makes the .pdf file'
-@echo
+	@echo '"make texi" makes the .texi file'
+	@echo '"make info" makes the .info file'
+	@echo '"make html" makes the html distribution in a subdirectory'
+	@echo '"make pdf" makes the .pdf file'
+	@echo
 
-@echo '"make open-org" opens the ORG program using emacsclient for editing'
-@echo '"make open-texi" opens the .texi file using emacsclient for review'
-@echo '"make open-html" opens the distribution index.html file \
-in the default web browser'
-@echo '"make open-pdf" opens the .pdf file'
-@echo
+	@echo '"make open-org" opens the ORG program using emacsclient for editing'
+	@echo '"make open-texi" opens the .texi file using emacsclient for review'
+	@echo '"make open-html" opens the distribution index.html file \
+	in the default web browser'
+	@echo '"make open-pdf" opens the .pdf file'
+	@echo
 
-@echo '"sudo make install-aws2" installs the "aws2" command-line tools'
-@echo 'You also need to run "aws2 configure" and supply your Access Key and Secret Access Key'
+	@echo '"sudo make install-aws2" installs the "aws2" command-line tools'
+	@echo 'You also need to run "aws2 configure" and supply your Access Key and Secret Access Key'
 
-@echo '"make clean" removes the .texi, .info, and backup files ("*~")'
-@echo '"make dist-clean" cleans, removes the html distribution, \
-and removes the build directory'
+	@echo '"make clean" removes the .texi, .info, and backup files ("*~")'
+	@echo '"make dist-clean" cleans, removes the html distribution, \
+	and removes the build directory'
 
 #+end_src
 
