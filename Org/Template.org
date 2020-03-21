@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-20 10:15
-#+macro:version Version 0.3.19
+#+date:2020-03-20 21:18
+#+macro:version Version 0.3.20
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -136,8 +136,8 @@ and provides the source code for processing them in various different ways.
 :PROPERTIES:
 :appendix: t
 :dependency1: "make"
-:dependency2: "aws2; AWS Account with ~/.aws/credentials and ~/.aws/config"
-:dependency2.1: "aws2 is now [2020-02-26] aws"
+:dependency2: aws cli v2 https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html
+:dependency2.1: Install AWS CLI v2 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
 :dependency3: "S3 bucket set up for serving a static web pages"
 :dependency4: "GitHub Account with personal token"
 :dependency5: "texinfo @6.7.0"
@@ -474,23 +474,10 @@ $(EMACS) -Q --batch --eval \
    (setq org-confirm-babel-evaluate nil) \
    (org-babel-tangle-file "$(ORG)"))'
 
-### INSTALL AWS2 ***DEPRECATED**
-# Run this 'make' command to install the 'aws2' command-line tools into
-#   /usr/local/aws-cli;
-# this will install the commands 'aws2' and 'aws2_completer' into
-#   /usr/local/bin
-# NOTE: the install script must be run as 'root' via 'sudo' on macos to install
-#       into /usr/local
-# USAGE: sudo make install-aws2
-#        aws2 configure
-# NOTE: This should probably go into a scripts file to be run upon configuration,
-#       not in this Makefile, as it will only be needed once.  But maybe the Makefile
-#       can do all of the configuration.  Wait and see.
-# install-aws2:
-# 	  curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
-# 	  unzip awscliv2.zip
-# 	  sudo ./aws/install
-# 	  aws2 --version
+install-aws-cli:
+	curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
+	sudo installer -pkg AWSCLIV2.pkg -target / && \
+	which aws && aws --version
 
 clean:
 -rm *~
