@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-20 22:47
-#+macro:version Version 0.3.23
+#+date:2020-03-20 22:55
+#+macro:version Version 0.3.24
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -1068,21 +1068,21 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 : pinecone-forest.com
 
 ** Boot Template
-While all it takes is running the command ~ob-tangle~ (=C-c C-v t=) from within
-Emacs to install everything, it would be nice to have a command-line program
-that is downloaded with this file that could be run to do the same thing
-without starting Emacs.   A little Makefile would work, which  would then be
-overwritten when the program is tangled.  There would also be a 'boot' command
-in the Makefile, so it would all be transparent.
+While running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
+will install everything, it would be nice to have a command-line program that
+is downloaded with this file that could be run to do the same thing without
+starting Emacs.  A little Makefile would work, which would then be overwritten
+when the program is tangled.  There would also be a 'boot' command in the
+Makefile, so it would all be transparent.
 
 #+header: :tangle Makefile
-#+begin_src make
-boot:
-	emacs -Q --batch --eval '\
-		(progn \
-			(require (quote org))\
-			(find-file "./Template.org")\
-			(org-babel-tangle))'
+#+begin_src makefile
+  boot:
+          emacs -Q --batch --eval '\
+                  (progn \
+                          (require (quote org))\
+                          (find-file "./Template.org")\
+                          (org-babel-tangle))'
 #+end_src
 
 * List of Programs
