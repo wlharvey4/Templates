@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-20 22:06
-#+macro:version Version 0.3.21
+#+date:2020-03-20 22:10
+#+macro:version Version 0.3.22
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -517,12 +517,13 @@ help:
 	@echo '"make open-pdf" opens the .pdf file'
 	@echo
 
-	@echo '"sudo make install-aws2" installs the "aws2" command-line tools'
-	@echo 'You also need to run "aws2 configure" and supply your Access Key and Secret Access Key'
+	@echo '"make install-aws-cli" installs the "aws cli v2" command-line tools'
+	@echo 'You also need to run "aws configure" and supply your Access Key and Secret Access Key'
 
 	@echo '"make clean" removes the .texi, .info, and backup files ("*~")'
 	@echo '"make dist-clean" cleans, removes the html distribution, \
 	and removes the build directory'
+	@echo '"make wipe-clean" wipes clean the directory, including old directories'
 
 #+end_src
 
