@@ -4,7 +4,7 @@ printf "${MAGENTA}Sourcing ~/.bashrc...${CLEAR}\n"
 #################################################
 # Local .bashrc for Bash			#
 # ==============================================#
-# Time-stamp: <2020-03-20 01:34:34 pine>	#
+# Time-stamp: <2020-03-21 17:27:19 pine>	#
 #################################################
 
 
@@ -19,7 +19,7 @@ export PS2="${B_WHITE}${F_BLACK}...${CLEAR}>"
 #################################################
 
 #export PS1="${WHITEBOLD}>>>${YELLOWBOLD}[\!]${CYANBOLD}\u:\h${BLUEBOLD} \w \e${CLEAR}\n?"
-# export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
+#export PS1="\e[38;5;225m>>>\e[38;5;87m[\!]\e[33;1m\u:\h\e[38;5;39m \d \A\e[38;5;10m \w\e[0m\n?"
 
 # I think these can be used inside a prompt...
 # ϟ ☭ Ѫ ൿ ൠ ඞ ෴ ஃ ৯ ॐ Ճ ҂ Ω Δ π ʃ ɐ Ɣ ƒ Ŀ Ħ × ¿ ∑ ∀ ∃ ∄ ∞ ∫ ∮ ∬ ∨∧ ∻ ∴ ∵ ≠ ⊕ ⊗
@@ -63,12 +63,14 @@ alias towb='pushd $WORKBIN;lss'
 
 
 ##################################################
-### Start Emacs servers
+### Start Emacs servers and Tmux server
 
-## Start the both the termserver and guiserver
-## Use 'emacservers --killall' to kill them all
+## Start both the termserver and guiserver.
+## Use 'emacservers --killall' to kill them all.
+## Use 'tmux kill-server' to kill the Tmux server
 
 emacsservers --startall
+[ -z ${TMUX} ] && tmux a -t Home
 ####################################################
 
 
