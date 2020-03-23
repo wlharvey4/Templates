@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-21 09:18
-#+macro:version Version 0.3.24
+#+date:2020-03-23 10:43
+#+macro:version Version 0.3.25
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -35,7 +35,7 @@
 - [[https://developer.github.com/v3/markdown/][GitHub REST API v3 --- Markdown]]
 
 
-This Readme should be tangled and included in all git commits.  It’s purpose is
+This Readme should be tangled and included in all git commits.	It’s purpose is
 to provide an introduction to viewers of the source code on GitHub.
 
 #+texinfo:@heading Using the ABSTRACT Entry
@@ -71,7 +71,7 @@ most recently uploaded version.
 ## Date
 ## Version
 # ABSTRACT
-This is the Org Template file.  It is the parent of all other Org Info blogs,
+This is the Org Template file.	It is the parent of all other Org Info blogs,
 and provides the source code for processing them in various different ways.
 # INTRODUCTION
 # CHAPTER
@@ -96,7 +96,7 @@ and provides the source code for processing them in various different ways.
   This script places itself inside a ~bin/~ directory so it can be found by
   searching $PATH.  This can be accomplished by creating an environment
   variable; I need to come up with a good domain name for this system first.
-  How about =SyncOrg=?  So the environment variable would be =SYNC_ORG_BIN=.  A
+  How about =SyncOrg=?	So the environment variable would be =SYNC_ORG_BIN=.  A
   possible value would =~/Dev/bin= or =/usr/local/dev/bin=, depending on the
   system.
 
@@ -110,29 +110,29 @@ and provides the source code for processing them in various different ways.
 
 *** DONE Update Date
 
-- State "DONE"       from "TODO"       [2020-03-02 Mon 21:12]
-- State "TODO"       from              [2020-03-01 Sun 10:36] \\
+- State "DONE"	     from "TODO"       [2020-03-02 Mon 21:12]
+- State "TODO"	     from	       [2020-03-01 Sun 10:36] \\
   When creating a new project from this template, update the #+date: to
   the current day and time instead of leaving it to when this template
   was last updated.
 
 *** TODO Make Update independent of the project
 
-- State "TODO"       from              [2020-03-01 Sun 14:07] \\
+- State "TODO"	     from	       [2020-03-01 Sun 14:07] \\
   I just tried to update a project, but the command AWS :=: aws2 did not
-  work because it has changed to aws version 2.  If the update program
+  work because it has changed to aws version 2.	 If the update program
   had been independent and based upon Template's most recent code, then
-  that would not have happened.  Who knows what the next problem will be
+  that would not have happened.	 Who knows what the next problem will be
   causing the project's out-of-date code to fail to update.
 *** DONE Make adding git repo an option
-- State "DONE"       from              [2020-03-02 Mon 21:13]
+- State "DONE"	     from	       [2020-03-02 Mon 21:13]
 * Chapter
 
 * Build Tools
 :PROPERTIES:
 :appendix: t
 :END:
-** Makefile                                     :dependencies:env_vars:perl:
+** Makefile					:dependencies:env_vars:perl:
 :PROPERTIES:
 :appendix: t
 :dependency1: "make"
@@ -163,7 +163,7 @@ and provides the source code for processing them in various different ways.
 
 # Emacs binary and init file
 
-EMACS        := $(EMACS)
+EMACS	       := $(EMACS)
 EMACS_INIT   := $(EMACS_INIT)
 
 # The absolute path to this Template file
@@ -203,7 +203,7 @@ REGION := --region us-west-2
 # one level deep in the Templates GitHub repo, which uses the plural form
 # of Templates, whereas this file uses the singular form, Template.  So when
 # the homepage link is updated, the curl command must be told to use the plural
-# form.  This is obviously a hack only for my own use and can be removed once
+# form.	 This is obviously a hack only for my own use and can be removed once
 # I clean up this anomaly.
 
 ORG  := $(shell ls *.org)
@@ -245,7 +245,7 @@ endif
 # The reason it includes them is the S3PROJ obtains the name from the S3 bucket, and
 # it includes them.  But it only includes them because I have made it so.  Not a good
 # reason just by itself.  The ending slash is not actually a part of the version, but
-# comes from the way the 'aws2 ls' command returns its values.  So VERS should probably
+# comes from the way the 'aws2 ls' command returns its values.	So VERS should probably
 # not include the trailing slash, although it doesn’t hurt anything.
 
 VERS := v$(shell $(EMACS) -Q --batch --eval '\
@@ -286,15 +286,15 @@ endif
 # during tangle, but in an effort to make the Makefile dynamically
 # indepedent, dynamic code has replaced the static code.  The code
 # that placed the static name in the Makefile was a 'node' script that
-# ran in a separate Org process during tangle.  An unfortunate fact of
+# ran in a separate Org process during tangle.	An unfortunate fact of
 # 'make' is that 'make' strips the quote marks from the string
 # obtained from the 'curl' command when the 'make shell' command
-# returns the string.  This makes the string malformed JSON and
-# unparsable by most JSON parsers, including 'node’.  However,
+# returns the string.	 This makes the string malformed JSON and
+# unparsable by most JSON parsers, including 'node’.	However,
 # 'perl'’s core module JSON::PP (but not JSON::XS) has facilities to
-# parse very malformed JSON strings.  Therefore, this dynamic code
+# parse very malformed JSON strings.	Therefore, this dynamic code
 # uses 'perl' and the core module JSON::PP to parse the 'curl' string
-# into a 'perl' JSON object which can return the login name.  This
+# into a 'perl' JSON object which can return the login name.	This
 # code should work with any version of 'perl' without having to
 # install any modules.
 
@@ -302,34 +302,34 @@ USER := $(shell \
       curl -sH "Authorization: token $(GH_TOKEN)" https://api.github.com/user \
       | \
       perl -MJSON::PP -e \
-          '$$/ = ""; \
-           my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); \
-           print $$json->{login};' \
+	  '$$/ = ""; \
+	   my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); \
+	   print $$json->{login};' \
       )
 
 ### TOOLS & RESOURCES
-TOOLS  := tools
+TOOLS	 := tools
 CMPRPL := $(TOOLS)/cmprpl
-SAVE   := resources
+SAVE	 := resources
 
 ### TEXINFO
-TEXI  := $(PROJ).texi
-INFO  := $(DIR).info
-PDF   := $(PROJ).pdf
+TEXI	:= $(PROJ).texi
+INFO	:= $(DIR).info
+PDF	:= $(PROJ).pdf
 INDEX := index.html
-HTML  := $(DIR)/$(INDEX)
+HTML	:= $(DIR)/$(INDEX)
 DIR_OLD := $(DIR)-old
 
 ### AWS
-S3     := $(AWS) s3
-SRC    := $(DIR)/
+S3	 := $(AWS) s3
+SRC	 := $(DIR)/
 
 DST_OLD := $(BUCKET)/$(S3PROJ)
 DST_NEW := $(BUCKET)/$(DIR)-$(VERS)
 EXCL_INCL := --exclude "*" --include "*.html"
-GRANTS  := --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
-S3SYNC  := $(S3) sync $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
-S3MOVE  := $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
+GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+S3SYNC	:= $(S3) sync $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
+S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 
 default: check texi info html pdf
 
@@ -341,15 +341,15 @@ PHONY: check default all \
 	install-aws-cli
 
 values: check
-	@echo USER:   	$(USER)
-	@echo ORG:    	$(ORG)
-	@echo PROJ:   	$(PROJ) $S
-	@echo VERS:   	$(VERS)
-	@echo S3PROJ: 	$(S3PROJ)
-	@echo S3VERS: 	$(S3VERS)
-	@echo DIR:    	$(DIR)
+	@echo USER:		$(USER)
+	@echo ORG:		$(ORG)
+	@echo PROJ:		$(PROJ) $S
+	@echo VERS:		$(VERS)
+	@echo S3PROJ:		$(S3PROJ)
+	@echo S3VERS:		$(S3VERS)
+	@echo DIR:		$(DIR)
 	@echo DIR_OLD:	$(DIR_OLD)
-	@echo SRC:    	$(SRC)
+	@echo SRC:		$(SRC)
 	@echo DST_OLD:	$(DST_OLD)
 	@echo DST_NEW:	$(DST_NEW)
 	@echo PROJ_LIST:$(PROJ_LIST)
@@ -365,18 +365,18 @@ check:
 	   printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	   { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
 	@$(EMACS) -Q --batch --load="$(EMACS_INIT)" --eval '\
-	        (progn \
-	                (require (quote org)) \
-	                (if \
-	                        (member (quote texinfo) org-export-backends) \
-	                        (princ "texinfo backend: INSTALLED in org-export-backends") \
-	                        (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
-	                (terpri) \
-	                (if \
-	                        org-confirm-babel-evaluate \
-	                        (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-	                        (princ "org-confirm-babel-evaluate: SET to nil")) \
-	                (terpri))'
+		(progn \
+			(require (quote org)) \
+			(if \
+				(member (quote texinfo) org-export-backends) \
+				(princ "texinfo backend: INSTALLED in org-export-backends") \
+				(princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
+			(terpri) \
+			(if \
+				org-confirm-babel-evaluate \
+				(princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
+				(princ "org-confirm-babel-evaluate: SET to nil")) \
+			(terpri))'
 
 open-org: $(ORG)
 	emacsclient $(ORG) &
@@ -410,9 +410,13 @@ $(HTML): $(TEXI)
 open-html: html
 	open $(HTML)
 
+# If pdftexi2dvi produces an error, it may still produce a viable PDF;
+# therefore, use --tidy.  If it produces an error, try to link the PDF;
+# if it does not produce an error, the PDF will be added to the top dir
+# and there will be no attempt to link.
 pdf: $(PDF)
 $(PDF): $(TEXI)
-	pdftexi2dvi --quiet --build=clean $(TEXI)
+	-pdftexi2dvi --quiet --build=tidy $(TEXI) || ln -s $(PROJ).t2d/pdf/build/$(PDF) $(PDF)
 open-pdf: pdf
 	open $(PDF)
 
@@ -421,7 +425,7 @@ sync: $(HTML)
 	[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
-# key on the GitHub repo page with the current version number.  It
+# key on the GitHub repo page with the current version number.	It
 # first makes a curl call to the GitHub project repo, finds the
 # “description” line, pulls out the description only (leaving the old
 # version) and then prints the value with the current version number.
@@ -432,7 +436,7 @@ homepage: description = $(shell curl -s \
 	     -H "Authorization: token $(GH_TOKEN)" \
 	     https://api.github.com/repos/$(USER)/$(PROJ)$S | \
 	     perl -ne 'if (/(?:^\s*\"description\":)\s*\"(.*)(?::\s*v(?:(?:\d+\.?)+\/)?\",)$$/) { \
-	          print "$$1: $(VERS)"; \
+		  print "$$1: $(VERS)"; \
 	      }')
 
 ### NOTE the use of the S variable at the end of PROJ; this is to handle
@@ -444,7 +448,7 @@ homepage: $(ORG)
 	   -H "Content-Type: application/json" \
 	   -X PATCH \
 	   -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
-	        "description":"$(description)"}' \
+		"description":"$(description)"}' \
 	   https://api.github.com/repos/$(USER)/$(PROJ)$S
 
 update: $(ORG)
@@ -478,14 +482,19 @@ install-aws-cli:
 
 clean:
 	-rm *~
+	for file in *.??*; \
+	do \
+		ext=$${file#$(PROJ).}; \
+		[[ ! $${ext} =~ org|texi|info|pdf|html ]] && rm -v $${file}; \
+	done
 
 dist-clean: clean
 	-rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
 	-for dir in *; \
 	do \
-	        [ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
-	        rm -vr $$dir; \
-	 done
+		[ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
+		rm -vr $$dir; \
+	done
 
 wipe-clean: dist-clean
 	-rm -rf Makefile Readme.md $(DIR_OLD)
@@ -547,10 +556,10 @@ help:
 ** Compare Replace
 
 #+begin_comment
-The following source code tangles all files during an export operation.  This
+The following source code tangles all files during an export operation.	 This
 is to make sure the ~cmprpl~ source code exists in the ~tools/~ directory
 before running the Makefile target =html=.  It also makes sure there is a
-Makefile on an initial export.  The following code is not exported.
+Makefile on an initial export.	The following code is not exported.
 #+end_comment
 
 #+name:tangle-org-file
@@ -562,7 +571,7 @@ Makefile on an initial export.  The following code is not exported.
 The AWS ~sync~ command relies upon time stamps to determine whether two
 programs are identical or not, as well as content.  If two otherwise identical
 files have different time stamps, ~sync~ will assume they are different and
-will process the newer.  However, the ~texinfo~ ~makeinfo --html~ command
+will process the newer.	 However, the ~texinfo~ ~makeinfo --html~ command
 produces all new files even if some files (or most files) remain unchanged.
 This means that all files will be uploaded to the AWS S3 bucket on every
 iteration, even though the majority of the files are actually unchanged.
@@ -575,16 +584,16 @@ This program makes sure that a generated HTML directory exists: =$DIR_NEW=.  If
 it doesn’t, then it is in an improper state and the program stops with an error
 message.
 
-The program then checks if an old directory exists, =$DIR_OLD=.  If one
+The program then checks if an old directory exists, =$DIR_OLD=.	 If one
 doesn’t, then one is created by copying the current new directory.  This
 provides a baseline for comparisons going forward.  The program exits at that
-point.  It is very important that the =$DIR_OLD= directory not be deleted going
+point.	It is very important that the =$DIR_OLD= directory not be deleted going
 forward.
 
 Given that =$DIR_OLD= exists, the program then loops through all files in
 =$DIR_NEW= and compares them to the files in =$DIR_OLD=.  If the files are
 identical, the =$DIR_OLD= file replaces the =$DIR_NEW= file while retaining the
-old time stamp (using the ~-p~ option of ~cp~.  If a file is different, then
+old time stamp (using the ~-p~ option of ~cp~.	If a file is different, then
 the =$DIR_NEW= file replaces the =$DIR_OLD= file, thus giving it updated
 content and an updated time stamp.  If the file does not exist in the
 =$DIR_OLD= directory, then it is added.
@@ -637,7 +646,7 @@ sync.
 
 
 * Build Scripts
-** Create Script                                              :dependencies:
+** Create Script					      :dependencies:
 :PROPERTIES:
 :dependency1: ":tangle ~/Dev/bin/org-template"
 :dependency2: "cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org
@@ -645,10 +654,10 @@ sync.
 :dependency4: tree
 :dependency5: git
 :END:
-This code is a script file to create a new project from this template.  It is
+This code is a script file to create a new project from this template.	It is
 called from the command line as ~org-template <project> [<author>]~.  It takes
-one required, and up to two optional arguments.  The required argument is the
-name of the project.  One optional argument is the name of the author.  The
+one required, and up to two optional arguments.	 The required argument is the
+name of the project.  One optional argument is the name of the author.	The
 other optional argument is the term =git=, meaning to initialize a =git=
 repository for the project.  Here are the steps it takes:
 
@@ -752,7 +761,7 @@ repository for the project.  Here are the steps it takes:
   tree -aI .git $1
 
 #+end_src
-** Update Script                                                   :env_var:
+** Update Script						   :env_var:
 :PROPERTIES:
 :env_var1: (find-file-noselect (getenv "SYNC_ORG_TEMPLATE"))
 :END:
@@ -763,7 +772,7 @@ the current project’s Org file and delete’s the old, outdated Build Tools
 subtree.
 
 Note that there is also a version of this script in the Makefile that is run
-from the command line using the ~make update~ command.  This code is an
+from the command line using the ~make update~ command.	This code is an
 interactive Elisp function that can be loaded into memory using =C-x C-e= and
 then run interactively from within the project Org as =M-x update-build-tools=.
 
@@ -859,7 +868,7 @@ This code synchronizes the following configuration files:
 It first verifies that the files differ; then it will copy a newer file over an
 older file.  If a  local file is updated with a newer  template file, then this
 program updates the  Emacs ~server-socket-dir~ variable, if such  exists.  If a
-template   is   updated   with   a   newer  local   file,   then   delete   the
+template   is	updated	  with	 a   newer  local   file,   then   delete   the
 ~server-socket-dir~ value.
 
 #+header: :tangle ~/Dev/bin/syncrc
@@ -979,8 +988,8 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
     do
 	  case $opt in
 	    'f') from=${OPTARG} ;;
-	    't') to=${OPTARG}   ;;
-	    'h') usage 0        ;;
+	    't') to=${OPTARG}	;;
+	    'h') usage 0	;;
 	    '?') printf "${RED}ERROR ${CLEAR}\n"; usage 1; ;;
 	     ,*) printf "OPTIND: ${RED}${OPTIND}${CLEAR}\n"; usage 1; ;;
 	  esac
@@ -1026,7 +1035,7 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 	      ,*etc?bashrc)    comp $file $TEMPLATES/rc/etc/${COMP}/bashrc    ;;
 	      ,*etc?tmux.conf) comp $file $TEMPLATES/rc/etc/${COMP}/tmux.conf ;;
 	      ,*bash_profile)  comp $file $TEMPLATES/rc/${COMP}/bash_profile  ;;
-	      ,*bashrc)        comp $file $TEMPLATES/rc/${COMP}/bashrc        ;;
+	      ,*bashrc)	       comp $file $TEMPLATES/rc/${COMP}/bashrc	      ;;
 	      ,*tmux?conf)     comp $file $TEMPLATES/rc/${COMP}/tmux.conf     ;;
 	  esac
     done
@@ -1071,7 +1080,7 @@ template   is   updated   with   a   newer  local   file,   then   delete   the
 While running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
 will install everything, it would be nice to have a command-line program that
 is downloaded with this file that could be run to do the same thing without
-starting Emacs.  A little Makefile would work, which would then be overwritten
+starting Emacs.	 A little Makefile would work, which would then be overwritten
 when the program is tangled.  There would also be a 'boot' command in the
 Makefile, so it would all be transparent.
 
@@ -1107,24 +1116,24 @@ Copyright \copy 2020 by {{{author}}}
 * Concept Index
 :PROPERTIES:
 :unnumbered: t
-:index:    cp
+:index:	   cp
 :END:
 
 * Program Index
 :PROPERTIES:
-:index:    pg
+:index:	   pg
 :unnumbered: t
 :END:
 
 * Function Index
 :PROPERTIES:
-:index:    fn
+:index:	   fn
 :unnumbered: t
 :END:
 
 * Variable Index
 :PROPERTIES:
-:index:    vr
+:index:	   vr
 :unnumbered: t
 :END:
 
@@ -1132,7 +1141,7 @@ Copyright \copy 2020 by {{{author}}}
 * Footnotes
 
 
-* Configuration                                                    :noexport:
+* Configuration							   :noexport:
 #+todo: SOMEDAY(s@) TODO(t@) INPROGRESS(i@) WAIT(w@) | CANCEL(c@) DONE(d!)
 
 #+options: H:4
@@ -1146,7 +1155,7 @@ Copyright \copy 2020 by {{{author}}}
 #+texinfo_printed_title:PRINTED TITLE
 
 
-* Local Variables                                                  :noexport:
+* Local Variables						   :noexport:
 # Local Variables:
 # fill-column: 79
 # time-stamp-pattern: "8/^\\#\\+date:%:y-%02m-%02d %02H:%02M$"
