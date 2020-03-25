@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-25 09:01
-#+macro:version Version 0.3.29
+#+date:2020-03-25 09:05
+#+macro:version Version 0.3.30
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -328,7 +328,15 @@ S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 
 default: check texi info html pdf
 
-PHONY: check default all \
+boot:
+	emacs -Q --batch --eval '\
+	(with-current-buffer \
+		(find-file-noselect "Template.org") \
+		(re-search-forward "^\\#\\+name:boot.el$$") \
+		(org-babel-tangle (quote (4))))'
+	emacs -Q --batch -l tools/boot.el
+
+PHONY: check default boot all \
 	texi info html pdf \
 	open-org open-texi open-html open-pdf \
 	clean dist-clean wiped-clean \
@@ -674,7 +682,7 @@ repository for the project.  Here are the steps it takes:
 #+caption:Create Script
 #+name:create-script
 #+header: :mkdirp yes
-#+header: :tangle ${DEV}/bin/org-template
+#+header: :tangle /Users/pine/Dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # $1 :=: Title
@@ -817,7 +825,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle ${DEV}/bin/switch-emacs-init
+#+header: :tangle /Users/pine/Dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -859,7 +867,7 @@ program updates the  Emacs ~server-socket-dir~ variable, if such  exists.  If a
 template   is	updated	  with	 a   newer  local   file,   then   delete   the
 ~server-socket-dir~ value.
 
-#+header: :tangle ${DEV}/bin/syncrc
+#+header: :tangle /Users/pine/Dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
