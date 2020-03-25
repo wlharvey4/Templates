@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-25 07:32
-#+macro:version Version 0.3.28
+#+date:2020-03-25 09:01
+#+macro:version Version 0.3.29
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -403,7 +403,7 @@ $(HTML): $(TEXI)
 	makeinfo --html -o $(DIR) $(TEXI)
 	$(CMPRPL) $(DIR) $(DIR_OLD)
 open-html: html
-        open $(HTML)
+	open $(HTML)
 
 # If pdftexi2dvi produces an error, it may still produce a viable PDF;
 # therefore, use --tidy.  If it produces an error, try to link the PDF;
@@ -492,7 +492,7 @@ dist-clean: clean
 	done
 
 wipe-clean: dist-clean
-        -rm -rf Makefile Readme.md $(DIR_OLD)
+	-rm -rf Makefile Readme.md $(DIR_OLD)
 
 help:
 	@echo '"make default" makes the .texi file, the .info file, \
@@ -1075,6 +1075,11 @@ Makefile, so it would all be transparent.
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
+	emacs -Q --batch --eval '\
+	(with-current-buffer \
+		(find-file-noselect "Template.org") \
+		(re-search-forward "^\\#\\+name:boot.el$$") \
+		(org-babel-tangle (quote (4))))'
 	emacs -Q --batch -l tools/boot.el
 #+end_src
 
@@ -1096,19 +1101,19 @@ Therefore, this program works like a preprocessor for environment variables set
 up as part of =:tangle= lines, changing them to their system environment
 variable values prior to tangling.  It lives in the ~tools~ directory.
 
-#+name:preprocess-env-vars
+#+name:boot.el
 #+header: :mkdirp t
 #+header: :tangle tools/boot.el
 #+begin_src emacs-lisp
-  (with-current-buffer (find-file-noselect "/Users/pine/Dev/Templates/Org/Template.org")
-    (goto-char (point-min))
-    (let ((re-search-str ":tangle \\(\\${\\(.*?\\)}\\)"))
-      (while
-          (re-search-forward re-search-str nil t)
-        (replace-match (getenv (match-string 2)) t nil nil 1)))
-    (save-buffer)
-    (require 'org)
-    (org-babel-tangle))
+(with-current-buffer (find-file-noselect "Template.org")
+  (goto-char (point-min))
+  (let ((re-search-str ":tangle \\(\\${\\(.*?\\)}\\)"))
+    (while
+	(re-search-forward re-search-str nil t)
+      (replace-match (getenv (match-string 2)) t nil nil 1)))
+  (save-buffer)
+  (require 'org)
+  (org-babel-tangle))
 #+end_src
 
 * List of Programs
