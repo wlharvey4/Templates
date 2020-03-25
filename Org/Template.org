@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-25 09:05
-#+macro:version Version 0.3.30
+#+date:2020-03-25 09:42
+#+macro:version Version 0.3.31
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -329,12 +329,11 @@ S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 default: check texi info html pdf
 
 boot:
-	emacs -Q --batch --eval '\
-	(with-current-buffer \
-		(find-file-noselect "Template.org") \
-		(re-search-forward "^\\#\\+name:boot.el$$") \
+	emacs -Q $${SYNC_ORG_TEMPLATE} --batch --eval '\
+	(progn \
+		(re-search-forward "^\\#\\+name:preprocess.el$$") \
 		(org-babel-tangle (quote (4))))'
-	emacs -Q --batch -l tools/boot.el
+	emacs -Q --batch -l tools/preprocess.el
 
 PHONY: check default boot all \
 	texi info html pdf \
@@ -1083,12 +1082,11 @@ Makefile, so it would all be transparent.
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
-	emacs -Q --batch --eval '\
-	(with-current-buffer \
-		(find-file-noselect "Template.org") \
-		(re-search-forward "^\\#\\+name:boot.el$$") \
+	emacs -Q $${SYNC_ORG_TEMPLATE} --batch --eval '\
+	(progn \
+		(re-search-forward "^\\#\\+name:preprocess.el$$") \
 		(org-babel-tangle (quote (4))))'
-	emacs -Q --batch -l tools/boot.el
+	emacs -Q --batch -l tools/preprocess.el
 #+end_src
 
 ** Parse Buffer
@@ -1109,9 +1107,9 @@ Therefore, this program works like a preprocessor for environment variables set
 up as part of =:tangle= lines, changing them to their system environment
 variable values prior to tangling.  It lives in the ~tools~ directory.
 
-#+name:boot.el
+#+name:preprocess.el
 #+header: :mkdirp t
-#+header: :tangle tools/boot.el
+#+header: :tangle tools/preprocess.el
 #+begin_src emacs-lisp
 (with-current-buffer (find-file-noselect "Template.org")
   (goto-char (point-min))
