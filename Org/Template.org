@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-23 10:43
-#+macro:version Version 0.3.25
+#+date:2020-03-24 23:52
+#+macro:version Version 0.3.27
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -499,13 +499,6 @@ dist-clean: clean
 wipe-clean: dist-clean
 	-rm -rf Makefile Readme.md $(DIR_OLD)
 
-boot:
-	emacs -Q --batch --eval '\
-		(progn \
-			(require (quote org))\
-			(find-file "./$(ORG)")\
-			(org-babel-tangle))'
-
 help:
 	@echo '"make default" makes the .texi file, the .info file, \
 	the html files, and the .pdf file.'
@@ -648,8 +641,8 @@ sync.
 * Build Scripts
 ** Create Script					      :dependencies:
 :PROPERTIES:
-:dependency1: ":tangle ~/Dev/bin/org-template"
-:dependency2: "cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org
+:dependency1: "${DEV}/bin/org-template"
+:dependency2: "cp -v ${DEV}/Templates/Org/Template.org "$1/$1.org
 :dependency3: "COLORS from profile"
 :dependency4: tree
 :dependency5: git
@@ -686,7 +679,7 @@ repository for the project.  Here are the steps it takes:
 #+caption:Create Script
 #+name:create-script
 #+header: :mkdirp yes
-#+header: :tangle ~/Dev/bin/org-template
+#+header: :tangle ${DEV}/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # $1 :=: Title
@@ -829,7 +822,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle ~/Dev/bin/switch-emacs-init
+#+header: :tangle ${DEV}/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -871,7 +864,7 @@ program updates the  Emacs ~server-socket-dir~ variable, if such  exists.  If a
 template   is	updated	  with	 a   newer  local   file,   then   delete   the
 ~server-socket-dir~ value.
 
-#+header: :tangle ~/Dev/bin/syncrc
+#+header: :tangle ${DEV}/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
@@ -1087,11 +1080,40 @@ Makefile, so it would all be transparent.
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
-	emacs -Q --batch --eval '\
-		(progn \
-			(require (quote org))\
-			(find-file "./Template.org")\
-			(org-babel-tangle))'
+	emacs -Q --batch -l tools/boot.el
+#+end_src
+
+** Parse Buffer
+
+#+name:parse-buffer
+#+begin_src emacs-lisp :results value list
+  (let ((tree (org-element-parse-buffer)))
+    (org-element-map tree 'src-block #'identity nil nil t))
+#+end_src
+
+** Preprocess Env Vars
+The environment variable DEV can be in different locations and will be spelled
+differently based on how the local machine is set up.  For instance, on one
+system, it will be at ~$HOME/Dev~ while in another system it will be at
+~/usr/local/dev~.  However, the =:tangle= keyword does not expand variables in
+the form ~${DEV}~, but rather requires absolute paths, like ~/usr/local/dev~.
+Therefore, this program works like a preprocessor for environment variables set
+up as part of =:tangle= lines, changing them to their system environment
+variable values prior to tangling.  It lives in the ~tools~ directory.
+
+#+name:preprocess-env-vars
+#+header: :mkdirp t
+#+header: :tangle tools/boot.el
+#+begin_src emacs-lisp
+  (with-current-buffer (find-file-noselect "/Users/pine/Dev/Templates/Org/Template.org")
+    (goto-char (point-min))
+    (let ((re-search-str ":tangle \\(\\${\\(.*?\\)}\\)"))
+      (while
+          (re-search-forward re-search-str nil t)
+        (replace-match (getenv (match-string 2)) t nil nil 1)))
+    (save-buffer)
+    (require 'org)
+    (org-babel-tangle))
 #+end_src
 
 * List of Programs
