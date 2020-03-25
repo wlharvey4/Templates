@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-24 23:52
-#+macro:version Version 0.3.27
+#+date:2020-03-25 07:32
+#+macro:version Version 0.3.28
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -136,17 +136,17 @@ and provides the source code for processing them in various different ways.
 :PROPERTIES:
 :appendix: t
 :dependency1: "make"
-:dependency2: aws cli v2 https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html
-:dependency2.1: Install AWS CLI v2 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
-:dependency3: "S3 bucket set up for serving a static web pages"
+:dependency2: "aws" cli v2 in PATH https://docs.aws.amazon.com/cli/index.html
+:dependency2.1: "~/.aws/credentials" "~/.aws/config"
+:dependency2.2: Install AWS CLI v2 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
+:dependency3: "S3 bucket set up for serving a static web page"
 :dependency4: "GitHub Account with personal token"
 :dependency5: "texinfo @6.7.0"
 :env_var1: SYNC_ORG_TEMPLATE: the path to this Template.org file
-:env_var2: EMACSLOADPATH: maybe no longer needed
-:env_var3: AWS_S3_BUCKET: the name of the S3 bucket to use, e.g. "pinecone-forest.com"
-:env_var4: GITHUB_TOKEN: a personal access token stored on GitHub
-:env_var5: EMACS: the 'emacs' command to call for batch operations
-:env_var6: EMACS_INIT: the path to Emac’s 'init' file
+:env_var2: AWS_S3_BUCKET: the name of an S3 bucket to use, e.g. "pinecone-forest.com"
+:env_var3: GITHUB_TOKEN: a personal access token stored on GitHub
+:env_var4: EMACS: the 'emacs' command to call for batch operations
+:env_var5: EMACS_INIT: the path to Emac’s 'init' file
 :END:
 
 #+name:Makefile
@@ -157,36 +157,30 @@ and provides the source code for processing them in various different ways.
 
 ###############################################################################
 ### USER-DEPENDENT VARIABLES
-### USE ENVIRONMENT VARIABLES FOR SENSITIVE DATA
-### ALL OTHERS CAN BE HARD-CODED
-### YOU ALSO NEED ~/.aws/credentials
-
-# Emacs binary and init file
-
-EMACS	       := $(EMACS)
-EMACS_INIT   := $(EMACS_INIT)
+### USE ENVIRONMENT VARIABLES WHENEVER POSSIBLE
+### DO NOT HARD-CODE GITHUB_TOKEN
+### YOU ALSO NEED ~/.aws/credentials installed
 
 # The absolute path to this Template file
-
 TEMPLATE := $(SYNC_ORG_TEMPLATE)
+
+# Emacs binary and init file
+EMACS	:= $(EMACS)
+EMACS_INIT	:= $(EMACS_INIT)
 
 # User’s personal GitHub token for authentication
 # DO NOT HARD-CODE THIS VALUE
-
-GH_TOKEN := $(GITHUB_TOKEN)
+GITHUB_TOKEN := $(GITHUB_TOKEN)
 
 # The AWS S3 bucket to use to store the html source files
-
-BUCKET := s3://$(AWS_S3_BUCKET)
+S3_BUCKET := s3://$(AWS_S3_BUCKET)
 
 # The AWS Command Line Interface (AWS CLI) is an open source tool
 # that enables you to interact with AWS services using commands in
 # your command-line shell.
-
 AWS := aws
 
 # The AWS region of choice; this can also be in .aws/config
-
 REGION := --region us-west-2
 
 ### END OF USER-DEPENDENT VARIABLES
@@ -214,10 +208,11 @@ S := s
 endif
 
 ### DIR:
-# This is not necessarily the same as PROJ; it is the exported .info
-# name found at #+texinfo_filename:<DIR>.info without its extension,
-# used as the directory name for the html export directory; use the
-# lowercased PROJ name if there is no texinfo_filename in the Org file
+# This is the .info name found at '#+texinfo_filename:<DIR>.info' (at
+# the bottom of this file in the export configuration settings)
+# without its extension, used as the INFO filename and the name of the
+# HTML export directory; this code uses the lowercased PROJ name if
+# there is no '#+texinfo_filename'.
 
 # NOTE: 're-search-forward' will either return an error or 'nil',
 # depending on the value of the third argument, if the search fails.
@@ -227,9 +222,9 @@ endif
 # 'nil' on failure, and then assign the backup value.
 
 DIR := $(shell $(EMACS) -Q --batch --eval '\
-(with-temp-buffer (insert-file-contents "$(ORG)") \
-(re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
-(princ (match-string 1)))')
+	(with-temp-buffer (insert-file-contents "$(ORG)") \
+		(re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
+		(princ (match-string 1)))')
 ifeq ($(DIR),nil)
 DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
@@ -258,7 +253,7 @@ VERS := v$(shell $(EMACS) -Q --batch --eval '\
 # the S3 bucket; each item contains the name of the project and its
 # current version.
 
-PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(BUCKET))))
+PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
 
 ### S3PROJ
 # The name of the current project as obtained from S3: 'proj-v1.2.34/'
@@ -299,34 +294,34 @@ endif
 # install any modules.
 
 USER := $(shell \
-      curl -sH "Authorization: token $(GH_TOKEN)" https://api.github.com/user \
-      | \
-      perl -MJSON::PP -e \
-	  '$$/ = ""; \
-	   my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); \
-	   print $$json->{login};' \
-      )
+	curl -sH "Authorization: token $(GITHUB_TOKEN)" https://api.github.com/user \
+	| \
+	perl -MJSON::PP -e \
+	    '$$/ = ""; \
+	     my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); \
+	     print $$json->{login};' \
+	)
 
 ### TOOLS & RESOURCES
-TOOLS	 := tools
-CMPRPL := $(TOOLS)/cmprpl
-SAVE	 := resources
+TOOLS	:= tools
+CMPRPL	:= $(TOOLS)/cmprpl
+SAVE	:= resources
 
 ### TEXINFO
 TEXI	:= $(PROJ).texi
 INFO	:= $(DIR).info
 PDF	:= $(PROJ).pdf
-INDEX := index.html
+INDEX	:= index.html
 HTML	:= $(DIR)/$(INDEX)
-DIR_OLD := $(DIR)-old
+DIR_OLD	:= $(DIR)-old
 
 ### AWS
-S3	 := $(AWS) s3
-SRC	 := $(DIR)/
+S3		:= $(AWS) s3
+SRC		:= $(DIR)/
 
-DST_OLD := $(BUCKET)/$(S3PROJ)
-DST_NEW := $(BUCKET)/$(DIR)-$(VERS)
-EXCL_INCL := --exclude "*" --include "*.html"
+DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
+DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
+EXCL_INCL	:= --exclude "*" --include "*.html"
 GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 S3SYNC	:= $(S3) sync $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
@@ -348,11 +343,11 @@ values: check
 	@echo S3PROJ:		$(S3PROJ)
 	@echo S3VERS:		$(S3VERS)
 	@echo DIR:		$(DIR)
-	@echo DIR_OLD:	$(DIR_OLD)
+	@echo DIR_OLD:		$(DIR_OLD)
 	@echo SRC:		$(SRC)
-	@echo DST_OLD:	$(DST_OLD)
-	@echo DST_NEW:	$(DST_NEW)
-	@echo PROJ_LIST:$(PROJ_LIST)
+	@echo DST_OLD:		$(DST_OLD)
+	@echo DST_NEW:		$(DST_NEW)
+	@echo PROJ_LIST:	$(PROJ_LIST)
 
 check:
 	@[[ -z $${AWS_S3_BUCKET} ]] && \
@@ -376,7 +371,7 @@ check:
 				org-confirm-babel-evaluate \
 				(princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
 				(princ "org-confirm-babel-evaluate: SET to nil")) \
-			(terpri))'
+                        (terpri))'
 
 open-org: $(ORG)
 	emacsclient $(ORG) &
@@ -392,7 +387,7 @@ $(TEXI): $(ORG)
 	  (require (quote ob-shell)) \
 	  (setq org-confirm-babel-evaluate nil) \
 	  (find-file "$(ORG)") \
-	  (org-texinfo-export-to-texinfo))'
+          (org-texinfo-export-to-texinfo))'
 
 open-texi: texi
 	emacsclient $(TEXI) &
@@ -408,7 +403,7 @@ $(HTML): $(TEXI)
 	makeinfo --html -o $(DIR) $(TEXI)
 	$(CMPRPL) $(DIR) $(DIR_OLD)
 open-html: html
-	open $(HTML)
+        open $(HTML)
 
 # If pdftexi2dvi produces an error, it may still produce a viable PDF;
 # therefore, use --tidy.  If it produces an error, try to link the PDF;
@@ -422,7 +417,7 @@ open-pdf: pdf
 
 sync: $(HTML)
 	$(S3SYNC)
-	[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
+        [[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
 # key on the GitHub repo page with the current version number.	It
@@ -433,7 +428,7 @@ sync: $(HTML)
 # This method is arguably harder to code but faster to run than using
 # Perl with the JSON::PP module.
 homepage: description = $(shell curl -s \
-	     -H "Authorization: token $(GH_TOKEN)" \
+	     -H "Authorization: token $(GITHUB_TOKEN)" \
 	     https://api.github.com/repos/$(USER)/$(PROJ)$S | \
 	     perl -ne 'if (/(?:^\s*\"description\":)\s*\"(.*)(?::\s*v(?:(?:\d+\.?)+\/)?\",)$$/) { \
 		  print "$$1: $(VERS)"; \
@@ -444,7 +439,7 @@ homepage: description = $(shell curl -s \
 # whereas the the Template.org file uses the singular form.
 homepage: $(ORG)
 	curl -i \
-	   -H "Authorization: token $(GH_TOKEN)" \
+	   -H "Authorization: token $(GITHUB_TOKEN)" \
 	   -H "Content-Type: application/json" \
 	   -X PATCH \
 	   -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
@@ -472,7 +467,7 @@ update: $(ORG)
 	   (save-buffer) \
 	   (kill-buffer) \
 	   (setq org-confirm-babel-evaluate nil) \
-	   (org-babel-tangle-file "$(ORG)"))'
+           (org-babel-tangle-file "$(ORG)"))'
 
 install-aws-cli:
 	curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
@@ -482,7 +477,7 @@ install-aws-cli:
 
 clean:
 	-rm *~
-	for file in *.??*; \
+	-for file in *.??*; \
 	do \
 		ext=$${file#$(PROJ).}; \
 		[[ ! $${ext} =~ org|texi|info|pdf|html ]] && rm -v $${file}; \
@@ -497,7 +492,7 @@ dist-clean: clean
 	done
 
 wipe-clean: dist-clean
-	-rm -rf Makefile Readme.md $(DIR_OLD)
+        -rm -rf Makefile Readme.md $(DIR_OLD)
 
 help:
 	@echo '"make default" makes the .texi file, the .info file, \
