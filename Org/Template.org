@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-26 18:51
-#+macro:version Version 0.3.34
+#+date:2020-03-26 18:55
+#+macro:version Version 0.4.0
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
