@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-26 18:11
-#+macro:version Version 0.3.32
+#+date:2020-03-26 18:20
+#+macro:version Version 0.3.33
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -1068,9 +1068,14 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 While running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
 will install everything, it would be nice to have a command-line program that
 is downloaded with this file that could be run to do the same thing without
-starting Emacs.	 A little Makefile would work, which would then be overwritten
-when the program is tangled.  There would also be a 'boot' command in the
-Makefile, so it would all be transparent.
+starting Emacs.  A little Makefile would work.  This little program should be
+stored on GitHub along with the ~Template.org~ file.  When the source is
+extracted to a directory, then running this Makefile as ~make~ extracts the
+~preprocess.el~ command, which updates =DEV= and then extracts the full
+Makefile.  Because this file is tangled along with the main Makefile, it simply
+gets added to the end of the big Makefile as an additional rule.  Now running
+~make~ runs the default rule, which is to extract everything, then export to
+TEXI, INFO, HTML, and PDF forms.
 
 #+header: :tangle Makefile
 #+begin_src makefile
