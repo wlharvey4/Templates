@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-26 18:20
-#+macro:version Version 0.3.33
+#+date:2020-03-26 18:51
+#+macro:version Version 0.3.34
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -323,7 +323,7 @@ DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
 DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
 EXCL_INCL	:= --exclude "*" --include "*.html"
 GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
-S3SYNC	:= $(S3) sync $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
+S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 
 default: check texi info html pdf
