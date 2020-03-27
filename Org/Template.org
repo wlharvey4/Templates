@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-25 09:42
-#+macro:version Version 0.3.31
+#+date:2020-03-26 18:11
+#+macro:version Version 0.3.32
 :BUCKET:
 :bucket_url: https://pinecone-forest.com
 :END:
@@ -328,13 +328,6 @@ S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 
 default: check texi info html pdf
 
-boot:
-	emacs -Q $${SYNC_ORG_TEMPLATE} --batch --eval '\
-	(progn \
-		(re-search-forward "^\\#\\+name:preprocess.el$$") \
-		(org-babel-tangle (quote (4))))'
-	emacs -Q --batch -l tools/preprocess.el
-
 PHONY: check default boot all \
 	texi info html pdf \
 	open-org open-texi open-html open-pdf \
@@ -424,7 +417,7 @@ open-pdf: pdf
 
 sync: $(HTML)
 	$(S3SYNC)
-        [[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
+	[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
 # key on the GitHub repo page with the current version number.	It
@@ -1111,15 +1104,15 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+header: :mkdirp t
 #+header: :tangle tools/preprocess.el
 #+begin_src emacs-lisp
-(with-current-buffer (find-file-noselect "Template.org")
-  (goto-char (point-min))
-  (let ((re-search-str ":tangle \\(\\${\\(.*?\\)}\\)"))
-    (while
-	(re-search-forward re-search-str nil t)
-      (replace-match (getenv (match-string 2)) t nil nil 1)))
-  (save-buffer)
-  (require 'org)
-  (org-babel-tangle))
+  (with-current-buffer (find-file-noselect "Template.org")
+    (goto-char (point-min))
+    (let ((re-search-str ":tangle \\(\\${\\(.*?\\)}\\)"))
+      (while
+	  (re-search-forward re-search-str nil t)
+	(replace-match (getenv (match-string 2)) t nil nil 1)))
+    (save-buffer)
+    (require 'org)
+    (org-babel-tangle))
 #+end_src
 
 * List of Programs
