@@ -3,11 +3,10 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-26 18:55
-#+macro:version Version 0.4.0
-:BUCKET:
-:bucket_url: https://pinecone-forest.com
-:END:
+#+date:2020-03-29 12:43
+#+macro:version Version 0.4.1
+#+bucket:pinecone-forest
+
 
 {{{version}}} {{{date}}}
 
@@ -480,7 +479,7 @@ clean:
 	-for file in *.??*; \
 	do \
 		ext=$${file#$(PROJ).}; \
-		[[ ! $${ext} =~ org|texi|info|pdf|html ]] && rm -v $${file}; \
+		[[ ! $${ext} =~ org|texi|info|pdf|html ]] && rm -rv $${file}; \
 	done
 
 dist-clean: clean
@@ -633,6 +632,19 @@ sync.
 #+end_src
 
 
+** Bucket Index HTML
+The S3 bucket contains an ~index.html~ file containing links to each Org
+entry.  This code checks that:
+1. the ~index.html~ file exists;
+2. if it does not, then it creates it with this as its first entry;
+3. if it does, then it checks that this entry is included;
+4. if it is not, then it adds it.
+
+
+#+begin_src sh
+aws s3 ls 
+#+end_src
+
 * Build Scripts
 ** Create Script					      :dependencies:
 :PROPERTIES:
@@ -1032,37 +1044,16 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 ** Get Bucket
 
 #+name:get-bucket
-#+header: :results output
+#+header: :results value link
 #+begin_src emacs-lisp
   (save-excursion
     (goto-char (point-min))
-    (search-forward "#+bucket:")
-    (let* (
-	   (el (org-element-at-point))
-	   (el-type (type-of el))
-	   (bucket (nth 1 el))
-	   (bucket-type (type-of bucket))
-	   (value (plist-get bucket :value))
-	   )
-      (princ el)(terpri)
-      (princ el-type)(terpri)
-      (princ (safe-length el))(terpri)
-      (princ bucket)(terpri)
-      (princ (listp bucket))(terpri)
-      (princ bucket-type)(terpri)
-      (princ (safe-length bucket))(terpri)
-      (princ value)(terpri)))
+    (re-search-forward "^#\\+bucket:\\s*?\\(.*\\)$")
+    (concat "https://" (match-string 1) ".com"))
 #+end_src
 
 #+RESULTS: get-bucket
-: (keyword (:key BUCKET :value pinecone-forest.com :begin 143 :end 173 :post-blank 1 :post-affiliated 143 :parent nil))
-: cons
-: 2
-: (:key BUCKET :value pinecone-forest.com :begin 143 :end 173 :post-blank 1 :post-affiliated 143 :parent nil)
-: t
-: cons
-: 14
-: pinecone-forest.com
+: https://pinecone-forest.com
 
 ** Boot Template
 While running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
@@ -1086,6 +1077,13 @@ boot:
 		(org-babel-tangle (quote (4))))'
 	emacs -Q --batch -l tools/preprocess.el
 #+end_src
+
+** Boot HTML Template
+
+*** Contents for BUCKET
+
+**** PROJECT
+[[https://docs.aws.amazon.com]]
 
 ** Parse Buffer
 
