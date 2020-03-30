@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-29 16:48
-#+macro:version Version 0.4.2
+#+date:2020-03-30 08:14
+#+macro:version Version 0.4.3
 #+bucket:pinecone-forest
 
 
@@ -633,7 +633,7 @@ sync.
 
 
 ** Bucket Index HTML
-The S3 bucket contains an ~index.html~ file containing links to each Org
+The S3 bucket will contain an ~index.html~ file containing links to each Org
 entry.  This code checks that:
 1. the ~index.html~ file exists;
 2. if it does not, then it creates it with this as its first entry;
@@ -1055,6 +1055,19 @@ should be located towards the beginning of the file, and returns the value
     (match-string 1))
 #+end_src
 
+#+RESULTS: get-bucket
+: pinecone-forest
+
+#+name:print-bucket
+#+header: :results output
+#+header: :var bucket-for-print=get-bucket()
+#+begin_src emacs-lisp
+(princ bucket-for-print)
+#+end_src
+
+#+RESULTS: print-bucket
+: pinecone-forest
+
 This code calls ~get-bucket~ and returns the value returned as a URL string or
 nil.
 #+name:bucket-url
@@ -1064,12 +1077,48 @@ nil.
 (concat "https://" b ".com")
 #+end_src
 
+#+RESULTS: bucket-url
+: https://pinecone-forest.com
+
+#+name:bucket-s3-url
+#+header: :results value
+#+header: :var b=get-bucket()
+#+begin_src emacs-lisp
+(concat "s3://" b ".com")
+#+end_src
+
+#+RESULTS: bucket-s3-url
+: s3://pinecone-forest.com
+
+#+name:bucket-projects
+#+header: :results output list
+#+header: :var bucket=bucket-s3-url()
+#+begin_src sh
+projs=$(aws s3 ls ${bucket})
+declare -a projects
+projects=$(for project in $projs; do [ ! $project = "PRE" ] && echo $project; done;)
+echo "${projects[@]}"
+#+end_src
+
+#+RESULTS: bucket-projects
+: - aws-guide-v0.0.64/
+: - clojure-v0.0.29/
+: - mastering_emacs-v0.0.107/
+: - mastering_org-v0.8.9/
+: - scheme-v0.0.4/
+: - template-v0.3.34/
+
 #+name:bucket-anchor
 #+header: :results output html
 #+header: :var b-url=bucket-url()
 #+begin_src emacs-lisp
-(princ (format "<a href=\"%s/index.html\">PROJECT</a>" b-url))
+(princ (format "<a href=\"%s/%s/index.html\">%s</a>" b-url "mastering_emacs-v0.0.107" "mastering_emacs-v0.0.107"))
 #+end_src
+
+#+RESULTS: bucket-anchor
+#+begin_export html
+<a href="https://pinecone-forest.com/mastering_emacs-v0.0.107/index.html">mastering_emacs-v0.0.107</a>
+#+end_export
 
 ** Boot Template
 While running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
@@ -1099,11 +1148,10 @@ boot:
    :export_file_name: index.html
    :END:
    #+html_doctype:html5
-   #+options: toc:nil
+   #+options: toc:nil html5-fancy:t
 
-*** Contents for BUCKET
+*** Contents for call_print-bucket() Bucket
 
-**** PROJECT
 call_bucket-anchor()
 
 ** Parse Buffer
