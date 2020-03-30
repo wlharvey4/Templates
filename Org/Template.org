@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 13:02
-#+macro:version Version 0.4.7
+#+date:2020-03-30 15:34
+#+macro:version Version 0.4.8
 #+bucket:pinecone-forest
 
 
@@ -324,6 +324,7 @@ EXCL_INCL	:= --exclude "*" --include "*.html"
 GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
+S3COPY  := $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
 
 default: check texi info html pdf
 
@@ -331,8 +332,9 @@ PHONY: check default boot all \
 	texi info html pdf \
 	open-org open-texi open-html open-pdf \
 	clean dist-clean wiped-clean \
-	help sync update values
-	install-aws-cli
+	help sync update values \
+	install-aws-cli \
+	create-index-html upload-index-html
 
 values: check
 	@echo USER:		$(USER)
@@ -436,7 +438,7 @@ homepage: description = $(shell curl -s \
 ### NOTE the use of the S variable at the end of PROJ; this is to handle
 # the singular case of the GitHub repo using the plural form, Templates
 # whereas the the Template.org file uses the singular form.
-homepage: $(ORG)
+homepage: $(ORG) upload-index-html
 	curl -i \
 	   -H "Authorization: token $(GITHUB_TOKEN)" \
 	   -H "Content-Type: application/json" \
@@ -444,6 +446,22 @@ homepage: $(ORG)
 	   -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
 		"description":"$(description)"}' \
 	   https://api.github.com/repos/$(USER)/$(PROJ)$S
+
+create-index-html: $(INDEX)
+$(INDEX): $(ORG)
+	echo making index.html
+	$(EMACS) -Q --batch --eval \
+	'(with-current-buffer (find-file-noselect "$(ORG)") \
+	   (require (quote org)) \
+	   (require (quote ob-shell)) \
+	   (setq org-confirm-babel-evaluate nil) \
+	   (goto-char (point-min)) \
+	   (re-search-forward "^*** Project Index") \
+	   (org-export-to-file (quote html) "index.html" nil t))'
+
+upload-index-html: $(INDEX)
+	echo uploading index.html
+	$(S3COPY)
 
 update: $(ORG)
 	$(EMACS) -Q --batch --eval \
@@ -685,8 +703,16 @@ string on spaces.
 #+header: :var bucket=s3-bucket-url()
 #+begin_src sh
 projs=$(aws s3 ls ${bucket})
-for project in $projs; do [ ! $project = "PRE" ] && echo $project; done;
+for project in $projs; do if [[ $project =~ "-v" ]]; then echo $project; fi; done;
 #+end_src
+
+#+RESULTS: bucket-projects-list
+: aws-guide-v0.0.64/
+: clojure-v0.0.29/
+: mastering_emacs-v0.0.107/
+: mastering_org-v0.8.9/
+: scheme-v0.0.4/
+: template-v0.3.34/
 
 *** Bucket Project Links
 This code uses the result from ~bucket-projects-list~ to create an unordered
