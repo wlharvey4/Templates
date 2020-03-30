@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 11:20
-#+macro:version Version 0.4.5
+#+date:2020-03-30 12:19
+#+macro:version Version 0.4.6
 #+bucket:pinecone-forest
 
 
@@ -633,17 +633,92 @@ sync.
 
 
 ** Bucket Index HTML
-The S3 bucket will contain an ~index.html~ file containing links to each Org
-entry.  This code checks that:
-1. the ~index.html~ file exists;
-2. if it does not, then it creates it with this as its first entry;
-3. if it does, then it checks that this entry is included;
-4. if it is not, then it adds it.
+The bucket should contain a master ~index.html~ file that links to each of the
+individual project ~index.html~ files.  The master ~index.html~ file will be
+placed at the root of the bucket, ~https://bucket-name/~, and the bucket must
+be set up to serve this ~index.html~ when the user hits the root.
 
+*** Get Bucket Name
+ This code searches for the keyword-value pair =bucket:<BUCKET-NAME>= that
+ should be located towards the beginning of the file, and returns the value
+ =BUCKET-NAME= or nil if not found.
 
-#+begin_src sh
-aws s3 ls 
+ #+name:get-bucket-name
+ #+header: :results value
+ #+begin_src emacs-lisp
+   (save-excursion
+     (goto-char (point-min))
+     (re-search-forward "^#\\+bucket:\\s*?\\(.*\\)$" nil t)
+     (match-string 1))
+ #+end_src
+
+*** Bucket HTTPS URL
+This code calls ~get-bucket-name~ and returns the value returned as a URL string or
+nil.
+
+#+name:bucket-https-url
+#+header: :results value
+#+header: :var b=get-bucket-name()
+#+begin_src emacs-lisp
+(concat "https://" b ".com")
 #+end_src
+
+*** S3 Bucket URL
+This code calls ~get-bucket-name~ and returns the AWS S3 bucket url.
+
+#+name:s3-bucket-url
+#+header: :results value
+#+header: :var b=get-bucket-name()
+#+begin_src emacs-lisp
+(concat "s3://" b ".com")
+#+end_src
+
+*** Bucket Projects List
+This code uses the ~s3-bucket-url~ result to obtain the list of projects in the
+bucket.  It does this by calling the AWS S3 high-level command ~ls~ and then
+removing the =PRE= string in each result.  The result that is returned is a
+single string that can be separated into individual links by breaking the
+string on spaces.
+
+#+name:bucket-projects-list
+#+header: :results output
+#+header: :var bucket=s3-bucket-url()
+#+begin_src sh
+projs=$(aws s3 ls ${bucket})
+for project in $projs; do [ ! $project = "PRE" ] && echo $project; done;
+#+end_src
+
+*** Bucket Project Links
+This code uses the result from ~bucket-projects-list~ to create an unordered
+list of links to bucket projects.  The result of running this code is an
+unordered list wrapped in an ~export html~ block, which can be called from
+within a document being exported by Org to the HTML format.
+
+#+name:bucket-project-links
+#+header: :var projects=bucket-projects-list()
+#+header: :var b-url=bucket-https-url()
+#+header: :results output html
+#+begin_src emacs-lisp
+(progn 
+  (princ "<ul>
+")
+  (let ((p (split-string projects)))
+    (seq-do (lambda (u) (princ (format "<li><a href=\"%s/%sindex.html\">%s</a></li>
+" b-url u u))) p))
+  (princ "</ul>"))
+#+end_src
+
+#+RESULTS: bucket-project-links
+#+begin_export html
+<ul>
+<li><a href="https://pinecone-forest.com/aws-guide-v0.0.64/index.html">aws-guide-v0.0.64/</a></li>
+<li><a href="https://pinecone-forest.com/clojure-v0.0.29/index.html">clojure-v0.0.29/</a></li>
+<li><a href="https://pinecone-forest.com/mastering_emacs-v0.0.107/index.html">mastering_emacs-v0.0.107/</a></li>
+<li><a href="https://pinecone-forest.com/mastering_org-v0.8.9/index.html">mastering_org-v0.8.9/</a></li>
+<li><a href="https://pinecone-forest.com/scheme-v0.0.4/index.html">scheme-v0.0.4/</a></li>
+<li><a href="https://pinecone-forest.com/template-v0.3.34/index.html">template-v0.3.34/</a></li>
+</ul>
+#+end_export
 
 * Build Scripts
 ** Create Script					      :dependencies:
@@ -1105,14 +1180,6 @@ for project in $projs; do [ ! $project = "PRE" ] && echo $project; done;
 : mastering_org-v0.8.9/
 : scheme-v0.0.4/
 : template-v0.3.34/
-
-#+name:bucket-anchor
-#+header: :results output html
-#+header: :var proj-name="PROJ-NAME"
-#+header: :var b-url=bucket-url()
-#+begin_src emacs-lisp
-(princ (format "<a href=\"%s/%s/index.html\">%s</a>" b-url proj-name proj-name))
-#+end_src
 
 #+name:all-bucket-projects
 #+header: :var projects=bucket-projects()
