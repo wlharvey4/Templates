@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 16:45
-#+macro:version Version 0.4.10
+#+date:2020-03-30 16:50
+#+macro:version Version 0.4.11
 #+bucket:pinecone-forest
 
 
@@ -650,7 +650,7 @@ sync.
 #+end_src
 
 
-** Bucket Index HTML                                               :noexport:
+** Bucket Index HTML
 The bucket should contain a master ~index.html~ file that links to each of the
 individual project ~index.html~ files.  The master ~index.html~ file will be
 placed at the root of the bucket, ~https://bucket-name/~, and the bucket must
