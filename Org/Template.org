@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 15:48
-#+macro:version Version 0.4.9
+#+date:2020-03-30 16:45
+#+macro:version Version 0.4.10
 #+bucket:pinecone-forest
 
 
@@ -650,7 +650,7 @@ sync.
 #+end_src
 
 
-** Bucket Index HTML
+** Bucket Index HTML                                               :noexport:
 The bucket should contain a master ~index.html~ file that links to each of the
 individual project ~index.html~ files.  The master ~index.html~ file will be
 placed at the root of the bucket, ~https://bucket-name/~, and the bucket must
@@ -663,7 +663,6 @@ be set up to serve this ~index.html~ when the user hits the root.
 
 #+name:get-bucket-name
 #+header: :results value
-#+header: :eval never-export
 #+begin_src emacs-lisp
    (save-excursion
      (goto-char (point-min))
@@ -678,7 +677,6 @@ nil.
 #+name:bucket-https-url
 #+header: :results value
 #+header: :var b=get-bucket-name()
-#+header: :eval never-export
 #+begin_src emacs-lisp
 (concat "https://" b ".com")
 #+end_src
@@ -704,7 +702,6 @@ string on spaces.
 #+name:bucket-projects-list
 #+header: :results output
 #+header: :var bucket=s3-bucket-url()
-#+header: :eval never-export
 #+begin_src sh
 projs=$(aws s3 ls ${bucket})
 for project in $projs; do if [[ $project =~ "-v" ]]; then echo $project; fi; done;
@@ -728,7 +725,6 @@ within a document being exported by Org to the HTML format.
 #+header: :var projects=bucket-projects-list()
 #+header: :var b-url=bucket-https-url()
 #+header: :results output html
-#+header: :eval never-export
 #+begin_src emacs-lisp
 (progn 
   (princ "<ul>
