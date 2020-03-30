@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 08:14
-#+macro:version Version 0.4.3
+#+date:2020-03-30 08:22
+#+macro:version Version 0.4.4
 #+bucket:pinecone-forest
 
 
@@ -1110,15 +1110,11 @@ echo "${projects[@]}"
 
 #+name:bucket-anchor
 #+header: :results output html
+#+header: :var proj-name="PROJ-NAME"
 #+header: :var b-url=bucket-url()
 #+begin_src emacs-lisp
-(princ (format "<a href=\"%s/%s/index.html\">%s</a>" b-url "mastering_emacs-v0.0.107" "mastering_emacs-v0.0.107"))
+(princ (format "<a href=\"%s/%s/index.html\">%s</a>" b-url proj-name proj-name))
 #+end_src
-
-#+RESULTS: bucket-anchor
-#+begin_export html
-<a href="https://pinecone-forest.com/mastering_emacs-v0.0.107/index.html">mastering_emacs-v0.0.107</a>
-#+end_export
 
 ** Boot Template
 While running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
@@ -1152,7 +1148,7 @@ boot:
 
 *** Contents for call_print-bucket() Bucket
 
-call_bucket-anchor()
+call_bucket-anchor(proj-name="mastering_emacs-v0.0.107")
 
 ** Parse Buffer
 
