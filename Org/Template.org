@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 21:35
-#+macro:version Version 0.4.12
+#+date:2020-03-31 08:57
+#+macro:version Version 0.4.13
 #+bucket:pinecone-forest
 
 
@@ -729,11 +729,16 @@ within a document being exported by Org to the HTML format.
 *** Project Index
     :PROPERTIES:
     :export_file_name: index.html
+    :custom_id: project-index-title
     :END:
     #+html_doctype: html5
     #+options: toc:nil html5-fancy:t
 
 **** call_s3-bucket-url() links
+     :PROPERTIES:
+     :unnumbered: t
+     :custom_id: project-index-links
+     :END:
 
 #+call: bucket-project-links()
 
