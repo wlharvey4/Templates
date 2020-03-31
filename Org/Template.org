@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-30 16:50
-#+macro:version Version 0.4.11
+#+date:2020-03-30 21:35
+#+macro:version Version 0.4.12
 #+bucket:pinecone-forest
 
 
@@ -687,7 +687,6 @@ This code calls ~get-bucket-name~ and returns the AWS S3 bucket url.
 #+name:s3-bucket-url
 #+header: :results value
 #+header: :var b=get-bucket-name()
-#+header: :eval never-export
 #+begin_src emacs-lisp
 (concat "s3://" b ".com")
 #+end_src
@@ -706,14 +705,6 @@ string on spaces.
 projs=$(aws s3 ls ${bucket})
 for project in $projs; do if [[ $project =~ "-v" ]]; then echo $project; fi; done;
 #+end_src
-
-#+RESULTS: bucket-projects-list
-: aws-guide-v0.0.64/
-: clojure-v0.0.29/
-: mastering_emacs-v0.0.107/
-: mastering_org-v0.8.9/
-: scheme-v0.0.4/
-: template-v0.3.34/
 
 *** Bucket Project Links
 This code uses the result from ~bucket-projects-list~ to create an unordered
@@ -737,9 +728,10 @@ within a document being exported by Org to the HTML format.
 
 *** Project Index
     :PROPERTIES:
-    :html-doctype: html5
     :export_file_name: index.html
     :END:
+    #+html_doctype: html5
+    #+options: toc:nil html5-fancy:t
 
 **** call_s3-bucket-url() links
 
