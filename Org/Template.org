@@ -3,10 +3,10 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-01 10:37
-#+macro:version Version 0.4.17
+#+date:2020-04-01 10:52
+#+macro:version Version 0.4.18
+#+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
-
 
 {{{version}}} {{{date}}}
 
@@ -125,6 +125,11 @@ and provides the source code for processing them in various different ways.
   causing the project's out-of-date code to fail to update.
 *** DONE Make adding git repo an option
 - State "DONE"	     from	       [2020-03-02 Mon 21:13]
+*** TODO Default macros
+    - State "TODO"       from              [2020-04-01 Wed 10:49] \\
+      Default macros do not get expanded or in some cases even recognized.
+      Is this a bug or am I doing something wrong.  User-defined macros
+      work.
 * Chapter
 
 * Build Tools
@@ -723,7 +728,7 @@ within a document being exported by Org to the HTML format.
     :PROPERTIES:
     :custom_id: project-index-title
     :export_file_name: index.html
-    :export_subtitle: {{{version}}} uploaded {{{date}}}
+    :export_subtitle: {{{version}}} created {{{upload-date}}}
     :END:
     #+html_doctype: html5
     #+options: toc:nil html5-fancy:t
