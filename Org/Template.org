@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-01 10:16
-#+macro:version Version 0.4.16
+#+date:2020-04-01 10:37
+#+macro:version Version 0.4.17
 #+bucket:pinecone-forest
 
 
@@ -721,8 +721,9 @@ within a document being exported by Org to the HTML format.
 
 *** Bucket Index
     :PROPERTIES:
-    :export_file_name: index.html
     :custom_id: project-index-title
+    :export_file_name: index.html
+    :export_subtitle: {{{version}}} uploaded {{{date}}}
     :END:
     #+html_doctype: html5
     #+options: toc:nil html5-fancy:t
