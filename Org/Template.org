@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-31 20:56
-#+macro:version Version 0.4.14
+#+date:2020-03-31 21:10
+#+macro:version Version 0.4.15
 #+bucket:pinecone-forest
 
 
@@ -456,7 +456,7 @@ $(INDEX): $(ORG)
 	   (require (quote ob-shell)) \
 	   (setq org-confirm-babel-evaluate nil) \
 	   (goto-char (point-min)) \
-	   (re-search-forward "^*** Project Index") \
+	   (re-search-forward "^***.*Bucket Index$") \
 	   (org-export-to-file (quote html) "index.html" nil t))'
 
 upload-index-html: $(INDEX)
@@ -721,13 +721,15 @@ within a document being exported by Org to the HTML format.
 " b-url u u))) (split-string projects))
 #+end_src
 
-*** Project Index
+*** The “{{{keyword(bucket)}}}” Bucket Index
     :PROPERTIES:
     :export_file_name: index.html
     :custom_id: project-index-title
     :END:
     #+html_doctype: html5
     #+options: toc:nil html5-fancy:t
+
+#+html: <hr>
 
 **** call_s3-bucket-url() links
      :PROPERTIES:
