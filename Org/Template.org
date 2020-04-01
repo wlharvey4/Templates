@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-03-31 08:57
-#+macro:version Version 0.4.13
+#+date:2020-03-31 20:56
+#+macro:version Version 0.4.14
 #+bucket:pinecone-forest
 
 
@@ -662,7 +662,7 @@ be set up to serve this ~index.html~ when the user hits the root.
  =BUCKET-NAME= or nil if not found.
 
 #+name:get-bucket-name
-#+header: :results value
+#+header: :results value silent
 #+begin_src emacs-lisp
    (save-excursion
      (goto-char (point-min))
@@ -675,7 +675,7 @@ This code calls ~get-bucket-name~ and returns the value returned as a URL string
 nil.
 
 #+name:bucket-https-url
-#+header: :results value
+#+header: :results value silent
 #+header: :var b=get-bucket-name()
 #+begin_src emacs-lisp
 (concat "https://" b ".com")
@@ -685,7 +685,7 @@ nil.
 This code calls ~get-bucket-name~ and returns the AWS S3 bucket url.
 
 #+name:s3-bucket-url
-#+header: :results value
+#+header: :results value silent
 #+header: :var b=get-bucket-name()
 #+begin_src emacs-lisp
 (concat "s3://" b ".com")
@@ -699,7 +699,7 @@ single string that can be separated into individual links by breaking the
 string on spaces.
 
 #+name:bucket-projects-list
-#+header: :results output
+#+header: :results output silent
 #+header: :var bucket=s3-bucket-url()
 #+begin_src sh
 projs=$(aws s3 ls ${bucket})
@@ -715,15 +715,10 @@ within a document being exported by Org to the HTML format.
 #+name:bucket-project-links
 #+header: :var projects=bucket-projects-list()
 #+header: :var b-url=bucket-https-url()
-#+header: :results output html
+#+header: :results output raw
 #+begin_src emacs-lisp
-(progn 
-  (princ "<ul>
-")
-  (let ((p (split-string projects)))
-    (seq-do (lambda (u) (princ (format "<li><a href=\"%s/%sindex.html\">%s</a></li>
-" b-url u u))) p))
-  (princ "</ul>"))
+(seq-do (lambda (u) (princ (format "- [[%s/%sindex.html][~%s~]]
+" b-url u u))) (split-string projects))
 #+end_src
 
 *** Project Index
