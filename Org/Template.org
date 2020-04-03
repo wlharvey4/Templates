@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-03 00:04
-#+macro:version Version 0.4.20
+#+date:2020-04-03 09:56
+#+macro:version Version 0.4.21
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -656,38 +656,58 @@ sync.
 
 
 ** Update Utility Commands
+*** Get Parsed Tree
+#+name:get-parsed-tree
+#+begin_src emacs-lisp
+  (defun get-parsed-tree ()
+    "Use the Org file in the present working directory to obtain a parsed tree."
+    (with-current-buffer (find-file-noselect "*.org" nil nil t)
+      (org-element-parse-buffer)))
+#+end_src
+
 *** Add Bucket
 This command utility takes two arguments:
 1. The name of an Org file (e.g., "MasteringEmacs.org"); and
 2. The name of an AWS S3 bucket
 
 
-It then adds that bucket name as a keyword (e.g. "#+bucket:pinecone-forest") to
-the org file right after where the =version= macro is located, and saves the
-file.
+It checkes whether the Org file has a #+bucket: keyword.  If it does, then it
+simply returns nil.  If it does not, then it adds that bucket name as a keyword
+(e.g. "#+bucket:pinecone-forest") to the Org file right after where the
+=version= macro is located, and saves the file.  It returns a message upon
+succuess.
 
-#+name:add-bucket
+#+name:add-bucket-fn
+#+header: :var get-tree=get-parsed-tree()
 #+begin_src emacs-lisp
-  (defun add-bucket (org bucket)
-    "Add a bucket keyword BUCKET to the org file ORG."
-    (interactive "fFile: \nsBUCKET: ")
-    (with-current-buffer (find-file-noselect org)
-      (let* ((tree (org-element-parse-buffer))
-	     (ins (car (org-element-map tree (quote section)
-		   (lambda (s)
-		     (org-element-map s (quote keyword)
-		       (lambda (kw) (when (equal "MACRO" (org-element-property :key kw)) (1- (org-element-property :end kw))))
-		       nil nil :keyword))
-		   nil t nil nil))))
-	(goto-char ins)
-	(insert (format "#+bucket:%s\n" bucket))
-	(basic-save-buffer))))
+;;; Add a keyword named 'bucket' just after the version macro.
+;;; This function should be run from within the directory containing the Org file.
+(defun add-bucket (org-file s3-bucket)
+  "Add the name of the associated AWS S3 bucket to an Org templated file."
+  (with-current-buffer (find-file-noselect org-file)
+    (goto-char (point-min))
+    (let* ((tree get-tree)
+	   ;; find the beginning position of the first headline to act as a limit
+	   (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
+      ;; Check for the presence of a bucket keyword before the first headline
+      (unless (re-search-forward "^#\\+bucket:" hl1 t)
+	;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
+	(org-element-map tree (quote keyword)
+	  (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
+				  (string-match-p "version" (org-element-property :value kw)))
+			 ;; return the end position of the MACRO; subtract an empty line if there is one
+			 (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
+			 (insert "#+bucket:" s3-bucket)
+			 (newline)
+			 (basic-save-buffer)
+			 (message (format "Added bucket %s" s3-bucket))))
+	  nil t)))))
 #+end_src
 ** Bucket Index HTML
 The bucket should contain a master ~index.html~ file that links to each of the
 individual project ~index.html~ files.  The master ~index.html~ file will be
-placed at the root of the bucket, ~https://bucket-name/~, and the bucket must
-be set up to serve this ~index.html~ when the user hits the root.
+placed at the root of the bucket, ~https://<bucket-name>.com/~, and the bucket
+must be set up to serve this ~index.html~ when the user hits the root.
 
 *** Get Bucket Name
  This code searches for the keyword-value pair =bucket:<BUCKET-NAME>= that
