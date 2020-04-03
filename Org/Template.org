@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-03 09:56
-#+macro:version Version 0.4.21
+#+date:2020-04-03 12:23
+#+macro:version Version 0.4.22
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -657,12 +657,32 @@ sync.
 
 ** Update Utility Commands
 *** Get Parsed Tree
+This function looks for an Org file in the present working directory, and if it
+finds one returns a parsed tree using ~org-element-parse-buffer~.  It returns
+=nil= if there is no Org file or if the found file is not in ~org-mode~.
+
 #+name:get-parsed-tree
 #+begin_src emacs-lisp
-  (defun get-parsed-tree ()
-    "Use the Org file in the present working directory to obtain a parsed tree."
-    (with-current-buffer (find-file-noselect "*.org" nil nil t)
-      (org-element-parse-buffer)))
+(defun get-parsed-tree ()
+  "Return a parsed tree for the Org file in the present working directory, or nil if non exists."
+  ;; A necessary condition is that there should be only one Org file in a directory
+  (let ((buf (car-safe (find-file-noselect "*.org" nil nil t))))
+    ;; buf will be nil if there is no Org file
+    (if buf
+	(with-current-buffer buf
+	  ;; strangely a non-org buffer still parses so check that buf is in org-mode
+	  (if (string= "org-mode" (symbol-value (quote major-mode)))
+	      (let ((tree (org-element-parse-buffer)))
+		(and
+		 (message (format "Returning parsed tree for file %s" (buffer-file-name)))
+		 tree))
+	    (and
+	     ;; show this message when buf is not in org-mode
+	     (message (format "%s is not an Org file" (buffer-file-name)))
+	     nil)))
+      ;; show this message when buf is nil
+      (and (message (format "No Org file in the Present Working %s" (pwd)))
+	   nil))))
 #+end_src
 
 *** Add Bucket
@@ -671,37 +691,37 @@ This command utility takes two arguments:
 2. The name of an AWS S3 bucket
 
 
-It checkes whether the Org file has a #+bucket: keyword.  If it does, then it
-simply returns nil.  If it does not, then it adds that bucket name as a keyword
-(e.g. "#+bucket:pinecone-forest") to the Org file right after where the
-=version= macro is located, and saves the file.  It returns a message upon
-succuess.
+It checkes whether the Org file in the present working directory has a
+"#+bucket: keyword".  If it does, then it simply returns nil.  If it does not,
+then it adds that bucket name as a keyword (e.g. "#+bucket:pinecone-forest") to
+the Org file right after where the =version= macro is located, and saves the
+file.  It returns a message upon succuess.
 
 #+name:add-bucket-fn
-#+header: :var get-tree=get-parsed-tree()
+#+header: :var parsed-tree=get-parsed-tree()
 #+begin_src emacs-lisp
-;;; Add a keyword named 'bucket' just after the version macro.
-;;; This function should be run from within the directory containing the Org file.
-(defun add-bucket (org-file s3-bucket)
-  "Add the name of the associated AWS S3 bucket to an Org templated file."
-  (with-current-buffer (find-file-noselect org-file)
-    (goto-char (point-min))
-    (let* ((tree get-tree)
-	   ;; find the beginning position of the first headline to act as a limit
-	   (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
-      ;; Check for the presence of a bucket keyword before the first headline
-      (unless (re-search-forward "^#\\+bucket:" hl1 t)
-	;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
-	(org-element-map tree (quote keyword)
-	  (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
-				  (string-match-p "version" (org-element-property :value kw)))
-			 ;; return the end position of the MACRO; subtract an empty line if there is one
-			 (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
-			 (insert "#+bucket:" s3-bucket)
-			 (newline)
-			 (basic-save-buffer)
-			 (message (format "Added bucket %s" s3-bucket))))
-	  nil t)))))
+  ;;; Add a keyword named 'bucket' just after the version macro.
+  ;;; This function should be run from within the directory containing the Org file.
+  (defun add-bucket (s3-bucket)
+    "Add the name of the associated AWS S3 bucket to an Org templated file in the PWD."
+    (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
+      (goto-char (point-min))
+      (let* ((tree parsed-tree)
+	     ;; find the beginning position of the first headline to act as a limit
+	     (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
+	;; Check for the presence of a bucket keyword before the first headline
+	(unless (re-search-forward "^#\\+bucket:" hl1 t)
+	  ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
+	  (org-element-map tree (quote keyword)
+	    (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
+				    (string-match-p "version" (org-element-property :value kw)))
+			   ;; return the end position of the MACRO; subtract an empty line if there is one
+			   (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
+			   (insert "#+bucket:" s3-bucket)
+			   (newline)
+			   (basic-save-buffer)
+			   (message (format "Added bucket %s" s3-bucket))))
+	    nil t)))))
 #+end_src
 ** Bucket Index HTML
 The bucket should contain a master ~index.html~ file that links to each of the
