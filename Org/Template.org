@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-02 17:55
-#+macro:version Version 0.4.19
+#+date:2020-04-03 00:04
+#+macro:version Version 0.4.20
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -655,6 +655,34 @@ sync.
 #+end_src
 
 
+** Update Utility Commands
+*** Add Bucket
+This command utility takes two arguments:
+1. The name of an Org file (e.g., "MasteringEmacs.org"); and
+2. The name of an AWS S3 bucket
+
+
+It then adds that bucket name as a keyword (e.g. "#+bucket:pinecone-forest") to
+the org file right after where the =version= macro is located, and saves the
+file.
+
+#+name:add-bucket
+#+begin_src emacs-lisp
+  (defun add-bucket (org bucket)
+    "Add a bucket keyword BUCKET to the org file ORG."
+    (interactive "fFile: \nsBUCKET: ")
+    (with-current-buffer (find-file-noselect org)
+      (let* ((tree (org-element-parse-buffer))
+	     (ins (car (org-element-map tree (quote section)
+		   (lambda (s)
+		     (org-element-map s (quote keyword)
+		       (lambda (kw) (when (equal "MACRO" (org-element-property :key kw)) (1- (org-element-property :end kw))))
+		       nil nil :keyword))
+		   nil t nil nil))))
+	(goto-char ins)
+	(insert (format "#+bucket:%s\n" bucket))
+	(basic-save-buffer))))
+#+end_src
 ** Bucket Index HTML
 The bucket should contain a master ~index.html~ file that links to each of the
 individual project ~index.html~ files.  The master ~index.html~ file will be
