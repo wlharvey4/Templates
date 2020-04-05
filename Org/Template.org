@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-03 12:23
-#+macro:version Version 0.4.22
+#+date:2020-04-04 20:13
+#+macro:version Version 0.4.23
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -812,6 +812,167 @@ within a document being exported by Org to the HTML format.
      :END:
 
 #+call: bucket-project-links()
+** Samples
+
+(cd "~/Dev/Emacs/MasteringEmacs/")
+"/Users/pine/Dev/Emacs/MasteringEmacs/"
+
+(defun add-bucket (org bucket)
+  "Add a bucket keyword BUCKET to the org file ORG."
+  (interactive "fFile: \nsBUCKET: ")
+  (with-current-buffer (find-file-noselect org)
+    (let* ((tree (org-element-parse-buffer))
+	   (ins (car (org-element-map tree (quote section)
+		 (lambda (s)
+		   (org-element-map s (quote keyword)
+		     (lambda (kw) (when (equal "MACRO" (org-element-property :key kw)) (1- (org-element-property :end kw))))
+		     nil nil :keyword))
+		 nil t nil nil))))
+      (goto-char ins)
+      (insert (format "#+bucket:%s\n" bucket))
+      ())))
+
+(add-bucket "MasteringEmacs.org" "pinecone-forest")
+nil
+
+(defun get-parsed-tree ()
+  "Return a parsed tree for the Org file in the present working directory, or nil if non exists."
+  ;; There should be only one Org file in a directory
+  (let ((buf (car-safe (find-file-noselect "*.org" nil nil t))))
+    ;; buf will be nil if there is no Org file
+    (if buf
+	(with-current-buffer buf
+	  ;; strangely a non-org buffer still parses so check that buf is in org-mode
+	  (if (string= "org-mode" (symbol-value (quote major-mode)))
+	      (let ((tree (org-element-parse-buffer)))
+		(and
+		 (message (format "Returning parsed tree for file %s" (buffer-file-name)))
+		 tree))
+	    (and
+	     ;; show this message when buf is not in org-mode
+	     (message (format "%s is not an Org file" (buffer-file-name)))
+	     nil)))
+      ;; show this message when buf is nil
+      (and (message (format "No Org file in the Present Working %s" (pwd)))
+	   nil))))
+
+(get-parsed-tree)
+
+(cd "~/Dev/Templates/Org")
+"/Users/pine/Dev/Templates/Org/"
+
+(defun hl-region (raw-hl)
+  "Obtain the begin and end positions for a headline."
+  (with-current-buffer (find-file-noselect (getenv "SYNC_ORG_TEMPLATE"))
+    (let* ((tree (get-parsed-tree))
+	   (hl (car-safe (org-element-map tree 'headline
+			   (lambda (hl) (when
+					    (string= raw-hl
+						     (org-element-property :raw-value hl))
+					  (org-element-context)))
+			   nil nil t))))
+      (cons
+       (org-element-property :begin hl)
+       (org-element-property :end hl))
+      )))
+
+(hl-region "Build Tools")
+
+(4888 . 29646)
+
+(defun org-tree (org-dir)
+  "Given a directory with an Org template file, return the parsed tree, or nil if none found."
+  (and
+    (cd org-dir)
+    (let ((buf (car-safe (find-file-noselect "*.org" nil nil t))))
+      (if buf
+	  (org-element-parse-buffer)
+	nil))))
+
+(org-tree "~/Dev/Templates/Org")
+
+
+
+
+(defun get-hl-with-prop (org-dir hl-prop)
+  "Given a directory containing an Org template file and a custom_id property name, return the headline containing that custom_id, or nil if none."
+  (progn
+    (cd org-dir)
+    (let ((org-buf (car-safe (find-file-noselect "*.org" nil nil t))))
+      (if org-buf
+	  (with-current-buffer org-buf
+	    (let ((tree (org-element-parse-buffer)))
+	      (org-element-map tree 'headline
+		(lambda (hl)
+		  (let ((cid (org-element-property :CUSTOM_ID hl)))
+		    (when (string= hl-prop cid)
+		      (and
+		       (message (format "Found the headline %s containing property %s." (org-element-property :raw-value hl) hl-prop))
+		       hl))))
+		nil t)))
+	(and
+	 (message (format "The directory %s does not contain an Org file." org-dir))
+	 nil)))))
+
+(get-hl-with-prop "~/Dev/Templates/Org" "build-tools")
+
+(headline (:raw-value "Build Tools" :begin 4888 :end 29646 :pre-blank 0 :contents-begin 4902 :contents-end 29645 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 4888 :FROM-FILE "Template" :CUSTOM_ID "build-tools" :APPENDIX "t" :title "Build Tools"))
+
+
+
+
+
+
+
+
+
+;;; Add a keyword named 'bucket' just after the version macro.
+;;; This function should be run from within the directory containing the Org file.
+(defun add-bucket (org-file s3-bucket)
+  "Add the name of the associated AWS S3 bucket to an Org templated file."
+  (with-current-buffer (find-file-noselect org-file)
+    (goto-char (point-min))
+    (let* ((tree (org-element-parse-buffer))
+	   ;; find the beginning position of the first headline to act as a limit
+	   (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
+      ;; Check for the presence of a bucket keyword before the first headline
+      (unless (re-search-forward "^#\\+bucket:" hl1 t)
+	;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
+	(org-element-map tree (quote keyword)
+	  (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
+				  (string-match-p "version" (org-element-property :value kw)))
+			 ;; return the end position of the MACRO; subtract an empty line if there is one
+			 (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
+			 (insert "#+bucket:" s3-bucket)
+			 (newline)
+			 (basic-save-buffer)
+			 (message (format "Added bucket %s" s3-bucket))))
+	  nil t)))))
+
+(add-bucket "MasteringEmacs.org" "pinecone-forest.com")
+nil
+
+"Added bucket pinecone-forest.com"
+
+
+
+
+
+
+
+
+
+(keyword (:key "MACRO" :value "version Version 0.0.108" :begin 148 :end 181 :post-blank 1 :post-affiliated 148 ...))
+("TITLE" "SUBTITLE" "AUTHOR" "DATE" "MACRO" "TEXINFO" "TEXINFO" "CINDEX" "CINDEX" "CINDEX" "CINDEX" "CINDEX" ...)
+
+
+
+
+
+
+
+((keyword (:key "MACRO" :value "version Version 0.0.107" :begin 148 :end 181 :post-blank 1 :post-affiliated 148 ...)))
+
 
 * Build Scripts
 ** Create Script					      :dependencies:
