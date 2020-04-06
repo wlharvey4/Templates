@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-05 09:42
-#+macro:version Version 0.4.24
+#+date:2020-04-06 09:33
+#+macro:version Version 0.4.25
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -667,12 +667,34 @@ finds one returns a parsed tree using ~org-element-parse-buffer~.  It returns
   "This function takes an optional directory name, changes to
 that directory if given, otherwise uses the pwd, and finds an Org
 file and returns its parsed tree, or nil if none found."
-  (if org-dir
-    (cd (file-name-as-directory org-dir)))
+  (when org-dir
+      (cd (file-name-as-directory org-dir)))
   (let ((buf (car-safe (find-file-noselect "*.org" nil nil t))))
     (if buf
-	(org-element-parse-buffer)
+	(with-current-buffer buf (org-element-parse-buffer))
       nil)))
+#+end_src
+*** Check for CID
+This code checks whether an Org file contains a =custom_id= of a particular
+value.  It accepts a ~cid-value~ and an optional directory.  If the directory
+is not given, then it defaults to the current directory.  If throws an error if
+the directory does not exist.  It returns =nil= if the given directory does not
+contain an Org file.  It returns =t= if the Org file contains a node property
+of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
+~get-parsed-org-tree~.
+
+#+name:org-tree-cid-p
+#+begin_src emacs-lisp
+(defun org-tree-cid-p (cid-value &optional org-dir)
+  "Check whether an org file contains a custom_id of CID"
+  (let ((tree (get-parsed-org-tree org-dir)))
+    (car (org-element-map tree 'property-drawer
+	   (lambda (pd) (org-element-map (org-element-contents pd) 'node-property
+			  (lambda (np)
+			    (and
+			     (string= "custom_id" (org-element-property :key np))
+			     (string= cid-value (org-element-property :value np))))))
+	   nil t))))
 #+end_src
 
 *** Add Bucket
