@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-06 09:33
-#+macro:version Version 0.4.25
+#+date:2020-04-06 10:01
+#+macro:version Version 0.4.26
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -662,6 +662,7 @@ finds one returns a parsed tree using ~org-element-parse-buffer~.  It returns
 =nil= if there is no Org file or if the found file is not in ~org-mode~.
 
 #+name:get-parsed-org-tree
+#+header: :results silent
 #+begin_src emacs-lisp
 (defun get-parsed-org-tree (&optional org-dir)
   "This function takes an optional directory name, changes to
@@ -684,6 +685,7 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 ~get-parsed-org-tree~.
 
 #+name:org-tree-cid-p
+#+header: :results silent
 #+begin_src emacs-lisp
 (defun org-tree-cid-p (cid-value &optional org-dir)
   "Check whether an org file contains a custom_id of CID"
@@ -696,6 +698,21 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 			     (string= cid-value (org-element-property :value np))))))
 	   nil t))))
 #+end_src
+
+#+name:run-org-tree-cid-p
+#+header: :var cid="build-tools"
+#+header: :var dir="~/Dev/Emacs/MasteringEmacs"
+#+header: :var gpot=get-parsed-org-tree()
+#+header: :var otcp=org-tree-cid-p()
+#+header: :results value
+#+begin_src emacs-lisp
+(org-tree-cid-p cid dir)
+#+end_src
+
+#+call: run-org-tree-cid-p(dir="~/Dev/Emacs/MasteringEmacs")
+
+#+RESULTS:
+: t
 
 *** Add Bucket
 This command utility takes two arguments:
