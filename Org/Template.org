@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-08 23:45
-#+macro:version Version 0.4.27
+#+date:2020-04-09 00:17
+#+macro:version Version 0.4.28
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -705,6 +705,7 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 #+header: :var gpot=get-parsed-org-tree()
 #+header: :var otcp=org-tree-cid-p()
 #+header: :results value
+#+header: :eval never-export
 #+begin_src emacs-lisp
 (org-tree-cid-p cid dir)
 #+end_src
@@ -727,6 +728,7 @@ the Org file right after where the =version= macro is located, and saves the
 file.  It returns a message upon succuess.
 
 #+name:add-bucket-fn
+#+header: :eval never-export
 #+header: :var parsed-tree=get-parsed-tree()
 #+begin_src emacs-lisp
   ;;; Add a keyword named 'bucket' just after the version macro.
@@ -765,6 +767,7 @@ must be set up to serve this ~index.html~ when the user hits the root.
 
 #+name:get-bucket-name
 #+header: :results value
+#+header: :eval never-export
 #+begin_src emacs-lisp
    (save-excursion
      (goto-char (point-min))
@@ -778,6 +781,7 @@ nil.
 
 #+name:bucket-https-url
 #+header: :results value
+#+header: :eval never-export
 #+header: :var b=get-bucket-name()
 #+begin_src emacs-lisp
 (concat "https://" b ".com")
@@ -788,6 +792,7 @@ This code calls ~get-bucket-name~ and returns the AWS S3 bucket url.
 
 #+name:s3-bucket-url
 #+header: :results value
+#+header: :eval never-export
 #+header: :var b=get-bucket-name()
 #+begin_src emacs-lisp
 (concat "s3://" b ".com")
@@ -802,6 +807,7 @@ string on spaces.
 
 #+name:bucket-projects-list
 #+header: :results output
+#+header: :eval neverexport
 #+header: :var bucket=s3-bucket-url()
 #+begin_src sh
 projs=$(aws s3 ls ${bucket})
@@ -818,6 +824,7 @@ within a document being exported by Org to the HTML format.
 #+header: :var projects=bucket-projects-list()
 #+header: :var b-url=bucket-https-url()
 #+header: :results output raw
+#+header: :eval never-export
 #+begin_src emacs-lisp
 (seq-do (lambda (u) (princ (format "- [[%s/%sindex.html][~%s~]]
 " b-url u u))) (split-string projects))
@@ -1400,10 +1407,11 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+begin_src emacs-lisp
   (with-current-buffer (find-file-noselect "Template.org")
     (goto-char (point-min))
-    (let ((re-search-str ":tangle \\(\\${\\(.*?\\)}\\)"))
+    (let ((re-search-str ":tangle \\(\\/Users/\\(.*?\\)/\\)")
+	  (home (getenv "HOME")))
       (while
 	  (re-search-forward re-search-str nil t)
-	(replace-match (getenv (match-string 2)) t nil nil 1)))
+	(replace-match home t nil nil 1)))
     (save-buffer)
     (require 'org)
     (org-babel-tangle))
