@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-09 00:17
-#+macro:version Version 0.4.28
+#+date:2020-04-09 00:22
+#+macro:version Version 0.4.29
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1407,7 +1407,7 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+begin_src emacs-lisp
   (with-current-buffer (find-file-noselect "Template.org")
     (goto-char (point-min))
-    (let ((re-search-str ":tangle \\(\\/Users/\\(.*?\\)/\\)")
+    (let ((re-search-str ":tangle \\(\\/Users/\\(.*?\\)\\)/")
 	  (home (getenv "HOME")))
       (while
 	  (re-search-forward re-search-str nil t)
