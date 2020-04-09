@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-04-06 10:01
-#+macro:version Version 0.4.26
+#+date:2020-04-08 23:45
+#+macro:version Version 0.4.27
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -842,7 +842,7 @@ within a document being exported by Org to the HTML format.
 
 #+call: bucket-project-links()
 ** Samples
-
+#+begin_comment
 (cd "~/Dev/Emacs/MasteringEmacs/")
 "/Users/pine/Dev/Emacs/MasteringEmacs/"
 
@@ -961,6 +961,7 @@ nil
 
 
 ((keyword (:key "MACRO" :value "version Version 0.0.107" :begin 148 :end 181 :post-blank 1 :post-affiliated 148 ...)))
+#+end_comment
 
 * Build Scripts
 ** Create Script					      :dependencies:
@@ -1188,6 +1189,8 @@ program updates the  Emacs ~server-socket-dir~ variable, if such  exists.  If a
 template   is	updated	  with	 a   newer  local   file,   then   delete   the
 ~server-socket-dir~ value.
 
+#+name:syncrc
+#+header: :mkdirp yes
 #+header: :tangle /Users/pine/Dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
