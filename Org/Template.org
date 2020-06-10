@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-09 23:15
-#+macro:version Version 0.5.0
+#+date:2020-06-09 23:35
+#+macro:version Version 0.5.1
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -130,6 +130,11 @@ and provides the source code for processing them in various different ways.
       Default macros do not get expanded or in some cases even recognized.
       Is this a bug or am I doing something wrong.  User-defined macros
       work.
+*** TODO Dependencies
+:LOGBOOK:
+- State "TODO"       from              [2020-06-09 Tue 23:36] \\
+  Provide function to collect all dependencies and list; or perhaps test
+:END:
 * Chapter
 
 * Build Tools
@@ -169,8 +174,9 @@ and provides the source code for processing them in various different ways.
 # The absolute path to this Template file
 TEMPLATE := $(SYNC_ORG_TEMPLATE)
 
-# Emacs binary and init file
+# Emacs binary, server, and init file
 EMACS	:= $(EMACS)
+EDITOR	:= $(EDITOR)
 EMACS_INIT	:= $(EMACS_INIT)
 
 # User’s personal GitHub token for authentication
