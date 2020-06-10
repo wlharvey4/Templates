@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-10 07:38
-#+macro:version Version 0.5.2
+#+date:2020-06-10 11:36
+#+macro:version Version 0.5.3
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -232,10 +232,10 @@ endif
 # there is no 'texinfo_filename', but for now it is set to return
 # 'nil' on failure, and then assign the backup value.
 
-DIR := $(shell $(EDITOR) --eval "\
-	  (with-temp-buffer (insert-file-contents \"$(ORG)\") \
-		  (re-search-forward \"^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$\" nil t) \
-		  (princ (match-string 1)))")
+DIR := $(shell $(EDITOR) --eval '\
+	  (with-temp-buffer (insert-file-contents "$(ORG)") \
+		(re-search-forward "^\#[+]\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
+		(match-string 1))')
 ifeq ($(DIR),nil)
 	DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
@@ -254,10 +254,10 @@ endif
 # comes from the way the 'aws2 ls' command returns its values.	So VERS should probably
 # not include the trailing slash, although it doesn’t hurt anything.
 
-VERS := v$(shell $(EDITOR) --eval "\
-	(with-temp-buffer (insert-file-contents \"$(ORG)\") \
-		(re-search-forward \"^ *.\\+\\(?:macro\\|MACRO\\):version Version \\(\\([[:digit:]]+[[:punct:]]?\\)\\{3\\}\\)\") \
-		(princ (match-string 1)))")/
+VERS := v$(shell $(EDITOR) --eval '\
+	(with-temp-buffer (insert-file-contents "$(ORG)") \
+		(re-search-forward "^\#[+]\\(?:macro\\|MACRO\\):version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)$$") \
+		(match-string 1))')
 
 ### AWS
 # PROJ_LIST contains the list of projects currently uploaded to
@@ -372,18 +372,18 @@ check:
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	  @$(EDITOR)  --eval "\
+	  @$(EDITOR)  --eval '\
 		  (progn \
 			  (if \
 				  (member (quote texinfo) org-export-backends) \
-				  (princ \"texinfo backend: INSTALLED in org-export-backends\") \
-				  (princ \"texinfo backend: NOT INSTALLED in org-export-backends\")) \
+				  (princ "texinfo backend: INSTALLED in org-export-backends") \
+				  (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
 			  (terpri) \
 			  (if \
 				  org-confirm-babel-evaluate \
-				  (princ \"org-confirm-babel-evaluate: SET to t; consider setting to nil\") \
-				  (princ \"org-confirm-babel-evaluate: SET to nil\")) \
-			  (terpri))"
+				  (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
+				  (princ "org-confirm-babel-evaluate: SET to nil")) \
+			  (terpri))'
 
 open-org: $(ORG)
 	  $(EDITOR) $(ORG)
@@ -393,11 +393,11 @@ $(ORG):
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
-	  $(EDITOR) --eval "\
+	  $(EDITOR) --eval '\
 	  (progn \
 	    (setq org-confirm-babel-evaluate nil) \
-	    (find-file \"$(ORG)\") \
-	    (org-texinfo-export-to-texinfo))"
+	    (find-file "$(ORG)") \
+	    (org-texinfo-export-to-texinfo))'
 
 open-texi: texi
 	  $(EDITOR) $(TEXI)
@@ -459,35 +459,35 @@ homepage: $(ORG) upload-index-html
 create-index-html: $(INDEX)
 $(INDEX): $(ORG)
 	  echo making index.html
-	  $(EDITOR) --eval "\
+	  $(EDITOR) --eval '\
 	  (with-current-buffer (find-file-noselect "$(ORG)") \
 	     (setq org-confirm-babel-evaluate nil) \
-	     (org-link-search \"#project-index-title\") \
-	     (org-export-to-file (quote html) \"index.html\" nil t))"
+	     (org-link-search "#project-index-title") \
+	     (org-export-to-file (quote html) "index.html" nil t))'
 
 upload-index-html: $(INDEX)
 	  echo uploading index.html
 	  $(S3COPY)
 
 update: $(ORG)
-	  $(EDITOR)  --eval "\
+	  $(EDITOR)  --eval '\
 	  (progn \
-	     (find-file \"$(TEMPLATE)\") \
+	     (find-file "$(TEMPLATE)") \
 	     (goto-char (point-min)) \
-	     (search-forward \"* Build Tools\") \
+	     (search-forward "* Build Tools") \
 	     (org-beginning-of-line) \
 	     (org-copy-subtree) \
 	     (kill-buffer) \
-	     (find-file \"$(ORG)\") \
+	     (find-file "$(ORG)") \
 	     (goto-char (point-min)) \
-	     (search-forward \"* Build Tools\") \
+	     (search-forward "* Build Tools") \
 	     (org-beginning-of-line) \
 	     (org-yank) \
 	     (org-cut-subtree) \
 	     (save-buffer) \
 	     (kill-buffer) \
 	     (setq org-confirm-babel-evaluate nil) \
-	     (org-babel-tangle-file \"$(ORG)\"))"
+	     (org-babel-tangle-file "$(ORG)"))'
 
 install-aws-cli:
 	  curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
@@ -1391,12 +1391,12 @@ variable is set to use ~emacsclient~.
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
-	$(EDITOR) --eval "\
+	$(EDITOR) --eval '\
 		(progn \
-			(set-buffer (find-file-noselect \"$(SYNC_ORG_TEMPLATE)\")) \
+			(set-buffer (find-file-noselect "$(SYNC_ORG_TEMPLATE)")) \
                         (goto-char (point-min)) \
-			(re-search-forward \"^#[+]name:preprocess.el$$\") \
-			(org-babel-tangle (quote (4))))"
+			(re-search-forward "^#[+]name:preprocess.el$$") \
+			(org-babel-tangle (quote (4))))'
 	$(EMACS) -Q --batch -l tools/preprocess.el
 #+end_src
 
