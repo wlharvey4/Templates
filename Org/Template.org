@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-09 23:35
-#+macro:version Version 0.5.1
+#+date:2020-06-10 07:38
+#+macro:version Version 0.5.2
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -175,9 +175,9 @@ and provides the source code for processing them in various different ways.
 TEMPLATE := $(SYNC_ORG_TEMPLATE)
 
 # Emacs binary, server, and init file
-EMACS	:= $(EMACS)
-EDITOR	:= $(EDITOR)
-EMACS_INIT	:= $(EMACS_INIT)
+EMACS	  := $(EMACS)
+EDITOR	  := $(EDITOR)
+EMACS_INIT:= $(EMACS_INIT)
 
 # User’s personal GitHub token for authentication
 # DO NOT HARD-CODE THIS VALUE
@@ -232,12 +232,12 @@ endif
 # there is no 'texinfo_filename', but for now it is set to return
 # 'nil' on failure, and then assign the backup value.
 
-DIR := $(shell $(EMACS) -Q --batch --eval '\
-	  (with-temp-buffer (insert-file-contents "$(ORG)") \
-		  (re-search-forward "^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
-		  (princ (match-string 1)))')
+DIR := $(shell $(EDITOR) --eval "\
+	  (with-temp-buffer (insert-file-contents \"$(ORG)\") \
+		  (re-search-forward \"^ *.\\+\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$\" nil t) \
+		  (princ (match-string 1)))")
 ifeq ($(DIR),nil)
-DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
+	DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
 
 ### VERS: v1.2.34/
@@ -254,10 +254,10 @@ endif
 # comes from the way the 'aws2 ls' command returns its values.	So VERS should probably
 # not include the trailing slash, although it doesn’t hurt anything.
 
-VERS := v$(shell $(EMACS) -Q --batch --eval '\
-(with-temp-buffer (insert-file-contents "$(ORG)") \
-(re-search-forward "^ *.\\+\\(?:macro\\|MACRO\\):version Version \\(\\([[:digit:]]+[[:punct:]]?\\)\\{3\\}\\)") \
-(princ (match-string 1)))')/
+VERS := v$(shell $(EDITOR) --eval "\
+	(with-temp-buffer (insert-file-contents \"$(ORG)\") \
+		(re-search-forward \"^ *.\\+\\(?:macro\\|MACRO\\):version Version \\(\\([[:digit:]]+[[:punct:]]?\\)\\{3\\}\\)\") \
+		(princ (match-string 1)))")/
 
 ### AWS
 # PROJ_LIST contains the list of projects currently uploaded to
@@ -277,12 +277,12 @@ PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
 
 S3PROJ := $(filter $(DIR)%,$(PROJ_LIST))
 ifeq ($(S3PROJ),$(empty))
-S3PROJ := $(DIR)-$(VERS)
+	S3PROJ := $(DIR)-$(VERS)
 endif
 
 S3VERS := $(subst $(DIR)-,,$(filter $(DIR)%, $(PROJ_LIST)))
 ifeq ($(S3VERS), $(empty))
-S3VERS := $(VERS)
+	S3VERS := $(VERS)
 endif
 
 ### GITHUB
@@ -356,10 +356,10 @@ values: check
 	  @echo S3PROJ:		$(S3PROJ)
 	  @echo S3VERS:		$(S3VERS)
 	  @echo DIR:		$(DIR)
-	  @echo DIR_OLD:		$(DIR_OLD)
+	  @echo DIR_OLD:	$(DIR_OLD)
 	  @echo SRC:		$(SRC)
-	  @echo DST_OLD:		$(DST_OLD)
-	  @echo DST_NEW:		$(DST_NEW)
+	  @echo DST_OLD:	$(DST_OLD)
+	  @echo DST_NEW:	$(DST_NEW)
 	  @echo PROJ_LIST:	$(PROJ_LIST)
 
 check:
@@ -372,44 +372,41 @@ check:
 	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	  @$(EMACS) -Q --batch --load="$(EMACS_INIT)" --eval '\
+	  @$(EDITOR)  --eval "\
 		  (progn \
-			  (require (quote org)) \
 			  (if \
 				  (member (quote texinfo) org-export-backends) \
-				  (princ "texinfo backend: INSTALLED in org-export-backends") \
-				  (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
+				  (princ \"texinfo backend: INSTALLED in org-export-backends\") \
+				  (princ \"texinfo backend: NOT INSTALLED in org-export-backends\")) \
 			  (terpri) \
 			  (if \
 				  org-confirm-babel-evaluate \
-				  (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-				  (princ "org-confirm-babel-evaluate: SET to nil")) \
-			  (terpri))'
+				  (princ \"org-confirm-babel-evaluate: SET to t; consider setting to nil\") \
+				  (princ \"org-confirm-babel-evaluate: SET to nil\")) \
+			  (terpri))"
 
 open-org: $(ORG)
-	  emacsclient $(ORG) &
+	  $(EDITOR) $(ORG)
 $(ORG):
 	  @echo 'THERE IS NO $(ORG) FILE!!!'
 	  exit 1
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
-	  $(EMACS) --batch --eval '\
+	  $(EDITOR) --eval "\
 	  (progn \
-	    (require (quote org)) \
-	    (require (quote ob-shell)) \
 	    (setq org-confirm-babel-evaluate nil) \
-	    (find-file "$(ORG)") \
-	    (org-texinfo-export-to-texinfo))'
+	    (find-file \"$(ORG)\") \
+	    (org-texinfo-export-to-texinfo))"
 
 open-texi: texi
-	  emacsclient $(TEXI) &
+	  $(EDITOR) $(TEXI)
 
 info: $(INFO)
 $(INFO): $(TEXI)
 	  makeinfo $(TEXI)
 open-info: info
-	  emacsclient $(INFO)
+	  $(EDITOR) $(INFO)
 
 html: $(HTML)
 $(HTML): $(TEXI)
@@ -462,40 +459,35 @@ homepage: $(ORG) upload-index-html
 create-index-html: $(INDEX)
 $(INDEX): $(ORG)
 	  echo making index.html
-	  $(EMACS) -Q --batch --eval \
-	  '(with-current-buffer (find-file-noselect "$(ORG)") \
-	     (require (quote org)) \
-	     (require (quote ob-shell)) \
+	  $(EDITOR) --eval "\
+	  (with-current-buffer (find-file-noselect "$(ORG)") \
 	     (setq org-confirm-babel-evaluate nil) \
-	     (org-link-search "#project-index-title") \
-	     (org-export-to-file (quote html) "index.html" nil t))'
+	     (org-link-search \"#project-index-title\") \
+	     (org-export-to-file (quote html) \"index.html\" nil t))"
 
 upload-index-html: $(INDEX)
 	  echo uploading index.html
 	  $(S3COPY)
 
 update: $(ORG)
-	  $(EMACS) -Q --batch --eval \
-	  '(progn \
-	     (require (quote org)) \
-	     (require (quote ob)) \
-	     (require (quote ob-shell)) \
-	     (find-file "$(TEMPLATE)") \
+	  $(EDITOR)  --eval "\
+	  (progn \
+	     (find-file \"$(TEMPLATE)\") \
 	     (goto-char (point-min)) \
-	     (search-forward "* Build Tools") \
+	     (search-forward \"* Build Tools\") \
 	     (org-beginning-of-line) \
 	     (org-copy-subtree) \
 	     (kill-buffer) \
-	     (find-file "$(ORG)") \
+	     (find-file \"$(ORG)\") \
 	     (goto-char (point-min)) \
-	     (search-forward "* Build Tools") \
+	     (search-forward \"* Build Tools\") \
 	     (org-beginning-of-line) \
 	     (org-yank) \
 	     (org-cut-subtree) \
 	     (save-buffer) \
 	     (kill-buffer) \
 	     (setq org-confirm-babel-evaluate nil) \
-	     (org-babel-tangle-file "$(ORG)"))'
+	     (org-babel-tangle-file \"$(ORG)\"))"
 
 install-aws-cli:
 	  curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
@@ -735,7 +727,7 @@ file.  It returns a message upon succuess.
 
 #+name:add-bucket-fn
 #+header: :eval never-export
-#+header: :var parsed-tree=get-parsed-tree()
+#+header: :var parsed-tree=get-parsed-org-tree()
 #+begin_src emacs-lisp
   ;;; Add a keyword named 'bucket' just after the version macro.
   ;;; This function should be run from within the directory containing the Org file.
@@ -1402,6 +1394,7 @@ boot:
 	$(EDITOR) --eval "\
 		(progn \
 			(set-buffer (find-file-noselect \"$(SYNC_ORG_TEMPLATE)\")) \
+                        (goto-char (point-min)) \
 			(re-search-forward \"^#[+]name:preprocess.el$$\") \
 			(org-babel-tangle (quote (4))))"
 	$(EMACS) -Q --batch -l tools/preprocess.el
