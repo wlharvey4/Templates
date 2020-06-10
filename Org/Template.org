@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-10 11:36
-#+macro:version Version 0.5.3
+#+date:2020-06-10 14:33
+#+macro:version Version 0.5.4
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -369,21 +369,17 @@ check:
 	  @[[ -z $${GITHUB_TOKEN} ]] && \
 	     { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
 	     printf "$${GREEN}GITHUB_TOKEN: set$${CLEAR}\n";
-	  @[ -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ] && \
+	  @[[ (-d ~/.aws) && (-f ~/.aws/credentials) && (-f ~/.aws/config) ]] && \
 	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
-	  @$(EDITOR)  --eval '\
-		  (progn \
-			  (if \
-				  (member (quote texinfo) org-export-backends) \
-				  (princ "texinfo backend: INSTALLED in org-export-backends") \
-				  (princ "texinfo backend: NOT INSTALLED in org-export-backends")) \
-			  (terpri) \
-			  (if \
-				  org-confirm-babel-evaluate \
-				  (princ "org-confirm-babel-evaluate: SET to t; consider setting to nil") \
-				  (princ "org-confirm-babel-evaluate: SET to nil")) \
-			  (terpri))'
+
+	  @[[ "$(shell $(EDITOR) --eval '(member (quote texinfo) org-export-backends)')" = "(texinfo)" ]] && \
+		printf "Texinfo backend is INSTALLED.\n" || \
+		{ printf "Texinfo backend is NOT INSTALLED; it must be installed.\n"; exit 1; }
+
+	  @[[ $(shell $(EDITOR) --eval '(symbol-value org-confirm-babel-evaluate)') == "t" ]] && \
+		{ printf "org-confirm-babel-evaluate is T; set to NIL.\n"; exit 1; } || \
+		printf "org-confirm-babel-evaluate is NIL.\n"
 
 open-org: $(ORG)
 	  $(EDITOR) $(ORG)
@@ -406,7 +402,7 @@ info: $(INFO)
 $(INFO): $(TEXI)
 	  makeinfo $(TEXI)
 open-info: info
-	  $(EDITOR) $(INFO)
+	  $(EDITOR) $(INFO)"
 
 html: $(HTML)
 $(HTML): $(TEXI)
