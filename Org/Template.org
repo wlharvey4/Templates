@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-10 19:38
-#+macro:version Version 0.5.5
+#+date:2020-06-10 21:49
+#+macro:version Version 0.5.6
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -362,34 +362,36 @@ values: check
 	  @echo PROJ_LIST:	$(PROJ_LIST)
 
 check:
-	  @printf "$${BLUE}Checking...$${CLEAR}\n"
+	  @printf "$${BLUE}Checking dependencies...$${CLEAR}\n"
 	  @[[ -z $${AWS_S3_BUCKET} ]] && \
 	     { printf "$${RED}\$$AWS_S3_BUCKET $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
-	     printf "$${GREEN}AWS_S3_BUCKET: $${CYAN}$${AWS_S3_BUCKET}$${CLEAR}\n";
+	     printf "$${CYAN}AWS_S3_BUCKET: $${GREEN}$${AWS_S3_BUCKET}$${CLEAR}\n";
 	  @[[ -z $${GITHUB_TOKEN} ]] && \
 	     { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
-	     printf "$${GREEN}GITHUB_TOKEN: set$${CLEAR}\n";
+	     printf "$${CYAN}GITHUB_TOKEN: $${GREEN}SET$${CLEAR}\n";
 	  @[[ (-d ~/.aws) && (-f ~/.aws/credentials) && (-f ~/.aws/config) ]] && \
-	     printf "$${GREEN}~/.aws credentials and config: set$${CLEAR}\n" || \
+	     printf "$${CYAN}AWS credentials and config: $${GREEN}SET$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
 
 	  @[[ "$(shell $(EDITOR) --eval '(member (quote texinfo) org-export-backends)')" = "(texinfo)" ]] && \
-		printf "$${CYAN}Texinfo backend:$${CLEAR} $${GREEN}INSTALLED.$${CLEAR}\n" || \
+		printf "$${CYAN}Texinfo backend: $${GREEN}INSTALLED.$${CLEAR}\n" || \
 		{ printf "$${YELLOW}Texinfo backend:$${CLEAR} $${RED}NOT INSTALLED; it must be installed.$${CLEAR}\n"; exit 1; }
 
 	  @[[ $(shell $(EDITOR) --eval '(symbol-value org-confirm-babel-evaluate)') == "t" ]] && \
 		{ printf "$${YELLOW}org-confirm-babel-evaluate:$${CLEAR} $${RED}T; set to NIL.$${CLEAR}\n"; exit 1; } || \
-		printf "$${CYAN}org-confirm-babel-evaluate:$${CLEAR} $${GREEN}NIL.$${CLEAR}\n\n"
+		printf "$${CYAN}org-confirm-babel-evaluate: $${GREEN}OFF.$${CLEAR}\n\n"
 
 open-org: $(ORG)
-	  $(EDITOR) $(ORG)
+	  $(EDITOR) -n $(ORG)
 $(ORG):
 	  @echo 'THERE IS NO $(ORG) FILE!!!'
 	  exit 1
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
-	  $(EDITOR) -u --eval '(with-current-buffer (find-file-noselect "$(ORG)")(org-texinfo-export-to-texinfo))'
+	  $(EDITOR) -u --eval '(with-current-buffer (find-file-noselect "$(ORG)" t) \
+	  			  (org-texinfo-export-to-texinfo) \
+				  (kill-buffer))'
 
 open-texi: texi
 	  $(EDITOR) $(TEXI)
@@ -1384,13 +1386,14 @@ variable is set to use ~emacsclient~.
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
-	$(EDITOR) --eval '\
-		(progn \
-			(set-buffer (find-file-noselect "$(SYNC_ORG_TEMPLATE)")) \
+	$(EDITOR) -u --eval '\
+		(with-current-buffer \
+			(find-file-noselect "$(SYNC_ORG_TEMPLATE)") \
                         (goto-char (point-min)) \
 			(re-search-forward "^#[+]name:preprocess.el$$") \
-			(org-babel-tangle (quote (4))))'
-	$(EMACS) -Q --batch -l tools/preprocess.el
+			(org-babel-tangle (quote (4))) \
+			(kill-buffer))'
+	./tools/preprocess.el
 #+end_src
 
 ** Preprocess Env Vars
@@ -1406,11 +1409,12 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+name:preprocess.el
 #+header: :mkdirp t
 #+header: :tangle tools/preprocess.el
+#+header: :shebang "#!/opt/local/bin/emacs --script"
 #+begin_src emacs-lisp
   (with-current-buffer (find-file-noselect "Template.org")
     (goto-char (point-min))
     (let ((re-search-str ":tangle \\(.*?/Dev\\)/")
-	      (dev (getenv "DEV")))
+	  (dev (getenv "DEV")))
       (while
 	      (re-search-forward re-search-str nil t)
 	      (replace-match dev t nil nil 1)))
