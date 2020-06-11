@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-11 00:54
-#+macro:version Version 0.5.7
+#+date:2020-06-11 19:59
+#+macro:version Version 0.5.8
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -162,7 +162,6 @@ and provides the source code for processing them in various different ways.
 
 #+name:Makefile
 #+header: :tangle Makefile
-#+header: :shebang "#!/usr/bin/env bash"
 #+begin_src makefile
 
 ###############################################################################
@@ -230,10 +229,10 @@ endif
 # there is no 'texinfo_filename', but for now it is set to return
 # 'nil' on failure, and then assign the backup value.
 
-DIR := $(shell $(EDITOR) --eval '\
-	  (with-temp-buffer (insert-file-contents "$(ORG)") \
+DIR := $(shell $(EDITOR) --eval \
+	'(with-current-buffer (find-file-noselect "$(ORG)") \
 		(re-search-forward "^\#[+]\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
-		(match-string 1))')
+		(match-string-no-properties 1))')
 ifeq ($(DIR),nil)
 	DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
@@ -252,10 +251,11 @@ endif
 # comes from the way the 'aws2 ls' command returns its values.	So VERS should probably
 # not include the trailing slash, although it doesn’t hurt anything.
 
-VERS := v$(shell $(EDITOR) --eval '\
-	(with-temp-buffer (insert-file-contents "$(ORG)") \
-		(re-search-forward "^\#[+]\\(?:macro\\|MACRO\\):version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)$$") \
-		(match-string 1))')
+VERS := v$(shell $(EDITOR) --eval \
+	'(with-current-buffer (find-file-noselect "$(ORG)") \
+		(goto-char (point-min)) \
+		(re-search-forward "^\#[+]\\(?:macro\\|MACRO\\):version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)") \
+		(match-string-no-properties 1))')/
 
 ### AWS
 # PROJ_LIST contains the list of projects currently uploaded to
@@ -389,9 +389,10 @@ $(ORG):
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
-	  $(EDITOR) -u --eval '(with-current-buffer (find-file-noselect "$(ORG)" t) \
-	  			  (org-texinfo-export-to-texinfo) \
-				  (kill-buffer))'
+	@$(EDITOR) -u --eval \
+		"(with-current-buffer (find-file-noselect \"$(ORG)\" t) \
+			(org-texinfo-export-to-texinfo) \
+			(kill-buffer))"
 
 open-texi: texi
 	  $(EDITOR) $(TEXI)
@@ -1381,13 +1382,12 @@ variable is set to use ~emacsclient~.
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
-	$(EDITOR) -u --eval '\
-		(with-current-buffer \
-			(find-file-noselect "$(SYNC_ORG_TEMPLATE)") \
-                        (goto-char (point-min)) \
-			(re-search-forward "^#[+]name:preprocess.el$$") \
+	$(EDITOR) -u --eval \
+		"(with-current-buffer (find-file-noselect \"$(SYNC_ORG_TEMPLATE)\") \
+			(goto-char (point-min)) \
+			(re-search-forward \"^#[+]name:preprocess.el$$\") \
 			(org-babel-tangle (quote (4))) \
-			(kill-buffer))'
+			(kill-buffer))"
 	./tools/preprocess.el
 #+end_src
 
