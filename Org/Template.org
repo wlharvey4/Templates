@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-10 21:49
-#+macro:version Version 0.5.6
+#+date:2020-06-11 00:54
+#+macro:version Version 0.5.7
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1013,13 +1013,13 @@ repository for the project.  Here are the steps it takes:
 	exit 1
   }
   printf "${PURPLE}"
-  read -N 1 -p "Create new directory '$1' (y/n) ?"
+  read -n 1 -p "Create new directory '$1' (y/n) ?"
   printf "${CLEAR}\n\n"
   [[ $REPLY =~ [yY] ]] && printf "${GREEN}" || exit 0
 
   mkdir -v "$1"
   printf "copy "
-  cp -v ~/Dev/Templates/Org/Template.org "$1/$1.org"
+  cp -v ${SYNC_ORG_TEMPLATE} "$1/$1.org"
   printf "${CLEAR}\n"
 
   sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
@@ -1031,19 +1031,14 @@ repository for the project.  Here are the steps it takes:
       sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
   printf "${CYAN}"
-  emacs --batch --eval \
-    '(progn
-       (require (quote org))
-       (require (quote ob))
-       (require (quote ob-shell))
-       (setq org-confirm-babel-evaluate nil)
-       (find-file '\"$1/$1.org\"')
+  ${EDITOR} --eval \
+    '(save-current-buffer
+       (set-buffer (find-file-noselect '\"$1/$1.org\"'))
        (search-forward "** Create Script")
        (org-cut-subtree)
        (search-backward "** Makefile")
        (org-babel-tangle 4)
        (save-buffer 0))'
-
   printf "${CLEAR}\n"
 
   if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
