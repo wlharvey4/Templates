@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-10 14:33
-#+macro:version Version 0.5.4
+#+date:2020-06-10 19:38
+#+macro:version Version 0.5.5
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -174,10 +174,8 @@ and provides the source code for processing them in various different ways.
 # The absolute path to this Template file
 TEMPLATE := $(SYNC_ORG_TEMPLATE)
 
-# Emacs binary, server, and init file
-EMACS	  := $(EMACS)
+# Use emacsclient as $EDITOR; make sure it is set in .bash_profile
 EDITOR	  := $(EDITOR)
-EMACS_INIT:= $(EMACS_INIT)
 
 # User’s personal GitHub token for authentication
 # DO NOT HARD-CODE THIS VALUE
@@ -340,15 +338,16 @@ S3COPY  := $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
 
 default: check texi info html pdf
 
-PHONY: check default boot all \
+PHONY: default all check values boot \
 	  texi info html pdf \
 	  open-org open-texi open-html open-pdf \
 	  clean dist-clean wiped-clean \
-	  help sync update values \
+	  help sync update \
 	  install-aws-cli \
 	  create-index-html upload-index-html
 
 values: check
+	  @printf "$${BLUE}Values...$${CLEAR}\n"
 	  @echo USER:		$(USER)
 	  @echo ORG:		$(ORG)
 	  @echo PROJ:		$(PROJ) $S
@@ -363,6 +362,7 @@ values: check
 	  @echo PROJ_LIST:	$(PROJ_LIST)
 
 check:
+	  @printf "$${BLUE}Checking...$${CLEAR}\n"
 	  @[[ -z $${AWS_S3_BUCKET} ]] && \
 	     { printf "$${RED}\$$AWS_S3_BUCKET $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
 	     printf "$${GREEN}AWS_S3_BUCKET: $${CYAN}$${AWS_S3_BUCKET}$${CLEAR}\n";
@@ -374,12 +374,12 @@ check:
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
 
 	  @[[ "$(shell $(EDITOR) --eval '(member (quote texinfo) org-export-backends)')" = "(texinfo)" ]] && \
-		printf "Texinfo backend is INSTALLED.\n" || \
-		{ printf "Texinfo backend is NOT INSTALLED; it must be installed.\n"; exit 1; }
+		printf "$${CYAN}Texinfo backend:$${CLEAR} $${GREEN}INSTALLED.$${CLEAR}\n" || \
+		{ printf "$${YELLOW}Texinfo backend:$${CLEAR} $${RED}NOT INSTALLED; it must be installed.$${CLEAR}\n"; exit 1; }
 
 	  @[[ $(shell $(EDITOR) --eval '(symbol-value org-confirm-babel-evaluate)') == "t" ]] && \
-		{ printf "org-confirm-babel-evaluate is T; set to NIL.\n"; exit 1; } || \
-		printf "org-confirm-babel-evaluate is NIL.\n"
+		{ printf "$${YELLOW}org-confirm-babel-evaluate:$${CLEAR} $${RED}T; set to NIL.$${CLEAR}\n"; exit 1; } || \
+		printf "$${CYAN}org-confirm-babel-evaluate:$${CLEAR} $${GREEN}NIL.$${CLEAR}\n\n"
 
 open-org: $(ORG)
 	  $(EDITOR) $(ORG)
@@ -389,11 +389,7 @@ $(ORG):
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
-	  $(EDITOR) --eval '\
-	  (progn \
-	    (setq org-confirm-babel-evaluate nil) \
-	    (find-file "$(ORG)") \
-	    (org-texinfo-export-to-texinfo))'
+	  $(EDITOR) -u --eval '(with-current-buffer (find-file-noselect "$(ORG)")(org-texinfo-export-to-texinfo))'
 
 open-texi: texi
 	  $(EDITOR) $(TEXI)
@@ -402,7 +398,7 @@ info: $(INFO)
 $(INFO): $(TEXI)
 	  makeinfo $(TEXI)
 open-info: info
-	  $(EDITOR) $(INFO)"
+	  $(EDITOR) $(INFO)
 
 html: $(HTML)
 $(HTML): $(TEXI)
@@ -509,6 +505,7 @@ dist-clean: clean
 
 wipe-clean: dist-clean
 	  -rm -rf Makefile Readme.md $(DIR_OLD)
+	  git checkout Makefile README.md
 
 help:
 	  @echo '"make default" makes the .texi file, the .info file, \
