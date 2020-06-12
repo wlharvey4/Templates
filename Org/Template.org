@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-11 19:59
-#+macro:version Version 0.5.8
+#+date:2020-06-12 07:14
+#+macro:version Version 0.5.9
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -420,9 +420,9 @@ $(PDF): $(TEXI)
 open-pdf: pdf
 	  open $(PDF)
 
-sync: $(HTML)
-	  $(S3SYNC)
-	  [[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
+sync:	$(HTML)
+	$(S3SYNC)
+	[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
 # key on the GitHub repo page with the current version number.	It
@@ -465,8 +465,8 @@ upload-index-html: $(INDEX)
 	  $(S3COPY)
 
 update: $(ORG)
-	  $(EDITOR)  --eval '\
-	  (progn \
+	$(EDITOR) -u --eval '\
+	(progn \
 	     (find-file "$(TEMPLATE)") \
 	     (goto-char (point-min)) \
 	     (search-forward "* Build Tools") \
@@ -715,11 +715,11 @@ This command utility takes two arguments:
 2. The name of an AWS S3 bucket
 
 
-It checkes whether the Org file in the present working directory has a
-"#+bucket: keyword".  If it does, then it simply returns nil.  If it does not,
+It checks whether the Org file in the present working directory has a
+"#+bucket: keyword". If it does, then it simply returns nil. If it does not,
 then it adds that bucket name as a keyword (e.g. "#+bucket:pinecone-forest") to
 the Org file right after where the =version= macro is located, and saves the
-file.  It returns a message upon succuess.
+file. It returns a message upon succuess.
 
 #+name:add-bucket-fn
 #+header: :eval never-export
@@ -800,12 +800,11 @@ single string that can be separated into individual links by breaking the
 string on spaces.
 
 #+name:bucket-projects-list
-#+header: :results output
-#+header: :eval neverexport
+#+header: :results raw
+#+header: :eval never-export
 #+header: :var bucket=s3-bucket-url()
 #+begin_src sh
-projs=$(aws s3 ls ${bucket})
-for project in $projs; do if [[ $project =~ "-v" ]]; then echo $project; fi; done;
+/usr/local/bin/aws s3 ls ${bucket} | sed -ne 's/^.*PRE //p'
 #+end_src
 
 *** Bucket Project Links
@@ -830,8 +829,8 @@ within a document being exported by Org to the HTML format.
     :export_file_name: index.html
     :export_subtitle: {{{version}}} created {{{upload-date}}}
     :END:
-    #+html_doctype: html5
-    #+options: toc:nil html5-fancy:t
+#+html_doctype: html5
+#+options: toc:nil html5-fancy:t
 
 #+html: <hr>
 
