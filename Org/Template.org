@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-12 09:23
-#+macro:version Version 0.5.10
+#+date:2020-06-12 12:02
+#+macro:version Version 0.5.11
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -453,11 +453,11 @@ homepage: $(ORG) upload-index-html
 
 create-index-html: $(INDEX)
 $(INDEX): $(ORG)
-	  echo making index.html
-	  $(EDITOR) --eval \
-	  "(with-current-buffer (find-file-noselect \"$(ORG)\") \
-	     (org-link-search \"#project-index-title\") \
-	     (org-export-to-file (quote html) \"index.html\" nil t))"
+	@echo making index.html
+	$(EDITOR) --eval \
+	"(with-current-buffer (find-file-noselect \"$(ORG)\") \
+		(org-link-search \"#project-index-title\") \
+		(org-export-to-file (quote html) \"index.html\" nil t))"
 
 upload-index-html: $(INDEX)
 	  echo uploading index.html
@@ -764,7 +764,19 @@ must be set up to serve this ~index.html~ when the user hits the root.
    (save-excursion
      (goto-char (point-min))
      (re-search-forward "^#\\+bucket:\\s*?\\(.*\\)$" nil t)
-     (match-string 1))
+     (match-string-no-properties 1))
+#+end_src
+
+For some reason, ~get-bucket-name~ does not work when called from the headline
+[[#project-index-links][=Links for bucket=]] below when creating =index.html=, even if it returns as
+~(prin1 ...)~ and is set up to ~:return output~; the call receives =nil=. The
+following code from ~bucket-name~, however, works. I don't know why.
+
+#+name: bucket-name
+#+header: :results output
+#+header: :var bucket-name=get-bucket-name()
+#+begin_src emacs-lisp
+(prin1 bucket-name)
 #+end_src
 
 *** Bucket HTTPS URL
@@ -802,7 +814,6 @@ string on spaces.
 /usr/local/bin/aws s3 ls ${bucket} | sed -ne 's/^.*PRE //p'
 #+end_src
 
-
 *** Bucket Project Links
 This code uses the result from ~bucket-projects-list~ to create an unordered
 list of links to bucket projects.  The result of running this code is an
@@ -829,7 +840,7 @@ within a document being exported by Org to the HTML format.
 
 #+html: <hr>
 
-**** call_s3-bucket-url() links
+**** Links for bucket call_bucket-name()
      :PROPERTIES:
      :unnumbered: t
      :custom_id: project-index-links
@@ -999,7 +1010,7 @@ repository for the project.  Here are the steps it takes:
 #+caption:Create Script
 #+name:create-script
 #+header: :mkdirp yes
-#+header: :tangle /Users/minilolh/Dev/bin/org-template
+#+header: :tangle /usr/local/dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # $1 :=: Title
@@ -1137,7 +1148,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle /Users/minilolh/Dev/bin/switch-emacs-init
+#+header: :tangle /usr/local/dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -1181,7 +1192,7 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 
 #+name:syncrc
 #+header: :mkdirp yes
-#+header: :tangle /Users/minilolh/Dev/bin/syncrc
+#+header: :tangle /usr/local/dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
