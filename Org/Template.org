@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-12 20:04
-#+macro:version Version 0.5.12
+#+date:2020-06-13 15:58
+#+macro:version Version 0.5.13
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -146,18 +146,19 @@ and provides the source code for processing them in various different ways.
 ** Makefile					:dependencies:env_vars:perl:
 :PROPERTIES:
 :appendix: t
-:dependency1: "make"
-:dependency2: "aws" cli v2 in PATH https://docs.aws.amazon.com/cli/index.html
-:dependency2.1: "~/.aws/credentials" "~/.aws/config"
-:dependency2.2: Install AWS CLI v2 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
-:dependency3: "S3 bucket set up for serving a static web page"
-:dependency4: "GitHub Account with personal token"
-:dependency5: "texinfo @6.7.0"
-:env_var1: SYNC_ORG_TEMPLATE: the path to this Template.org file
-:env_var2: AWS_S3_BUCKET: the name of an S3 bucket to use, e.g. "pinecone-forest.com"
-:env_var3: GITHUB_TOKEN: a personal access token stored on GitHub
-:env_var4: EMACS: the 'emacs' command to call for batch operations
-:env_var5: EMACS_INIT: the path to Emac’s 'init' file
+:dependency1: make
+:dependency2.0: AWS User account at https://aws.amazon.com
+:dependency2.1: AWS cli v2 in PATH https://docs.aws.amazon.com/cli/index.html
+:dependency2.2: See how to Install AWS CLI v2 at https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
+:dependency2.3: aws credentials: access token and secret access token stored in ~/.aws/credentials
+:dependency2.4: AWS S3 buckets set up for serving a static web page
+:dependency3: GitHub Account with personal access token stored in GITHUB_TOKEN
+:dependency4: texinfo @6.7._
+:dependency5: Emacs, Org-mode, Babel language 'shell' enabled
+:env_var1: SYNC_ORG_TEMPLATE: holds the full path to this Template.org file
+:env_var2: GITHUB_TOKEN: holds the GitHub personal access token
+:env_var3: EDITOR: must hold a reference to a working emacsclient server
+:env_var4: COLORS
 :END:
 
 #+name:Makefile
@@ -181,6 +182,7 @@ GITHUB_TOKEN := $(GITHUB_TOKEN)
 
 ### END OF USER-DEPENDENT VARIABLES
 ###############################################################################
+### MAKE-GENERATED VARIABLES
 
 ### PROJ AND ORG
 # ORG is the name of this Org file
@@ -221,12 +223,13 @@ S3  := $(AWS) s3
 # The AWS region of choice; this can also be in .aws/config
 REGION := --region us-west-2
 
-### DIR:
-# This is the .info name found at '#+texinfo_filename:<DIR>.info' (at
+### DIR, SRC
+# DIR is the .info name found at '#+texinfo_filename:<DIR>.info' (at
 # the bottom of this file in the export configuration settings)
 # without its extension, used as the INFO filename and the name of the
 # HTML export directory; this code uses the lowercased PROJ name if
 # there is no '#+texinfo_filename'.
+# SRC is HTML directory based upon the DIR name
 
 # NOTE: 're-search-forward' will either return an error or 'nil',
 # depending on the value of the third argument, if the search fails.
@@ -245,9 +248,11 @@ ifeq ($(DIR),nil)
 	DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
 
+SRC := $(DIR)/
+
 ### VERS: v1.2.34/
-# The version number of this Org document.
-# If sync is run after the version number has been updated, then VERS
+# VERS is the version number of this Org document.
+# When sync is run after the version number has been updated, then VERS
 # picks up the newly-changed value.  VERS used to be staticly imbedded
 # when the Makefile was tangled, but it needs to be dynamic for
 # development.
@@ -273,7 +278,7 @@ VERS := v$(shell $(EDITOR) --eval \
 
 PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
 
-### S3PROJ
+### PROJ_LIST
 # The name of the current project as obtained from S3: 'proj-v1.2.34/'
 # If there is no current project in the S3 bucket, then assign a value equal to
 # the Org project and version instead.
@@ -321,6 +326,7 @@ USER := $(shell \
 	  )
 
 ### TOOLS & RESOURCES
+# tools is a directory holding tangled scripts, such as cmprpl
 TOOLS	:= tools
 CMPRPL	:= $(TOOLS)/cmprpl
 SAVE	:= resources
@@ -333,9 +339,7 @@ INDEX	:= index.html
 HTML	:= $(DIR)/$(INDEX)
 DIR_OLD	:= $(DIR)-old
 
-### AWS
-SRC		:= $(DIR)/
-
+### AWS S3
 DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
 DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
 EXCL_INCL:= --exclude "*" --include "*.html"
@@ -343,6 +347,8 @@ GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 S3COPY  := $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
+
+###############################################################################
 
 default: check texi info html pdf
 
@@ -352,10 +358,12 @@ PHONY: default all check values boot \
 	  clean dist-clean wiped-clean \
 	  help sync update \
 	  install-aws-cli \
-	  create-index-html upload-index-html
+	  index-html upload-index-html
 
 values: check
 	  @printf "$${BLUE}Values...$${CLEAR}\n"
+	  @echo TEMPLATE:	$(TEMPLATE)
+	  @echo EDITOR:		$(EDITOR)
 	  @echo USER:		$(USER)
 	  @echo ORG:		$(ORG)
 	  @echo PROJ:		$(PROJ) $S
@@ -398,26 +406,31 @@ $(ORG):
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
+	 @echo Making TEXI...
 	 @$(EDITOR) -u --eval \
 		"(with-current-buffer (find-file-noselect \"$(ORG)\" t) \
 			(save-excursion \
-			(org-texinfo-export-to-texinfo)))" \
-
+			(org-texinfo-export-to-texinfo)))"
+	 @echo Done making TEXI.
 open-texi: texi
 	 @$(EDITOR) $(TEXI)
 
 info: $(INFO)
 $(INFO): $(TEXI)
+	 @echo Making INFO...
 	 @makeinfo $(TEXI)
+	 @echo Done making INFO.
 open-info: info
 	 @$(EDITOR) $(INFO)
 
 html: $(HTML)
 $(HTML): $(TEXI)
+	 @echo Making HTML INFO..
 	 @makeinfo --html -o $(DIR) $(TEXI)
+	 @echo Done making HTML.
 	 $(CMPRPL) $(DIR) $(DIR_OLD)
 open-html: html
-	  @open $(HTML)
+	 @open $(HTML)
 
 # If pdftexi2dvi produces an error, it may still produce a viable PDF;
 # therefore, use --tidy.  If it produces an error, try to link the PDF;
@@ -425,13 +438,17 @@ open-html: html
 # and there will be no attempt to link.
 pdf: $(PDF)
 $(PDF): $(TEXI)
-	  -pdftexi2dvi --quiet --build=tidy $(TEXI) || ln -s $(PROJ).t2d/pdf/build/$(PDF) $(PDF)
+	 @echo Making PDF INFO...
+	 @-pdftexi2dvi --quiet --build=tidy $(TEXI) || ln -s $(PROJ).t2d/pdf/build/$(PDF) $(PDF)
+	 @echo Done making PDF.
 open-pdf: pdf
-	  open $(PDF)
+	 @open $(PDF)
 
 sync:	$(HTML)
+	@echo Syncing version $(VERS) onto $(S3VERS)...
 	$(S3SYNC)
-	[[ $(VERS) != $(S3VERS) ]] && { $(S3MOVE); make homepage; } || :
+	@echo Done syncing.
+	[[ $(VERS) != $(S3VERS) ]] && { echo Moving...; $(S3MOVE); echo Done moving.;  make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
 # key on the GitHub repo page with the current version number.	It
@@ -452,27 +469,32 @@ homepage: description = $(shell curl -s \
 # the singular case of the GitHub repo using the plural form, Templates
 # whereas the the Template.org file uses the singular form.
 homepage: $(ORG) upload-index-html
-	  curl -i \
-	     -H "Authorization: token $(GITHUB_TOKEN)" \
-	     -H "Content-Type: application/json" \
-	     -X PATCH \
-	     -d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
-		  "description":"$(description)"}' \
-	     https://api.github.com/repos/$(USER)/$(PROJ)$S
+	 @echo Updating homepage...
+	 curl -i \
+		-H "Authorization: token $(GITHUB_TOKEN)" \
+		-H "Content-Type: application/json" \
+		-X PATCH \
+		-d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
+			"description":"$(description)"}' \
+		https://api.github.com/repos/$(USER)/$(PROJ)$S
+	 @echo Done updating homepage.
 
-create-index-html: $(INDEX)
+index-html: $(INDEX)
 $(INDEX): $(ORG)
-	@echo making index.html
+	@echo making index.html...
 	$(EDITOR) --eval \
 	"(with-current-buffer (find-file-noselect \"$(ORG)\") \
 		(org-link-search \"#project-index-title\") \
 		(org-export-to-file (quote html) \"index.html\" nil t))"
+	@echo Done making index.html.
 
 upload-index-html: $(INDEX)
-	  echo uploading index.html
-	  $(S3COPY)
+	 @echo Uploading index.html...
+	 $(S3COPY)
+	 @echo Done uploading index.html
 
 update: $(ORG)
+	@echo Updating $(ORG)...
 	$(EDITOR) -u --eval '\
 	(progn \
 	     (find-file "$(TEMPLATE)") \
@@ -491,6 +513,7 @@ update: $(ORG)
 	     (kill-buffer) \
 	     (setq org-confirm-babel-evaluate nil) \
 	     (org-babel-tangle-file "$(ORG)"))'
+	 @echo Done updating $(ORG).
 
 install-aws-cli:
 	  curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
@@ -825,9 +848,9 @@ string on spaces.
 
 *** Bucket Project Links
 This code uses the result from ~bucket-projects-list~ to create an unordered
-list of links to bucket projects.  The result of running this code is an
-unordered list wrapped in an ~export html~ block, which can be called from
-within a document being exported by Org to the HTML format.
+list of links written to bucket projects, written in Org-mode syntax. It is
+executed by a =#+call:= in [[*Bucket Index][*Bucket Index]] during an HTML export of that subtree
+to a file called =index.html=.
 
 #+name: bucket-project-links
 #+header: :var b-url=bucket-https-url()
