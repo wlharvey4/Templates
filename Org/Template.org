@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-12 12:02
-#+macro:version Version 0.5.11
+#+date:2020-06-12 20:04
+#+macro:version Version 0.5.12
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -167,8 +167,7 @@ and provides the source code for processing them in various different ways.
 ###############################################################################
 ### USER-DEPENDENT VARIABLES
 ### USE ENVIRONMENT VARIABLES WHENEVER POSSIBLE
-### DO NOT HARD-CODE GITHUB_TOKEN
-### YOU ALSO NEED ~/.aws/credentials installed
+### NEED ~/.aws/credentials installed
 
 # The absolute path to this Template file
 TEMPLATE := $(SYNC_ORG_TEMPLATE)
@@ -176,30 +175,22 @@ TEMPLATE := $(SYNC_ORG_TEMPLATE)
 # Use emacsclient as $EDITOR; make sure it is set in .bash_profile
 EDITOR	  := $(EDITOR)
 
-# User’s personal GitHub token for authentication
+# User’s personal GitHub token for authentication to GitHub
 # DO NOT HARD-CODE THIS VALUE
 GITHUB_TOKEN := $(GITHUB_TOKEN)
-
-# The AWS S3 bucket to use to store the html source files
-S3_BUCKET := s3://$(AWS_S3_BUCKET)
-
-# The AWS Command Line Interface (AWS CLI) is an open source tool
-# that enables you to interact with AWS services using commands in
-# your command-line shell.
-AWS := aws
-
-# The AWS region of choice; this can also be in .aws/config
-REGION := --region us-west-2
 
 ### END OF USER-DEPENDENT VARIABLES
 ###############################################################################
 
 ### PROJ AND ORG
-# ORG is the name of this Org file with extension
-# PROJ is the name of this Org file without extension.
+# ORG is the name of this Org file
+# PROJ is the project name---this Org file without extension.
 
 ### NOTE: there can be only one Org file in the project directory;
 # so far this has not been a problem, but it might be.
+
+ORG  := $(shell ls *.org)
+PROJ := $(basename $(ORG))
 
 ### NOTE: S is needed only for the Template file because of the way it is nested
 # one level deep in the Templates GitHub repo, which uses the plural form
@@ -208,12 +199,27 @@ REGION := --region us-west-2
 # form.	 This is obviously a hack only for my own use and can be removed once
 # I clean up this anomaly.
 
-ORG  := $(shell ls *.org)
-PROJ := $(basename $(ORG))
-
 ifeq ($(PROJ),$(basename $(notdir $(TEMPLATE))))
 S := s
 endif
+
+# The AWS S3 bucket to use to store the html source file; it is found at the
+# key #+bucket towards the beginning of the file
+S3_BUCKET := s3://$(shell $(EDITOR) --eval \
+	'(with-current-buffer (find-file-noselect "$(ORG)") \
+		(save-excursion \
+		(goto-char (point-min)) \
+		(re-search-forward "^\#[+]bucket:\\(.*\\)$$") \
+		(match-string-no-properties 1)))').com
+
+# The AWS Command Line Interface (AWS CLI) is an open source tool
+# that enables you to interact with AWS services using commands in
+# your command-line shell.
+AWS := aws
+S3  := $(AWS) s3
+
+# The AWS region of choice; this can also be in .aws/config
+REGION := --region us-west-2
 
 ### DIR:
 # This is the .info name found at '#+texinfo_filename:<DIR>.info' (at
@@ -231,8 +237,10 @@ endif
 
 DIR := $(shell $(EDITOR) --eval \
 	'(with-current-buffer (find-file-noselect "$(ORG)") \
+		(save-excursion \
+		(goto-char (point-min)) \
 		(re-search-forward "^\#[+]\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
-		(match-string-no-properties 1))')
+		(match-string-no-properties 1)))')
 ifeq ($(DIR),nil)
 	DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
@@ -253,9 +261,10 @@ endif
 
 VERS := v$(shell $(EDITOR) --eval \
 	'(with-current-buffer (find-file-noselect "$(ORG)") \
+		(save-excursion \
 		(goto-char (point-min)) \
 		(re-search-forward "^\#[+]\\(?:macro\\|MACRO\\):version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)") \
-		(match-string-no-properties 1))')/
+		(match-string-no-properties 1)))')/
 
 ### AWS
 # PROJ_LIST contains the list of projects currently uploaded to
@@ -325,12 +334,11 @@ HTML	:= $(DIR)/$(INDEX)
 DIR_OLD	:= $(DIR)-old
 
 ### AWS
-S3		:= $(AWS) s3
 SRC		:= $(DIR)/
 
 DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
 DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
-EXCL_INCL	:= --exclude "*" --include "*.html"
+EXCL_INCL:= --exclude "*" --include "*.html"
 GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
@@ -351,6 +359,7 @@ values: check
 	  @echo USER:		$(USER)
 	  @echo ORG:		$(ORG)
 	  @echo PROJ:		$(PROJ) $S
+	  @echo S3_BUCKET	$(S3_BUCKET)
 	  @echo VERS:		$(VERS)
 	  @echo S3PROJ:		$(S3PROJ)
 	  @echo S3VERS:		$(S3VERS)
@@ -382,33 +391,33 @@ check:
 		printf "$${CYAN}org-confirm-babel-evaluate: $${GREEN}OFF.$${CLEAR}\n\n"
 
 open-org: $(ORG)
-	  $(EDITOR) -n $(ORG)
+	  @$(EDITOR) -n $(ORG)
 $(ORG):
 	  @echo 'THERE IS NO $(ORG) FILE!!!'
 	  exit 1
 
 texi: $(TEXI)
 $(TEXI): $(ORG)
-	@$(EDITOR) -u --eval \
+	 @$(EDITOR) -u --eval \
 		"(with-current-buffer (find-file-noselect \"$(ORG)\" t) \
-			(org-texinfo-export-to-texinfo) \
-			(kill-buffer))"
+			(save-excursion \
+			(org-texinfo-export-to-texinfo)))" \
 
 open-texi: texi
-	  $(EDITOR) $(TEXI)
+	 @$(EDITOR) $(TEXI)
 
 info: $(INFO)
 $(INFO): $(TEXI)
-	  makeinfo $(TEXI)
+	 @makeinfo $(TEXI)
 open-info: info
-	  $(EDITOR) $(INFO)
+	 @$(EDITOR) $(INFO)
 
 html: $(HTML)
 $(HTML): $(TEXI)
-	  makeinfo --html -o $(DIR) $(TEXI)
-	  $(CMPRPL) $(DIR) $(DIR_OLD)
+	 @makeinfo --html -o $(DIR) $(TEXI)
+	 $(CMPRPL) $(DIR) $(DIR_OLD)
 open-html: html
-	  open $(HTML)
+	  @open $(HTML)
 
 # If pdftexi2dvi produces an error, it may still produce a viable PDF;
 # therefore, use --tidy.  If it produces an error, try to link the PDF;
