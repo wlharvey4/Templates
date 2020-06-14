@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-14 03:08
-#+macro:version Version 0.5.14
+#+date:2020-06-14 03:19
+#+macro:version Version 0.5.15
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -485,8 +485,9 @@ $(INDEX): $(ORG)
 	@echo making index.html...
 	$(EDITOR) --eval \
 	"(with-current-buffer (find-file-noselect \"$(ORG)\") \
+		(save-excursion \
 		(org-link-search \"#project-index-title\") \
-		(org-export-to-file (quote html) \"index.html\" nil t))"
+		(org-export-to-file (quote html) \"index.html\" nil t)))"
 	@echo Done making index.html.
 
 upload-index-html: $(INDEX)
@@ -498,13 +499,14 @@ update: $(ORG)
 	@echo Updating $(ORG)...
 	$(EDITOR) -u --eval '\
 	(progn \
-	     (find-file "$(TEMPLATE)") \
+	(with-current-buffer (find-file-noselect "$(TEMPLATE)") \
+	     (save-excursion \
 	     (goto-char (point-min)) \
 	     (search-forward "* Build Tools") \
 	     (org-beginning-of-line) \
-	     (org-copy-subtree) \
-	     (kill-buffer) \
-	     (find-file "$(ORG)") \
+	     (org-copy-subtree))) \
+	(with-current-buffer (find-file-noselect "$(ORG)") \
+	     (save-excursion \
 	     (goto-char (point-min)) \
 	     (search-forward "* Build Tools") \
 	     (org-beginning-of-line) \
@@ -513,7 +515,7 @@ update: $(ORG)
 	     (save-buffer) \
 	     (kill-buffer) \
 	     (setq org-confirm-babel-evaluate nil) \
-	     (org-babel-tangle-file "$(ORG)"))'
+	     (org-babel-tangle-file "$(ORG)"))))'
 	 @echo Done updating $(ORG).
 
 install-aws-cli:
