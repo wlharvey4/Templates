@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-13 15:58
-#+macro:version Version 0.5.13
+#+date:2020-06-14 03:08
+#+macro:version Version 0.5.14
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -458,26 +458,27 @@ sync:	$(HTML)
 # This value is used by the “homepage:” target in the PATCH call.
 # This method is arguably harder to code but faster to run than using
 # Perl with the JSON::PP module.
-homepage: description = $(shell curl -s \
-	       -H "Authorization: token $(GITHUB_TOKEN)" \
-	       https://api.github.com/repos/$(USER)/$(PROJ)$S | \
-	       perl -ne 'if (/(?:^\s*\"description\":)\s*\"(.*)(?::\s*v(?:(?:\d+\.?)+\/)?\",)$$/) { \
-		    print "$$1: $(VERS)"; \
-		}')
+
+homepage: description = $(shell \
+	curl -s \
+		-H "Authorization: token $(GITHUB_TOKEN)" \
+		https://api.github.com/repos/$(USER)/$(PROJ)$S | \
+		(perl -ne 'if (/^\s*\"description\":\s*\"(.*): v(?:(?:[[:digit:]]+[.]?){3})/) {print $$1}'))
 
 ### NOTE the use of the S variable at the end of PROJ; this is to handle
 # the singular case of the GitHub repo using the plural form, Templates
 # whereas the the Template.org file uses the singular form.
 homepage: $(ORG) upload-index-html
-	 @echo Updating homepage...
-	 curl -i \
+	  @echo Updating homepage...
+	  @echo $(description)
+	  @curl -i \
 		-H "Authorization: token $(GITHUB_TOKEN)" \
 		-H "Content-Type: application/json" \
 		-X PATCH \
-		-d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)", \
-			"description":"$(description)"}' \
+		-d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-'$(VERS)'",\
+		     "description":"$(description): '$(VERS)'"}' \
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
-	 @echo Done updating homepage.
+	  @echo Done updating homepage.
 
 index-html: $(INDEX)
 $(INDEX): $(ORG)
