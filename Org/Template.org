@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-14 03:19
-#+macro:version Version 0.5.15
+#+date:2020-06-14 11:07
+#+macro:version Version 0.5.16
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -729,7 +729,7 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 
 #+name:run-org-tree-cid-p
 #+header: :var cid="build-tools"
-#+header: :var dir="~/Dev/Emacs/MasteringEmacs"
+#+header: :var dir="/usr/local/dev/programming/MasteringEmacs"
 #+header: :var gpot=get-parsed-org-tree()
 #+header: :var otcp=org-tree-cid-p()
 #+header: :results value
@@ -738,10 +738,7 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 (org-tree-cid-p cid dir)
 #+end_src
 
-#+call: run-org-tree-cid-p(dir="~/Dev/Emacs/MasteringEmacs")
-
-#+RESULTS:
-: t
+#+call: run-org-tree-cid-p(dir="/usr/local/dev/programming/MasteringEmacs")
 
 *** Add Bucket
 This command utility takes two arguments:
@@ -1007,38 +1004,41 @@ nil
 * Build Scripts
 ** Create Script					      :dependencies:
 :PROPERTIES:
-:dependency1: "${DEV}/bin/org-template"
-:dependency2: "cp -v ${DEV}/Templates/Org/Template.org "$1/$1.org
+:dependency1: org-template must be in $DEV/bin
+:dependency2: SYNC_ORG_TEMPLATE must be set as an environment variable
 :dependency3: "COLORS from profile"
-:dependency4: tree
-:dependency5: git
+:dependency4: tree command
+:dependency5: git command
 :END:
-This code is a script file to create a new project from this template.	It is
-called from the command line as ~org-template <project> [<author>]~.  It takes
-one required, and up to two optional arguments.	 The required argument is the
-name of the project.  One optional argument is the name of the author.	The
-other optional argument is the term =git=, meaning to initialize a =git=
-repository for the project.  Here are the steps it takes:
+This code is a script file to create a new project from this template. It is
+tangled into the ~$DEV/bin~ directory and is called from the command line as
+~org-template <project> [<author>] [git]~. It takes one required, and up to two
+optional arguments. The required argument is the name of the project. One
+optional argument is the name of the author. The other optional argument is the
+term =git=, meaning to initialize a =git= repository for the project. Here are
+the steps it takes:
 
 1. It creates a new directory in the current working directory using the
    =project= argument.
 
-2. It copies this template into it as a new Org file using, again, the name
-   of the project.
+2. It copies this template into it (using the environment variable
+   =SYNC_ORG_TEMPLATE= to find it) as a new Org file using, again, the name of
+   the project.
 
-3. It then updates the title to the project name, and optionally the author,
-   using the =author= argument if it was given.
+3. It then updates the title to the project name, the date, sets the version
+   number to =0.0.0=, and optionally adds the author, using the =author=
+   argument if it was given.
 
-4. It then deletes this script from the new Org project file.
+4. It then deletes this script from the new Org project file, as it is not
+   needed by a project file.
 
-5. It then tangles the ~README.md~ and the ~tools/cmprpl~ files into the
-   project.
+5. It then tangles Boot Makefile and the default ~README.md~ into the project.
 
-6. If the term ='git'= is supplied, it initializes a new Git repository,
-   creates a basic ~.gitignore~ file in it, adds the Org file and the
-   ~README.md~ file and makes an initial Git commit.
+6. If the term ='git'= is supplied as an argument, it initializes a new Git
+   repository, creating a basic ~.gitignore~ file in it, adding the Org file
+   and the ~README.md~ file and finally making an initial Git commit.
 
-7. Finally, it prints an outline of the project’s structure using the ~tree~
+7. Last, it prints an outline of the project’s structure using the ~tree~
    command.
 
 
@@ -1073,13 +1073,16 @@ repository for the project.  Here are the steps it takes:
 
   printf "${CYAN}"
   ${EDITOR} --eval \
-    '(save-current-buffer
-       (set-buffer (find-file-noselect '\"$1/$1.org\"'))
-       (search-forward "** Create Script")
-       (org-cut-subtree)
-       (search-backward "** Makefile")
-       (org-babel-tangle 4)
-       (save-buffer 0))'
+    "(with-current-buffer (find-file-noselect \"$1/$1.org\")
+	(save-excursion
+	(goto-char (point-min))
+	(re-search-forward \"#[+]name:project-readme$\")
+	(org-babel-tangle (quote (4)))
+	(search-forward \"** Create Script\")
+	(org-cut-subtree)
+	(save-buffer)
+	(re-search-forward \"^#[+]name:boot-template$\")
+	(org-babel-tangle (quote (4)))))"
   printf "${CLEAR}\n"
 
   if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
@@ -1103,12 +1106,10 @@ repository for the project.  Here are the steps it takes:
 
 	  git add .
 	  git commit -m "Initial commit of Project $1"
-	  git log --stat
-
       }
+  cd ..
   fi
 
-  cd ..
   printf "${PURPLEBOLD}\n"
   pwd
   printf "${CLEAR}"
@@ -1419,6 +1420,7 @@ INFO, HTML, and PDF forms.
 It is assumed that an Emacs server is running, and that the $EDITOR environment
 variable is set to use ~emacsclient~.
 
+#+name:boot-template
 #+header: :tangle Makefile
 #+begin_src makefile
 boot:
