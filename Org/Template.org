@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-14 11:07
-#+macro:version Version 0.5.16
+#+date:2020-06-15 09:39
+#+macro:version Version 0.5.17
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1045,55 +1045,71 @@ the steps it takes:
 #+caption:Create Script
 #+name:create-script
 #+header: :mkdirp yes
-#+header: :tangle /usr/local/dev/bin/org-template
+#+header: :tangle /Users/minilolh/Dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
-  # $1 :=: Title
+  # org-template
+
+  USAGE='
+  '"$0..."'
+  org-template -h | --help
+  org-template <Project> [<Author>] [git]
+  org-template -u | --update
+  '
+
+  if [[ $1 =~ ^-(h|-help)$ ]]; then
+          printf "HELP:\n$USAGE"
+          exit 0
+  fi
+
+  if [[ $1 =~ ^-(u|-update)$ ]]; then
+          printf "UPDATE:\n"
+          exit 0;
+  fi
+
   [[ ($# -ge 1) && ($# -le 3) ]] || {
-  printf "${RED}ERROR: ${YELLOW}\'org-template ${RED}<TITLE>${YELLOW} [<AUTHOR>] ['git']\'${CLEAR}\n"
-	exit 1
+      printf "${RED}ARGUMENTS ERROR:${CLEAR}$USAGE\n"
+      exit 1
   }
-  printf "${PURPLE}"
-  read -n 1 -p "Create new directory '$1' (y/n) ?"
-  printf "${CLEAR}\n\n"
-  [[ $REPLY =~ [yY] ]] && printf "${GREEN}" || exit 0
 
-  mkdir -v "$1"
-  printf "copy "
-  cp -v ${SYNC_ORG_TEMPLATE} "$1/$1.org"
-  printf "${CLEAR}\n"
+  template-create () {
+      mkdir -v "$1"
+      printf "copy "
+      cp -v ${SYNC_ORG_TEMPLATE} "$1/$1.org"
+      printf "${CLEAR}\n"
 
-  sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
-		-Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
-		-Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
-		-Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
-		"$1/$1.org"
-  [[ $# -ge 2 ]] && \
-      sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
+      sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
+          -Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
+          -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
+          -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
+          "$1/$1.org"
 
-  printf "${CYAN}"
-  ${EDITOR} --eval \
-    "(with-current-buffer (find-file-noselect \"$1/$1.org\")
-	(save-excursion
-	(goto-char (point-min))
-	(re-search-forward \"#[+]name:project-readme$\")
-	(org-babel-tangle (quote (4)))
-	(search-forward \"** Create Script\")
-	(org-cut-subtree)
-	(save-buffer)
-	(re-search-forward \"^#[+]name:boot-template$\")
-	(org-babel-tangle (quote (4)))))"
-  printf "${CLEAR}\n"
+      [[ $# -ge 2 ]] && \
+          sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
-  if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
-  then
-      cd $1 && {
-	  rm *~
-	  printf "${YELLOWBOLD}"
-	  git init
-	  printf "${CLEAR}"
+      printf "${CYAN}"
+      ${EDITOR} --eval \
+                "(with-current-buffer (find-file-noselect \"$1/$1.org\")
+          (save-excursion
+          (goto-char (point-min))
+          (re-search-forward \"#[+]name:project-readme$\")
+          (org-babel-tangle (quote (4)))
+          (search-forward \"** Create Script\")
+          (org-cut-subtree)
+          (save-buffer)
+          (re-search-forward \"^#[+]name:boot-template$\")
+          (org-babel-tangle (quote (4)))))"
+      printf "${CLEAR}\n"
 
-	  echo "\
+      if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
+      then
+          cd $1 && {
+              rm *~
+              printf "${YELLOWBOLD}"
+              git init
+              printf "${CLEAR}"
+
+              echo "\
   .gitignore
   Makefile
   ,*~
@@ -1104,16 +1120,24 @@ the steps it takes:
   ,*-old
   tools" > .gitignore
 
-	  git add .
-	  git commit -m "Initial commit of Project $1"
-      }
-  cd ..
-  fi
+              git add .
+              git commit -m "Initial commit of Project $1"
+          }
+          cd ..
+      fi
+      rm "$1"/*~
 
-  printf "${PURPLEBOLD}\n"
-  pwd
-  printf "${CLEAR}"
-  tree -aI .git $1
+      printf "${PURPLEBOLD}\n"
+      pwd
+      printf "${CLEAR}"
+      tree -aI .git $1
+  }
+
+
+  printf "${PURPLE}"
+  read -n 1 -p "Create new project: $1 (y/n) ?"
+  printf "${CLEAR}\n\n"
+  [[ $REPLY =~ [yY] ]] && template-create "$1" || exit 0
 
 #+end_src
 ** Update Script						   :env_var:
@@ -1184,7 +1208,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle /usr/local/dev/bin/switch-emacs-init
+#+header: :tangle /Users/minilolh/Dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -1228,7 +1252,7 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 
 #+name:syncrc
 #+header: :mkdirp yes
-#+header: :tangle /usr/local/dev/bin/syncrc
+#+header: :tangle /Users/minilolh/Dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
@@ -1425,7 +1449,7 @@ variable is set to use ~emacsclient~.
 #+begin_src makefile
 boot:
 	$(EDITOR) -u --eval \
-		"(with-current-buffer (find-file-noselect \"$(SYNC_ORG_TEMPLATE)\") \
+		"(with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t)) \
 			(goto-char (point-min)) \
 			(re-search-forward \"^#[+]name:preprocess.el$$\") \
 			(org-babel-tangle (quote (4))) \
@@ -1448,7 +1472,7 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+header: :tangle tools/preprocess.el
 #+header: :shebang "#!/opt/local/bin/emacs --script"
 #+begin_src emacs-lisp
-  (with-current-buffer (find-file-noselect "Template.org")
+  (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
     (goto-char (point-min))
     (let ((re-search-str ":tangle \\(.*?/Dev\\)/")
 	  (dev (getenv "DEV")))
