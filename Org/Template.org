@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-15 09:39
-#+macro:version Version 0.5.17
+#+date:2020-06-15 23:14
+#+macro:version Version 0.5.18
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1002,7 +1002,7 @@ nil
 #+end_comment
 
 * Build Scripts
-** Create Script					      :dependencies:
+** Create and Update Script                                    :dependencies:
 :PROPERTIES:
 :dependency1: org-template must be in $DEV/bin
 :dependency2: SYNC_ORG_TEMPLATE must be set as an environment variable
@@ -1010,45 +1010,54 @@ nil
 :dependency4: tree command
 :dependency5: git command
 :END:
-This code is a script file to create a new project from this template. It is
-tangled into the ~$DEV/bin~ directory and is called from the command line as
-~org-template <project> [<author>] [git]~. It takes one required, and up to two
-optional arguments. The required argument is the name of the project. One
-optional argument is the name of the author. The other optional argument is the
-term =git=, meaning to initialize a =git= repository for the project. Here are
-the steps it takes:
+This code is a script file to create a new project from this template, and also
+to update a project with updated scripts. It is tangled into the ~$DEV/bin~
+directory and is called from the command line as ~org-template <project>
+[<author>] [git]~ or as ~org-template -u | --update~. Its create mode takes one
+required, and up to two optional arguments. The required argument is the name
+of the project. One optional argument is the name of the author. The other
+optional argument is the term =git=, meaning to initialize a =git= repository
+for the project. To update a project, call ~org-template --update~ from the
+project root.
 
-1. It creates a new directory in the current working directory using the
+Here are the steps it takes:
+
+1. It checks for a call to =-h|--help=, and if found, prints the USAGE message.
+
+2. It next checks for =-u|--update=, and if found, calls the ~template-update~
+   function. Otherwise, it calls the ~template-create~ function.
+
+3. It creates a new directory in the current working directory using the
    =project= argument.
 
-2. It copies this template into it (using the environment variable
+4. It copies this template into it (using the environment variable
    =SYNC_ORG_TEMPLATE= to find it) as a new Org file using, again, the name of
    the project.
 
-3. It then updates the title to the project name, the date, sets the version
+5. It then updates the title to the project name, the date, sets the version
    number to =0.0.0=, and optionally adds the author, using the =author=
    argument if it was given.
 
-4. It then deletes this script from the new Org project file, as it is not
+6. It then deletes this script from the new Org project file, as it is not
    needed by a project file.
 
-5. It then tangles Boot Makefile and the default ~README.md~ into the project.
+7. It then tangles Boot Makefile and the default ~README.md~ into the project.
 
-6. If the term ='git'= is supplied as an argument, it initializes a new Git
+8. If the term ='git'= is supplied as an argument, it initializes a new Git
    repository, creating a basic ~.gitignore~ file in it, adding the Org file
    and the ~README.md~ file and finally making an initial Git commit.
 
-7. Last, it prints an outline of the project’s structure using the ~tree~
+9. Last, it prints an outline of the project’s structure using the ~tree~
    command.
 
 
 #+caption:Create Script
-#+name:create-script
+#+name:create-update-script
 #+header: :mkdirp yes
-#+header: :tangle /Users/minilolh/Dev/bin/org-template
+#+header: :tangle /usr/local/dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
-  # org-template
+  # org-template: create and update projects
 
   USAGE='
   '"$0..."'
@@ -1057,21 +1066,6 @@ the steps it takes:
   org-template -u | --update
   '
 
-  if [[ $1 =~ ^-(h|-help)$ ]]; then
-          printf "HELP:\n$USAGE"
-          exit 0
-  fi
-
-  if [[ $1 =~ ^-(u|-update)$ ]]; then
-          printf "UPDATE:\n"
-          exit 0;
-  fi
-
-  [[ ($# -ge 1) && ($# -le 3) ]] || {
-      printf "${RED}ARGUMENTS ERROR:${CLEAR}$USAGE\n"
-      exit 1
-  }
-
   template-create () {
       mkdir -v "$1"
       printf "copy "
@@ -1079,37 +1073,37 @@ the steps it takes:
       printf "${CLEAR}\n"
 
       sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
-          -Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
-          -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
-          -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
-          "$1/$1.org"
+	  -Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
+	  -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
+	  -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
+	  "$1/$1.org"
 
       [[ $# -ge 2 ]] && \
-          sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
+	  sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
       printf "${CYAN}"
       ${EDITOR} --eval \
-                "(with-current-buffer (find-file-noselect \"$1/$1.org\")
-          (save-excursion
-          (goto-char (point-min))
-          (re-search-forward \"#[+]name:project-readme$\")
-          (org-babel-tangle (quote (4)))
-          (search-forward \"** Create Script\")
-          (org-cut-subtree)
-          (save-buffer)
-          (re-search-forward \"^#[+]name:boot-template$\")
-          (org-babel-tangle (quote (4)))))"
+      "(with-current-buffer (find-file-noselect \"$1/$1.org\")
+	 (save-excursion
+	  (goto-char (point-min))
+	  (re-search-forward \"#[+]name:project-readme$\")
+	  (org-babel-tangle (quote (4)))
+	  (search-forward \"** Create Script\")
+	  (org-cut-subtree)
+	  (save-buffer)
+	  (re-search-forward \"^#[+]name:boot-template$\")
+	  (org-babel-tangle (quote (4)))))"
       printf "${CLEAR}\n"
 
       if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
       then
-          cd $1 && {
-              rm *~
-              printf "${YELLOWBOLD}"
-              git init
-              printf "${CLEAR}"
+	  cd $1 && {
+	      rm *~
+	      printf "${YELLOWBOLD}"
+	      git init
+	      printf "${CLEAR}"
 
-              echo "\
+	      echo "\
   .gitignore
   Makefile
   ,*~
@@ -1120,10 +1114,10 @@ the steps it takes:
   ,*-old
   tools" > .gitignore
 
-              git add .
-              git commit -m "Initial commit of Project $1"
-          }
-          cd ..
+	      git add .
+	      git commit -m "Initial commit of Project $1"
+	  }
+	  cd ..
       fi
       rm "$1"/*~
 
@@ -1131,57 +1125,63 @@ the steps it takes:
       pwd
       printf "${CLEAR}"
       tree -aI .git $1
+
+      return 0
+  }
+
+  template-update() {
+      ${EDITOR} -u --eval \
+	       "(progn
+		 (with-current-buffer (find-file-noselect (getenv \"SYNC_ORG_TEMPLATE\"))
+		  (save-excursion
+		   (goto-char (point-min))
+		   (org-link-search \"#build-tools\")
+		   (org-copy-subtree 2)))
+		 (with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t))
+		  (save-excursion
+		    (goto-char (point-min))
+		    (org-link-search \"#build-tools\")
+		    (org-paste-subtree 1 nil t t)
+		    (org-cut-subtree 2)
+		    (save-buffer))))"
+
+      return 0;
+  }
+
+  main () {
+      case $1 in
+	  create)
+
+	      printf "${PURPLE}"
+	      read -n 1 -p "Create new project: $2 (y/n) ?"
+	      printf "${CLEAR}\n\n"
+	      [[ $REPLY =~ [yY] ]] && template-create "$2" || exit 0
+	      ;;
+
+	  update)
+
+	      template-update
+	      ;;
+      esac
+      exit 0
   }
 
 
-  printf "${PURPLE}"
-  read -n 1 -p "Create new project: $1 (y/n) ?"
-  printf "${CLEAR}\n\n"
-  [[ $REPLY =~ [yY] ]] && template-create "$1" || exit 0
+  if [[ $1 =~ ^-(h|-help)$ ]]; then
+	  printf "HELP:\n$USAGE"
+	  exit 0
+  fi
 
-#+end_src
-** Update Script						   :env_var:
-:PROPERTIES:
-:env_var1: (find-file-noselect (getenv "SYNC_ORG_TEMPLATE"))
-:END:
-This code is a script file to update the Build Tools subtree in a current
-project with the updated Build Tools subtree from this template.  It copies the
-outline structure of the Build Tools from this template file and yanks it into
-the current project’s Org file and delete’s the old, outdated Build Tools
-subtree.
+  if [[ $1 =~ ^-(u|-update)$ ]]; then
+	  printf "UPDATE:\n"
+	  main update
+  fi
 
-Note that there is also a version of this script in the Makefile that is run
-from the command line using the ~make update~ command.	This code is an
-interactive Elisp function that can be loaded into memory using =C-x C-e= and
-then run interactively from within the project Org as =M-x update-build-tools=.
+  [[ ($# -ge 1) && ($# -le 3) ]] && { printf "CREATE:\n";  main create $1; } || {
+      printf "${RED}ARGUMENTS ERROR:${CLEAR}$USAGE\n"
+      exit 1
+  }
 
-#+caption:Update Build Tools Script
-#+name:update-build-tools
-#+begin_src emacs-lisp -n
-  (defun update-build-tools (of-filenm)
-    "Update the Build Tools of the argument file, which should be
-  an Org file with a current Build Tools subtree."
-    (interactive "ffile: ")
-    (require (quote org))
-    (save-current-buffer
-	(set-buffer
-	 (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
-	(save-excursion
-	  (goto-char (point-min))
-	  (search-forward "* Build Tools")
-	  (org-beginning-of-line)
-	  (org-copy-subtree))
-	(set-buffer
-	 (find-file-noselect of-filenm))
-	(save-excursion
-	  (goto-char (point-min))
-	  (search-forward "* Build Tools")
-	  (org-beginning-of-line)
-	  (org-yank)
-	  (org-cut-subtree)
-	  (org-backward-heading-same-level 1)
-	  (save-buffer)
-	  (org-babel-tangle))))
 #+end_src
 ** Add Readme
 This script adds the README.md template to a project.  It should not be
@@ -1208,7 +1208,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle /Users/minilolh/Dev/bin/switch-emacs-init
+#+header: :tangle /usr/local/dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -1252,7 +1252,7 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 
 #+name:syncrc
 #+header: :mkdirp yes
-#+header: :tangle /Users/minilolh/Dev/bin/syncrc
+#+header: :tangle /usr/local/dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
