@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-17 12:18
-#+macro:version Version 0.5.24
+#+date:2020-06-17 12:30
+#+macro:version Version 0.5.25
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -118,6 +118,13 @@ most recently uploaded version.
 - State "TODO"       from              [2020-06-09 Tue 23:36] \\
   Provide function to collect all dependencies and list; or perhaps test
 :END:
+*** TODO Add link to main index.html file
+:LOGBOOK:
+- State "TODO"       from              [2020-06-17 Wed 12:30] \\
+  Want to create a link from project index.html files to the root
+  index.html files.
+:END:
+
 * Chapter
 
 * Build Tools
