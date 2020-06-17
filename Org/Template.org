@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-17 11:35
-#+macro:version Version 0.5.23
+#+date:2020-06-17 12:18
+#+macro:version Version 0.5.24
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -151,7 +151,6 @@ most recently uploaded version.
 ###############################################################################
 ### USER-DEPENDENT VARIABLES
 ### USE ENVIRONMENT VARIABLES WHENEVER POSSIBLE
-### NEED ~/.aws/credentials installed
 
 # NOTE: All environment variables need to be exported PRIOR to starting the
 # Emacs server as EDITOR in your shell startup files; otherwise, they will not
@@ -175,7 +174,8 @@ GITHUB_TOKEN := $(GITHUB_TOKEN)
 # that enables you to interact with AWS services using commands in
 # your command-line shell.  It must be present on your system.  Run the 'make'
 # command 'install-aws-cli' to install it if you do not have it.  Be sure to
-# run 'aws configure' after installing it.
+# run 'aws configure' after installing it.  This will place your AWS
+# credentials into ~/.aws/credentials.
 AWS := aws
 S3  := $(AWS) s3
 
@@ -1000,36 +1000,43 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
 #+begin_src emacs-lisp
   (defun create-new-project (project title author &optional bucket)
     "Create a new project in a new directory."
-    (message "PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
+    (message "NEW PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
     (mkdir project t)
-    (message "SYNC_ORG_TEMPLATE=%s" (getenv "SYNC_ORG_TEMPLATE"))
-    (message "file-name=%s" project)
     (let ((projfile (concat project "/" project ".org")))
       (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
       (with-current-buffer (find-file-noselect projfile)
         (goto-char (point-min))
-	(re-search-forward "^#[+]title:\\(TITLE\\)$")
-	(replace-match title t nil nil 1)
-	(re-search-forward "^#[+]author:\\(AUTHOR\\)$")
-	(replace-match author t nil nil 1)
-	(re-search-forward "^#[+]macro:version Version \\(.*\\)$")
-	(replace-match "0.0.0" t nil nil 1)
-	(when bucket
-	  (re-search-forward "^#[+]bucket:\\(.*\\)$")
-	 (replace-match bucket t nil nil 1))
-	(re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
-	(replace-match (concat project "---" title) t nil nil 1)
-	(save-buffer)
-	(org-babel-goto-named-src-block "project-readme")
-	(org-babel-tangle (quote (4)))
-	(org-babel-goto-named-src-block "boot-template")
-	(org-babel-tangle (quote (4))))))
+	    (re-search-forward "^#[+]title:\\(TITLE\\)$")
+	    (replace-match title t nil nil 1)
+	    (re-search-forward "^#[+]author:\\(AUTHOR\\)$")
+	    (replace-match author t nil nil 1)
+	    (re-search-forward "^#[+]macro:version Version \\(.*\\)$")
+	    (replace-match "0.0.0" t nil nil 1)
+	    (when bucket
+	        (re-search-forward "^#[+]bucket:\\(.*\\)$")
+	      (replace-match bucket t nil nil 1))
+	    (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
+	    (replace-match (concat project "---" title) t nil nil 1)
+	    (save-buffer)
+	    (org-babel-goto-named-src-block "project-readme")
+	    (org-babel-tangle (quote (4)))
+	    (org-babel-goto-named-src-block "boot-template")
+	    (org-babel-tangle (quote (4)))
+        (kill-buffer))))
 #+end_src
 
 ** Update Old Project
 ** Run Create and Update
+This shell script is installed into $DEV/bin and is run by typing the shell
+command =new-org-template <...ARGS>= from the command-line to set up a new Org
+project at a particular point in your directory structure.  The main code is
+elisp, described above in [[*Create New Project][Create New Project]] and [[*Update Old Project][Update Old Project]].
+
+After a new project is installed into the directory structure, a git repo is
+established, as well as a new GetHub repo, and the initial commit is pushed up.
+
 #+name:run-create-and-update
-#+header: :tangle /usr/local/dev/bin/run-org-template
+#+header: :tangle /usr/local/dev/bin/new-org-template
 #+header: :shebang "#!/usr/bin/env zsh"
 #+begin_src sh -n
   # run-org-template
@@ -1045,7 +1052,7 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
       exit 0;
   fi
 
-  # verify command-line args contain only alphabets and digits and underscores and spaces
+  # verify command-line args contain only letters, digits, underscores and spaces
   RE="^[_a-zA-Z][_a-zA-Z0-9 ]+$"
   for arg in "$@"; do
       printf "$arg..."
@@ -1075,7 +1082,7 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
   git remote add origin git@github.com:wlharvey4/"$1".git
 
   curl -i -H "Authorization: token ${GITHUB_TOKEN}" \
-       -d "{\"name\":\"$1\"}" \
+       -d "{\"name\":\"$1\",\"description\":\"$2: v0.0.0/\"}" \
        https://api.github.com/user/repos
 
   git push origin master
