@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-17 09:40
-#+macro:version Version 0.5.22
+#+date:2020-06-17 11:35
+#+macro:version Version 0.5.23
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -153,23 +153,42 @@ most recently uploaded version.
 ### USE ENVIRONMENT VARIABLES WHENEVER POSSIBLE
 ### NEED ~/.aws/credentials installed
 
+# NOTE: All environment variables need to be exported PRIOR to starting the
+# Emacs server as EDITOR in your shell startup files; otherwise, they will not
+# be available to Emacs.
+# When I moved from using Bash to Zsh, I inadvertently changed the order of
+# import, and started the Emacs server before importing, and caused a horrible
+# bug which caused the program to work on one computer but fail on another.
+
 # The absolute path to this Template file
 TEMPLATE := $(SYNC_ORG_TEMPLATE)
 
-# Use emacsclient as $EDITOR; make sure it is set in .bash_profile
+# Use emacsclient as $EDITOR; make sure it is set in a shell startup file and
+# the server has been started.
 EDITOR	  := $(EDITOR)
 
 # User’s personal GitHub token for authentication to GitHub
 # DO NOT HARD-CODE THIS VALUE
 GITHUB_TOKEN := $(GITHUB_TOKEN)
 
+# The AWS Command Line Interface (AWS CLI) is an open source tool
+# that enables you to interact with AWS services using commands in
+# your command-line shell.  It must be present on your system.  Run the 'make'
+# command 'install-aws-cli' to install it if you do not have it.  Be sure to
+# run 'aws configure' after installing it.
+AWS := aws
+S3  := $(AWS) s3
+
+# The AWS region of choice; this can also be in .aws/config
+REGION := --region us-west-2
+
 ### END OF USER-DEPENDENT VARIABLES
 ###############################################################################
 ### MAKE-GENERATED VARIABLES
 
 ### PROJ AND ORG
-# ORG is the name of this Org file
-# PROJ is the project name---this Org file without extension.
+# ORG is the name of this Org file with extension .org
+# PROJ is the project name---the Org file name without extension.
 
 ### NOTE: there can be only one Org file in the project directory;
 # so far this has not been a problem, but it might be.
@@ -197,15 +216,6 @@ S3_BUCKET := s3://$(shell $(EDITOR) --eval \
 		(re-search-forward "^\#[+]bucket:\\(.*\\)$$") \
 		(match-string-no-properties 1)))').com
 
-# The AWS Command Line Interface (AWS CLI) is an open source tool
-# that enables you to interact with AWS services using commands in
-# your command-line shell.
-AWS := aws
-S3  := $(AWS) s3
-
-# The AWS region of choice; this can also be in .aws/config
-REGION := --region us-west-2
-
 ### DIR, SRC
 # DIR is the .info name found at '#+texinfo_filename:<DIR>.info' (at
 # the bottom of this file in the export configuration settings)
@@ -213,13 +223,6 @@ REGION := --region us-west-2
 # HTML export directory; this code uses the lowercased PROJ name if
 # there is no '#+texinfo_filename'.
 # SRC is HTML directory based upon the DIR name
-
-# NOTE: 're-search-forward' will either return an error or 'nil',
-# depending on the value of the third argument, if the search fails.
-# If it returns an error, then that error shows up in the shell
-# output.  It might be advantageous to let it so you are aware that
-# there is no 'texinfo_filename', but for now it is set to return
-# 'nil' on failure, and then assign the backup value.
 
 DIR := $(shell $(EDITOR) --eval \
 	'(with-current-buffer (find-file-noselect "$(ORG)") \
@@ -993,7 +996,7 @@ create a new git repository and create an initial git commit. Finally, save the
 project in GitHub, and there add a description and link to its AWS S3 bucket.
 
 #+name:create-new-project
-#+header: :tangle /Users/minilolh/Dev/bin/org-template.el
+#+header: :tangle /usr/local/dev/bin/org-template.el
 #+begin_src emacs-lisp
   (defun create-new-project (project title author &optional bucket)
     "Create a new project in a new directory."
@@ -1026,7 +1029,7 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
 ** Update Old Project
 ** Run Create and Update
 #+name:run-create-and-update
-#+header: :tangle /Users/minilolh/Dev/bin/run-org-template
+#+header: :tangle /usr/local/dev/bin/run-org-template
 #+header: :shebang "#!/usr/bin/env zsh"
 #+begin_src sh -n
   # run-org-template
@@ -1059,7 +1062,7 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
 
   # the main code is in an elisp file
   ${EDITOR} --eval "(progn
-                        (load-file \"/Users/minilolh/Dev/bin/org-template.el\")
+                        (load-file \"/usr/local/dev/bin/org-template.el\")
                         (create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
 
   # create a new Git repo and GitHub repo
@@ -1133,7 +1136,7 @@ Here are the steps it takes:
 #+caption:Create Script
 #+name:create-update-script
 #+header: :mkdirp yes
-##+header: :tangle /Users/minilolh/Dev/bin/org-template
+##+header: :tangle /usr/local/dev/bin/org-template
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src sh -n
   # org-template: create and update projects
@@ -1298,7 +1301,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle /Users/minilolh/Dev/bin/switch-emacs-init
+#+header: :tangle /usr/local/dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -1342,7 +1345,7 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 
 #+name:syncrc
 #+header: :mkdirp yes
-#+header: :tangle /Users/minilolh/Dev/bin/syncrc
+#+header: :tangle /usr/local/dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
