@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-15 23:14
-#+macro:version Version 0.5.18
+#+date:2020-06-16 23:06
+#+macro:version Version 0.5.19
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -60,23 +60,6 @@ the project domain at:
 : https://<project>.com
 the user will see a list of all related subprojects which link directly to the
 most recently uploaded version.
-
-#+name:project-readme
-#+header: :tangle README.md
-#+begin_src markdown
-# TITLE
-## Subtitle
-## Author
-## Date
-## Version
-# ABSTRACT
-This is the Org Template file.	It is the parent of all other Org Info blogs,
-and provides the source code for processing them in various different ways.
-# INTRODUCTION
-# CHAPTER
-## Section
-### Subsection
-#+end_src
 
 * Introduction
 :PROPERTIES:
@@ -1002,6 +985,85 @@ nil
 #+end_comment
 
 * Build Scripts
+** Create New Project
+Copy this project template file into a new directory, update its title, author,
+and AWS S3 bucket, and tangle the bootstrap Makefile, then create a new git
+repository and create an initial git commit. Finally, save the project in
+GitHub, and there add a description and link to its AWS S3 bucket.
+
+#+name:create-new-project
+#+header: :tangle /usr/local/dev/bin/org-template.el
+#+begin_src emacs-lisp
+  (defun create-new-project (project title author &optional bucket)
+    "Create a new project in a new directory."
+    (message "PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
+    (mkdir project t)
+    (message "SYNC_ORG_TEMPLATE=%s" (getenv "SYNC_ORG_TEMPLATE"))
+    (message "file-name=%s" project)
+    (let ((projfile (concat project "/" project ".org")))
+      (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
+      (with-current-buffer (find-file-noselect projfile)
+        (goto-char (point-min))
+	(re-search-forward "^#[+]title:\\(TITLE\\)$")
+	(replace-match title t nil nil 1)
+	(re-search-forward "^#[+]author:\\(AUTHOR\\)$")
+	(replace-match author t nil nil 1)
+	(re-search-forward "^#[+]macro:version Version \\(.*\\)$")
+	(replace-match "0.0.0" t nil nil 1)
+	(when bucket
+	  (re-search-forward "^#[+]bucket:\\(.*\\)$")
+	 (replace-match bucket t nil nil 1))
+	(re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
+	(replace-match (concat project "---" title) t nil nil 1)
+	(save-buffer)
+	(org-babel-goto-named-src-block "project-readme")
+	(org-babel-tangle (quote (4)))
+	(org-babel-goto-named-src-block "boot-template")
+	(org-babel-tangle (quote (4))))))
+#+end_src
+
+** Update Old Project
+** Run Create and Update
+#+name:run-create-and-update
+#+header: :tangle /usr/local/dev/bin/run-org-template
+#+header: :shebang "#!/usr/bin/env zsh"
+#+begin_src sh
+  # run-org-template
+
+  USAGE="$0 <project> <title> <author> [<bucket>]\n"
+
+  if [[ $1 =~ ^-(h|-?help)$ || ( $# < 3 || $# > 4 ) ]]; then
+      printf "USAGE:\n$USAGE"
+      exit 0;
+  fi
+
+  RE="^[_a-zA-Z][_a-zA-Z0-9]+$"
+
+  for arg in "$@"; do
+      printf "$arg..."
+      [[ $arg =~ $RE ]] || { printf ": ERROR\n"; exit 1; }
+      printf "ok\n"
+  done
+
+  if [[ -z $4 ]]; then
+      bucket='pinecone-forest'
+  else
+      bucket=$4
+  fi
+
+  ${EDITOR} --eval "(progn
+			(load-file \"/usr/local/dev/bin/org-template.el\")
+			(create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
+
+  cd "$1"
+  git init
+  git add -A
+  git commit -m "Initial commit"
+  git log | cat
+  cd ..
+  tree -a -L 1 "$1"
+#+end_src
+
 ** Create and Update Script                                    :dependencies:
 :PROPERTIES:
 :dependency1: org-template must be in $DEV/bin
@@ -1183,14 +1245,25 @@ Here are the steps it takes:
   }
 
 #+end_src
-** Add Readme
-This script adds the README.md template to a project.  It should not be
-included with the update script because once it becomes associated with a
-project, it will be customized, and thus unique to the project.
+** Project Readme
+This adds the README.md template to a project. It should be customized uniquely
+for the project.
 
-#+name:add-readme
-#+header: :shebang "#!/usb/bin/env bash"
-#+begin_src shell
+#+name:project-readme
+#+header: :tangle README.md
+#+begin_src markdown
+# TITLE
+## Subtitle
+## Author
+## Date
+## Version
+# ABSTRACT
+This is the Org Template file.	It is the parent of all other Org Info blogs,
+and provides the source code for processing them in various different ways.
+# INTRODUCTION
+# CHAPTER
+## Section
+### Subsection
 #+end_src
 
 ** Switch Emacs Init
