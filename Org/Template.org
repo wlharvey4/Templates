@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-16 23:06
-#+macro:version Version 0.5.19
+#+date:2020-06-17 00:17
+#+macro:version Version 0.5.20
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -987,9 +987,9 @@ nil
 * Build Scripts
 ** Create New Project
 Copy this project template file into a new directory, update its title, author,
-and AWS S3 bucket, and tangle the bootstrap Makefile, then create a new git
-repository and create an initial git commit. Finally, save the project in
-GitHub, and there add a description and link to its AWS S3 bucket.
+and AWS S3 bucket, and tangle the bootstrap Makefile and initial Readme, then
+create a new git repository and create an initial git commit. Finally, save the
+project in GitHub, and there add a description and link to its AWS S3 bucket.
 
 #+name:create-new-project
 #+header: :tangle /usr/local/dev/bin/org-template.el
@@ -1027,8 +1027,12 @@ GitHub, and there add a description and link to its AWS S3 bucket.
 #+name:run-create-and-update
 #+header: :tangle /usr/local/dev/bin/run-org-template
 #+header: :shebang "#!/usr/bin/env zsh"
-#+begin_src sh
+#+begin_src sh -n
   # run-org-template
+  # $1 := project
+  # $2 := title
+  # $3 := author
+  # [$4 := bucket] (default := pinecone-forest)
 
   USAGE="$0 <project> <title> <author> [<bucket>]\n"
 
@@ -1037,29 +1041,40 @@ GitHub, and there add a description and link to its AWS S3 bucket.
       exit 0;
   fi
 
-  RE="^[_a-zA-Z][_a-zA-Z0-9]+$"
-
+  # verify command-line args contain only alphabets and digits and underscores and spaces
+  RE="^[_a-zA-Z][_a-zA-Z0-9 ]+$"
   for arg in "$@"; do
       printf "$arg..."
       [[ $arg =~ $RE ]] || { printf ": ERROR\n"; exit 1; }
       printf "ok\n"
   done
 
+  # bucket is optional
   if [[ -z $4 ]]; then
       bucket='pinecone-forest'
   else
       bucket=$4
   fi
 
+  # the main code is in an elisp file
   ${EDITOR} --eval "(progn
 			(load-file \"/usr/local/dev/bin/org-template.el\")
 			(create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
 
+  # create a new Git repo and GitHub repo
   cd "$1"
   git init
   git add -A
   git commit -m "Initial commit"
   git log | cat
+  git remote add origin git@github.com:wlharvey4/"$1".git
+
+  curl -i -H "Authorization: token ${GITHUB_TOKEN}" \
+    -d "{\"name\":\"$1\"}" \
+    https://api.github.com/user/repos
+
+  git push origin master
+
   cd ..
   tree -a -L 1 "$1"
 #+end_src
