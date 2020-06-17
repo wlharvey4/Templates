@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-17 09:20
-#+macro:version Version 0.5.21
+#+date:2020-06-17 09:40
+#+macro:version Version 0.5.22
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -453,13 +453,14 @@ homepage: description = $(shell \
 # whereas the the Template.org file uses the singular form.
 homepage: $(ORG) upload-index-html
 	  @echo Updating homepage...
-	  @echo $(description)
+	  @echo DESCRIPTION: $(description)
+	  @echo VERS: $(VERS)
 	  @curl -i \
 		-H "Authorization: token $(GITHUB_TOKEN)" \
 		-H "Content-Type: application/json" \
 		-X PATCH \
-		-d '{"homepage":"https://$(AWS_S3_BUCKET)/$(DIR)-'$(VERS)'",\
-		     "description":"$(description): '$(VERS)'"}' \
+		-d "{\"homepage\":\"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)\",\
+		     \"description\":\"$(description): $(VERS)\"}" \
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
 	  @echo Done updating homepage.
 
