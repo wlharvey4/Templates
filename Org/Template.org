@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-17 12:30
-#+macro:version Version 0.5.25
+#+date:2020-06-17 23:59
+#+macro:version Version 0.5.26
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1013,14 +1013,14 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
       (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
       (with-current-buffer (find-file-noselect projfile)
         (goto-char (point-min))
-	    (re-search-forward "^#[+]title:\\(TITLE\\)$")
+	    (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
 	    (replace-match title t nil nil 1)
-	    (re-search-forward "^#[+]author:\\(AUTHOR\\)$")
+	    (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
 	    (replace-match author t nil nil 1)
-	    (re-search-forward "^#[+]macro:version Version \\(.*\\)$")
+	    (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
 	    (replace-match "0.0.0" t nil nil 1)
 	    (when bucket
-	        (re-search-forward "^#[+]bucket:\\(.*\\)$")
+	        (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
 	      (replace-match bucket t nil nil 1))
 	    (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
 	    (replace-match (concat project "---" title) t nil nil 1)
@@ -1033,6 +1033,57 @@ project in GitHub, and there add a description and link to its AWS S3 bucket.
 #+end_src
 
 ** Update Old Project
+
+   #+name:update-org-project
+   #+begin_src emacs-lisp
+     (defun get-parsed-tree (buf)
+       "Given a buffer BUF, return a parsed tree."
+       (with-current-buffer buf
+	 (org-element-parse-buffer 'headline)))
+
+     (defun oep (p e)
+       "Given a property P and element E, return that property's value."
+       (org-element-property p e))
+
+     (defun start-end (buf prop)
+       "Given a buffer BUF and a property PROP, return the starting and ending points."
+       (org-element-map
+	   (get-parsed-tree buf)
+	   'headline
+	   (lambda (e) (when (string= (oep :CUSTOM_ID e) prop)
+			 (list
+			  (oep :begin e)
+			  (oep :end e))))
+	   nil t))
+
+     (defun update-old-project (&optional title author bucket)
+       "Update an old project with new code."
+       (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
+	 (save-excursion
+	 (goto-char (point-min))
+	 ;; (when title
+	 ;;   (re-search-forward "^#[+]title:\s*\\(.*\\)$")
+	 ;;   (replace-match title t nil nil 1))
+	 ;; (when author
+	 ;;   (re-search-forward "^#[+]author:\s*\\(.*\\)$")
+	 ;;   (replace-match author t nil nil 1))
+	 ;; (when bucket
+	 ;;   (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
+	 ;;   (replace-match bucket t nil nil 1))
+	 (let* ((curbuf (current-buffer))
+	       (orgsyncbuf (find-file-noselect (expand-file-name "Template.org" "/usr/local/dev/Templates/Org")))
+	       (start-end-curbuf (start-end curbuf "build-tools"))
+	       (start-end-sync (start-end orgsyncbuf "build-tools")))
+	   (list start-end-curbuf start-end-sync)))))
+   #+end_src
+
+   #+begin_src emacs-lisp :results raw
+   (update-old-project)
+   #+end_src
+
+   #+RESULTS:
+   ((4928 36833) (4928 36833))
+
 ** Run Create and Update
 This shell script is installed into $DEV/bin and is run by typing the shell
 command =new-org-template <...ARGS>= from the command-line to set up a new Org
