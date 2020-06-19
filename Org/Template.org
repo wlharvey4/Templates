@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-19 00:23
-#+macro:version Version 0.5.27
+#+date:2020-06-19 07:50
+#+macro:version Version 0.5.28
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1004,7 +1004,7 @@ nil
  project in GitHub, and there add a description and link to its AWS S3 bucket.
 
  #+name:create-new-project
- #+header: :tangle /usr/local/dev/bin/org-template.el
+ #+header: :tangle /Users/minilolh/Dev/bin/org-template.el
  #+begin_src emacs-lisp
    (defun create-new-project (project title author &optional bucket)
      "Create a new project in a new directory."
@@ -1041,7 +1041,7 @@ nil
  which it searches. It will throw an error if such a heading is not found.
 
  #+name: add-pv-to-hl
- #+header: :tangle /usr/local/dev/bin/org-template.el
+ #+header: :tangle /Users/minilolh/Dev/bin/org-template.el
  #+begin_src emacs-lisp
     (defun add-pv-to-hl (f hl p v)
       "In file F add a property P with value V into a property
@@ -1062,6 +1062,16 @@ nil
 	     (prin1 "Success\n"))))))
  #+end_src
 
+**** Replace Build Tools
+
+#+name: replace-build-tools
+#+header: :tangle /Users/minilolh/Dev/bin/org-template.el
+#+begin_src emacs-lisp
+  (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
+    (save-excursion (goto-char (point-min))
+      (current-buffer)))
+#+end_src
+
 *** Run Create and Update
 
 **** Run Create
@@ -1074,7 +1084,7 @@ nil
  established, as well as a new GetHub repo, and the initial commit is pushed up.
 
  #+name:run-create-and-update
- #+header: :tangle /usr/local/dev/bin/new-org-template
+ #+header: :tangle /Users/minilolh/Dev/bin/new-org-template
  #+header: :shebang "#!/usr/bin/env zsh"
  #+begin_src sh -n
    # run-org-template
@@ -1107,7 +1117,7 @@ nil
 
    # the main code is in an elisp file
    ${EDITOR} --eval "(progn
-                         (load-file \"/usr/local/dev/bin/org-template.el\")
+                         (load-file \"/Users/minilolh/Dev/bin/org-template.el\")
                          (create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
 
    # create a new Git repo and GitHub repo
@@ -1131,12 +1141,14 @@ nil
 
 **** Run Update
 
- #+header: :tangle /usr/local/dev/bin/update-org-template
+ #+header: :tangle /Users/minilolh/Dev/bin/update-org-template
  #+header: :shebang "#!/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
  #+begin_src emacs-lisp
 
- (load-file "/usr/local/dev/bin/org-template.el")
- (add-pv-to-hl (car (file-expand-wildcards "*.org" t)) "Build Tools" "custom_id" "build-tools")
+   (load-file "/Users/minilolh/Dev/bin/org-template.el")
+   ;(add-pv-to-hl (car (file-expand-wildcards "*.org" t)) "Build Tools" "custom_id" "build-tools")
+
+   (replace-build-tools)
  #+end_src
 
 ** Ignore
@@ -1242,7 +1254,7 @@ nil
  #+caption:Create Script
  #+name:create-update-script
  #+header: :mkdirp yes
- ##+header: :tangle /usr/local/dev/bin/org-template
+ ##+header: :tangle /Users/minilolh/Dev/bin/org-template
  #+header: :shebang "#!/usr/bin/env bash"
  #+begin_src sh -n
    # org-template: create and update projects
@@ -1407,7 +1419,7 @@ or =~/.emacs.d-cfbt= (“Clojure for the Brave and True”).
 #+name:switch-emacs-init
 #+header: :mkdirp yes
 #+header: :shebang "#!/usr/bin/env bash"
-#+header: :tangle /usr/local/dev/bin/switch-emacs-init
+#+header: :tangle /Users/minilolh/Dev/bin/switch-emacs-init
 #+begin_src sh
   printf "${GREEN}"
   ls -l ~/.emacs.d | cut -f 12- -d ' '
@@ -1451,7 +1463,7 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 
 #+name:syncrc
 #+header: :mkdirp yes
-#+header: :tangle /usr/local/dev/bin/syncrc
+#+header: :tangle /Users/minilolh/Dev/bin/syncrc
 #+header: :shebang "#!/usr/bin/env bash"
 #+begin_src shell
   [ -v TEMPLATES ] || {
@@ -1649,10 +1661,11 @@ variable is set to use ~emacsclient~.
 boot:
 	$(EDITOR) -u --eval \
 		"(with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t)) \
+                        (save-excursion \
 			(goto-char (point-min)) \
 			(re-search-forward \"^#[+]name:preprocess.el$$\") \
 			(org-babel-tangle (quote (4))) \
-			(kill-buffer))"
+                        (save-buffer)))"
 	./tools/preprocess.el
 #+end_src
 
@@ -1672,15 +1685,16 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+header: :shebang "#!/opt/local/bin/emacs --script"
 #+begin_src emacs-lisp
   (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
+    (save-excursion
     (goto-char (point-min))
-    (let ((re-search-str "\\(?::tangle\\|load-file \\\\[\"]\\)\s*\\(.*?/[dD]ev\\)/")u
-	  (dev (getenv "DEV")))
+    (let ((re-search-str "\\(?::tangle\\|load-file \\(?:[\\]*\\)?[\"]\\)\s*\\(.*?/[dD]ev\\)/")
+          (dev (getenv "DEV")))
       (while
-	      (re-search-forward re-search-str nil t)
-	      (replace-match dev t nil nil 1)))
+              (re-search-forward re-search-str nil t)
+              (replace-match dev t nil nil 1)))
     (save-buffer)
     (require 'org)
-    (org-babel-tangle))
+    (org-babel-tangle)))
 #+end_src
 
 * List of Programs
