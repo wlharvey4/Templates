@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-19 09:28
-#+macro:version Version 0.5.29
+#+date:2020-06-19 10:19
+#+macro:version Version 0.5.30
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -537,6 +537,11 @@ dist-clean: clean
 wipe-clean: dist-clean
 	  -rm -rf Makefile Readme.md $(DIR_OLD)
 	  git checkout Makefile README.md
+
+git-ready: dist-clean
+	  git checkout Makefile
+	  git checkout README.md
+	  git status
 
 help:
 	  @echo '"make default" makes the .texi file, the .info file, \
