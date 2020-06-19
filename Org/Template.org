@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-17 23:59
-#+macro:version Version 0.5.26
+#+date:2020-06-19 00:23
+#+macro:version Version 0.5.27
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -996,340 +996,381 @@ nil
 #+end_comment
 
 * Build Scripts
-** Create New Project
-Copy this project template file into a new directory, update its title, author,
-and AWS S3 bucket, and tangle the bootstrap Makefile and initial Readme, then
-create a new git repository and create an initial git commit. Finally, save the
-project in GitHub, and there add a description and link to its AWS S3 bucket.
+** Create and Update Projects
+*** Create New Project
+ Copy this project template file into a new directory, update its title, author,
+ and AWS S3 bucket, and tangle the bootstrap Makefile and initial Readme, then
+ create a new git repository and create an initial git commit. Finally, save the
+ project in GitHub, and there add a description and link to its AWS S3 bucket.
 
-#+name:create-new-project
-#+header: :tangle /usr/local/dev/bin/org-template.el
-#+begin_src emacs-lisp
-  (defun create-new-project (project title author &optional bucket)
-    "Create a new project in a new directory."
-    (message "NEW PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
-    (mkdir project t)
-    (let ((projfile (concat project "/" project ".org")))
-      (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
-      (with-current-buffer (find-file-noselect projfile)
-        (goto-char (point-min))
-	    (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
-	    (replace-match title t nil nil 1)
-	    (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
-	    (replace-match author t nil nil 1)
-	    (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
-	    (replace-match "0.0.0" t nil nil 1)
-	    (when bucket
-	        (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
-	      (replace-match bucket t nil nil 1))
-	    (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
-	    (replace-match (concat project "---" title) t nil nil 1)
-	    (save-buffer)
-	    (org-babel-goto-named-src-block "project-readme")
-	    (org-babel-tangle (quote (4)))
-	    (org-babel-goto-named-src-block "boot-template")
-	    (org-babel-tangle (quote (4)))
-        (kill-buffer))))
-#+end_src
+ #+name:create-new-project
+ #+header: :tangle /usr/local/dev/bin/org-template.el
+ #+begin_src emacs-lisp
+   (defun create-new-project (project title author &optional bucket)
+     "Create a new project in a new directory."
+     (message "NEW PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
+     (mkdir project t)
+     (let ((projfile (concat project "/" project ".org")))
+       (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
+       (with-current-buffer (find-file-noselect projfile)
+         (goto-char (point-min))
+	     (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
+	     (replace-match title t nil nil 1)
+	     (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
+	     (replace-match author t nil nil 1)
+	     (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
+	     (replace-match "0.0.0" t nil nil 1)
+	     (when bucket
+	         (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
+	       (replace-match bucket t nil nil 1))
+	     (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
+	     (replace-match (concat project "---" title) t nil nil 1)
+	     (save-buffer)
+	     (org-babel-goto-named-src-block "project-readme")
+	     (org-babel-tangle (quote (4)))
+	     (org-babel-goto-named-src-block "boot-template")
+	     (org-babel-tangle (quote (4)))
+         (kill-buffer))))
+ #+end_src
 
-** Update Old Project
+*** Update Old Project
+**** Add a Custom_Id
+ This code checks a project file F to see if it contains a =property: value=
+ pair (P, V) in a property drawer right under the headline HL. If it does not,
+ it adds one. This code assumes the project file contains the heading HL for
+ which it searches. It will throw an error if such a heading is not found.
 
-   #+name:update-org-project
-   #+begin_src emacs-lisp
-     (defun get-parsed-tree (buf)
-       "Given a buffer BUF, return a parsed tree."
-       (with-current-buffer buf
-	 (org-element-parse-buffer 'headline)))
+ #+name: add-pv-to-hl
+ #+header: :tangle /usr/local/dev/bin/org-template.el
+ #+begin_src emacs-lisp
+    (defun add-pv-to-hl (f hl p v)
+      "In file F add a property P with value V into a property
+    drawer (creating one if necessary) at headline HL."
+       (with-current-buffer (find-file-noselect f)
+	 (save-excursion (goto-char (point-min))
+	 (re-search-forward (concat "^*\s*" hl))
+	 (beginning-of-line 2)
+	 (let* ((e (org-element-at-point))
+		(et (org-element-type e)))
+	   (unless (string= et "property-drawer")
+	       (message "Adding property drawer to headline %s" hl)
+	       (org-insert-property-drawer))
+	   (unless (org-entry-get (point) p)
+	     (message "Adding property %s with value %s" p v)
+	     (org-entry-put (point) p v)
+	     (save-buffer)
+	     (prin1 "Success\n"))))))
+ #+end_src
 
-     (defun oep (p e)
-       "Given a property P and element E, return that property's value."
-       (org-element-property p e))
+*** Run Create and Update
 
-     (defun start-end (buf prop)
-       "Given a buffer BUF and a property PROP, return the starting and ending points."
-       (org-element-map
-	   (get-parsed-tree buf)
-	   'headline
-	   (lambda (e) (when (string= (oep :CUSTOM_ID e) prop)
-			 (list
-			  (oep :begin e)
-			  (oep :end e))))
-	   nil t))
+**** Run Create
+ This shell script is installed into $DEV/bin and is run by typing the shell
+ command =new-org-template <...ARGS>= from the command-line to set up a new Org
+ project at a particular point in your directory structure.  The main code is
+ elisp, described above in [[*Create New Project][Create New Project]] and [[*Update Old Project][Update Old Project]].
 
-     (defun update-old-project (&optional title author bucket)
-       "Update an old project with new code."
-       (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
-	 (save-excursion
-	 (goto-char (point-min))
-	 ;; (when title
-	 ;;   (re-search-forward "^#[+]title:\s*\\(.*\\)$")
-	 ;;   (replace-match title t nil nil 1))
-	 ;; (when author
-	 ;;   (re-search-forward "^#[+]author:\s*\\(.*\\)$")
-	 ;;   (replace-match author t nil nil 1))
-	 ;; (when bucket
-	 ;;   (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
-	 ;;   (replace-match bucket t nil nil 1))
-	 (let* ((curbuf (current-buffer))
-	       (orgsyncbuf (find-file-noselect (expand-file-name "Template.org" "/usr/local/dev/Templates/Org")))
-	       (start-end-curbuf (start-end curbuf "build-tools"))
-	       (start-end-sync (start-end orgsyncbuf "build-tools")))
-	   (list start-end-curbuf start-end-sync)))))
-   #+end_src
+ After a new project is installed into the directory structure, a git repo is
+ established, as well as a new GetHub repo, and the initial commit is pushed up.
 
-   #+begin_src emacs-lisp :results raw
-   (update-old-project)
-   #+end_src
+ #+name:run-create-and-update
+ #+header: :tangle /usr/local/dev/bin/new-org-template
+ #+header: :shebang "#!/usr/bin/env zsh"
+ #+begin_src sh -n
+   # run-org-template
+   # $1 := project
+   # $2 := title
+   # $3 := author
+   # [$4 := bucket] (default := pinecone-forest)
 
-   #+RESULTS:
-   ((4928 36833) (4928 36833))
+   USAGE="$0 <project> <title> <author> [<bucket>]\n"
 
-** Run Create and Update
-This shell script is installed into $DEV/bin and is run by typing the shell
-command =new-org-template <...ARGS>= from the command-line to set up a new Org
-project at a particular point in your directory structure.  The main code is
-elisp, described above in [[*Create New Project][Create New Project]] and [[*Update Old Project][Update Old Project]].
+   if [[ $1 =~ ^-(h|-?help)$ || ( $# < 3 || $# > 4 ) ]]; then
+       printf "USAGE:\n$USAGE"
+       exit 0;
+   fi
 
-After a new project is installed into the directory structure, a git repo is
-established, as well as a new GetHub repo, and the initial commit is pushed up.
+   # verify command-line args contain only letters, digits, underscores and spaces
+   RE="^[_a-zA-Z][_a-zA-Z0-9 ]+$"
+   for arg in "$@"; do
+       printf "$arg..."
+       [[ $arg =~ $RE ]] || { printf ": ERROR\n"; exit 1; }
+       printf "ok\n"
+   done
 
-#+name:run-create-and-update
-#+header: :tangle /usr/local/dev/bin/new-org-template
-#+header: :shebang "#!/usr/bin/env zsh"
-#+begin_src sh -n
-  # run-org-template
-  # $1 := project
-  # $2 := title
-  # $3 := author
-  # [$4 := bucket] (default := pinecone-forest)
+   # bucket is optional
+   if [[ -z $4 ]]; then
+       bucket='pinecone-forest'
+   else
+       bucket=$4
+   fi
 
-  USAGE="$0 <project> <title> <author> [<bucket>]\n"
+   # the main code is in an elisp file
+   ${EDITOR} --eval "(progn
+                         (load-file \"/usr/local/dev/bin/org-template.el\")
+                         (create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
 
-  if [[ $1 =~ ^-(h|-?help)$ || ( $# < 3 || $# > 4 ) ]]; then
-      printf "USAGE:\n$USAGE"
-      exit 0;
-  fi
+   # create a new Git repo and GitHub repo
+   cd "$1"
+   rm *~
+   git init
+   git add -A
+   git commit -m "Initial commit"
+   git log | cat
+   git remote add origin git@github.com:wlharvey4/"$1".git
 
-  # verify command-line args contain only letters, digits, underscores and spaces
-  RE="^[_a-zA-Z][_a-zA-Z0-9 ]+$"
-  for arg in "$@"; do
-      printf "$arg..."
-      [[ $arg =~ $RE ]] || { printf ": ERROR\n"; exit 1; }
-      printf "ok\n"
-  done
+   curl -i -H "Authorization: token ${GITHUB_TOKEN}" \
+	-d "{\"name\":\"$1\",\"description\":\"$2: v0.0.0/\"}" \
+	https://api.github.com/user/repos
 
-  # bucket is optional
-  if [[ -z $4 ]]; then
-      bucket='pinecone-forest'
-  else
-      bucket=$4
-  fi
+   git push origin master
 
-  # the main code is in an elisp file
-  ${EDITOR} --eval "(progn
-                        (load-file \"/usr/local/dev/bin/org-template.el\")
-                        (create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
+   cd ..
+   tree -a -L 1 "$1"
+ #+end_src
 
-  # create a new Git repo and GitHub repo
-  cd "$1"
-  rm *~
-  git init
-  git add -A
-  git commit -m "Initial commit"
-  git log | cat
-  git remote add origin git@github.com:wlharvey4/"$1".git
+**** Run Update
 
-  curl -i -H "Authorization: token ${GITHUB_TOKEN}" \
-       -d "{\"name\":\"$1\",\"description\":\"$2: v0.0.0/\"}" \
-       https://api.github.com/user/repos
+ #+header: :tangle /usr/local/dev/bin/update-org-template
+ #+header: :shebang "#!/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
+ #+begin_src emacs-lisp
 
-  git push origin master
+ (load-file "/usr/local/dev/bin/org-template.el")
+ (add-pv-to-hl (car (file-expand-wildcards "*.org" t)) "Build Tools" "custom_id" "build-tools")
+ #+end_src
 
-  cd ..
-  tree -a -L 1 "$1"
-#+end_src
+** Ignore
+  #+name:update-org-project
+  #+begin_src emacs-lisp
+    (defun get-parsed-tree (buf)
+      "Given a buffer BUF, return a parsed tree."
+      (with-current-buffer buf
+	(org-element-parse-buffer 'headline)))
 
-** Create and Update Script                                    :dependencies:
-:PROPERTIES:
-:dependency1: org-template must be in $DEV/bin
-:dependency2: SYNC_ORG_TEMPLATE must be set as an environment variable
-:dependency3: "COLORS from profile"
-:dependency4: tree command
-:dependency5: git command
-:END:
-This code is a script file to create a new project from this template, and also
-to update a project with updated scripts. It is tangled into the ~$DEV/bin~
-directory and is called from the command line as ~org-template <project>
-[<author>] [git]~ or as ~org-template -u | --update~. Its create mode takes one
-required, and up to two optional arguments. The required argument is the name
-of the project. One optional argument is the name of the author. The other
-optional argument is the term =git=, meaning to initialize a =git= repository
-for the project. To update a project, call ~org-template --update~ from the
-project root.
+    (defun oep (p e)
+      "Given a property P and element E, return that property's value."
+      (org-element-property p e))
 
-Here are the steps it takes:
+    (defun start-end (buf prop)
+      "Given a buffer BUF and a property PROP, return the starting and ending points."
+      (org-element-map
+	  (get-parsed-tree buf)
+	  'headline
+	  (lambda (e) (when (string= (oep :CUSTOM_ID e) prop)
+			(list
+			 (oep :begin e)
+			 (oep :end e))))
+	  nil t))
 
-1. It checks for a call to =-h|--help=, and if found, prints the USAGE message.
+    (defun update-old-project (&optional title author bucket)
+      "Update an old project with new code."
+      (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
+	(save-excursion
+	(goto-char (point-min))
+	;; (when title
+	;;   (re-search-forward "^#[+]title:\s*\\(.*\\)$")
+	;;   (replace-match title t nil nil 1))
+	;; (when author
+	;;   (re-search-forward "^#[+]author:\s*\\(.*\\)$")
+	;;   (replace-match author t nil nil 1))
+	;; (when bucket
+	;;   (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
+	;;   (replace-match bucket t nil nil 1))
+	(let* ((curbuf (current-buffer))
+	      (orgsyncbuf (find-file-noselect (expand-file-name "Template.org" "/usr/local/dev/Templates/Org")))
+	      (start-end-curbuf (start-end curbuf "build-tools"))
+	      (start-end-sync (start-end orgsyncbuf "build-tools")))
+	  (list start-end-curbuf start-end-sync)))))
+  #+end_src
 
-2. It next checks for =-u|--update=, and if found, calls the ~template-update~
-   function. Otherwise, it calls the ~template-create~ function.
+  #+begin_src emacs-lisp :results raw
+  (update-old-project)
+  #+end_src
 
-3. It creates a new directory in the current working directory using the
-   =project= argument.
+  #+RESULTS:
+  ((4928 36833) (4928 36833))
 
-4. It copies this template into it (using the environment variable
-   =SYNC_ORG_TEMPLATE= to find it) as a new Org file using, again, the name of
-   the project.
+*** Create and Update Script                                   :dependencies:
+    :PROPERTIES:
+    :dependency1: org-template must be in $DEV/bin
+    :dependency2: SYNC_ORG_TEMPLATE must be set as an environment variable
+    :dependency3: "COLORS from profile"
+    :dependency4: tree command
+    :dependency5: git command
+    :END:
+ This code is a script file to create a new project from this template, and also
+ to update a project with updated scripts. It is tangled into the ~$DEV/bin~
+ directory and is called from the command line as ~org-template <project>
+ [<author>] [git]~ or as ~org-template -u | --update~. Its create mode takes one
+ required, and up to two optional arguments. The required argument is the name
+ of the project. One optional argument is the name of the author. The other
+ optional argument is the term =git=, meaning to initialize a =git= repository
+ for the project. To update a project, call ~org-template --update~ from the
+ project root.
 
-5. It then updates the title to the project name, the date, sets the version
-   number to =0.0.0=, and optionally adds the author, using the =author=
-   argument if it was given.
+ Here are the steps it takes:
 
-6. It then deletes this script from the new Org project file, as it is not
-   needed by a project file.
+ 1. It checks for a call to =-h|--help=, and if found, prints the USAGE message.
 
-7. It then tangles Boot Makefile and the default ~README.md~ into the project.
+ 2. It next checks for =-u|--update=, and if found, calls the ~template-update~
+    function. Otherwise, it calls the ~template-create~ function.
 
-8. If the term ='git'= is supplied as an argument, it initializes a new Git
-   repository, creating a basic ~.gitignore~ file in it, adding the Org file
-   and the ~README.md~ file and finally making an initial Git commit.
+ 3. It creates a new directory in the current working directory using the
+    =project= argument.
 
-9. Last, it prints an outline of the project’s structure using the ~tree~
-   command.
+ 4. It copies this template into it (using the environment variable
+    =SYNC_ORG_TEMPLATE= to find it) as a new Org file using, again, the name of
+    the project.
+
+ 5. It then updates the title to the project name, the date, sets the version
+    number to =0.0.0=, and optionally adds the author, using the =author=
+    argument if it was given.
+
+ 6. It then deletes this script from the new Org project file, as it is not
+    needed by a project file.
+
+ 7. It then tangles Boot Makefile and the default ~README.md~ into the project.
+
+ 8. If the term ='git'= is supplied as an argument, it initializes a new Git
+    repository, creating a basic ~.gitignore~ file in it, adding the Org file
+    and the ~README.md~ file and finally making an initial Git commit.
+
+ 9. Last, it prints an outline of the project’s structure using the ~tree~
+    command.
 
 
-#+caption:Create Script
-#+name:create-update-script
-#+header: :mkdirp yes
-##+header: :tangle /usr/local/dev/bin/org-template
-#+header: :shebang "#!/usr/bin/env bash"
-#+begin_src sh -n
-  # org-template: create and update projects
+ #+caption:Create Script
+ #+name:create-update-script
+ #+header: :mkdirp yes
+ ##+header: :tangle /usr/local/dev/bin/org-template
+ #+header: :shebang "#!/usr/bin/env bash"
+ #+begin_src sh -n
+   # org-template: create and update projects
 
-  USAGE='
-  '"$0..."'
-  org-template -h | --help
-  org-template <Project> [<Author>] [git]
-  org-template -u | --update
-  '
+   USAGE='
+   '"$0..."'
+   org-template -h | --help
+   org-template <Project> [<Author>] [git]
+   org-template -u | --update
+   '
 
-  template-create () {
-      mkdir -v "$1"
-      printf "copy "
-      cp -v ${SYNC_ORG_TEMPLATE} "$1/$1.org"
-      printf "${CLEAR}\n"
+   template-create () {
+       mkdir -v "$1"
+       printf "copy "
+       cp -v ${SYNC_ORG_TEMPLATE} "$1/$1.org"
+       printf "${CLEAR}\n"
 
-      sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
-	  -Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
-	  -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
-	  -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
-	  "$1/$1.org"
+       sed -i '' -Ee '/^\#\+(title|TITLE):/ s/TITLE/'"$1"'/' \
+	   -Ee '/^\#\+(date|DATE):\s*(.*)$/ s/$2/$(date '"+%F %R"')/' \
+	   -Ee '/^\#\+(macro|MACRO):version Version/ s/[[:digit:].]+/0.0.0/' \
+	   -Ee '/^\#\+(texinfo_printed_title|TEXINFO_PRINTED_TITLE):/ s/PRINTED TITLE/'"$1"'/' \
+	   "$1/$1.org"
 
-      [[ $# -ge 2 ]] && \
-	  sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
+       [[ $# -ge 2 ]] && \
+	   sed -i '' -Ee '/^\#\+(author|AUTHOR):/ s/AUTHOR/'"$2"'/' "$1/$1.org"
 
-      printf "${CYAN}"
-      ${EDITOR} --eval \
-      "(with-current-buffer (find-file-noselect \"$1/$1.org\")
-	 (save-excursion
-	  (goto-char (point-min))
-	  (re-search-forward \"#[+]name:project-readme$\")
-	  (org-babel-tangle (quote (4)))
-	  (search-forward \"** Create Script\")
-	  (org-cut-subtree)
-	  (save-buffer)
-	  (re-search-forward \"^#[+]name:boot-template$\")
-	  (org-babel-tangle (quote (4)))))"
-      printf "${CLEAR}\n"
+       printf "${CYAN}"
+       ${EDITOR} --eval \
+       "(with-current-buffer (find-file-noselect \"$1/$1.org\")
+	  (save-excursion
+	   (goto-char (point-min))
+	   (re-search-forward \"#[+]name:project-readme$\")
+	   (org-babel-tangle (quote (4)))
+	   (search-forward \"** Create Script\")
+	   (org-cut-subtree)
+	   (save-buffer)
+	   (re-search-forward \"^#[+]name:boot-template$\")
+	   (org-babel-tangle (quote (4)))))"
+       printf "${CLEAR}\n"
 
-      if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
-      then
-	  cd $1 && {
-	      rm *~
-	      printf "${YELLOWBOLD}"
-	      git init
-	      printf "${CLEAR}"
+       if [[ (($# -eq 2) || ($# -eq 3)) && (($2 == 'git') || ($3 == 'git')) ]]
+       then
+	   cd $1 && {
+	       rm *~
+	       printf "${YELLOWBOLD}"
+	       git init
+	       printf "${CLEAR}"
 
-	      echo "\
-  .gitignore
-  Makefile
-  ,*~
-  .*~
-  ,*.texi
-  ,*.info
-  ,*.html
-  ,*-old
-  tools" > .gitignore
+	       echo "\
+   .gitignore
+   Makefile
+   ,*~
+   .*~
+   ,*.texi
+   ,*.info
+   ,*.html
+   ,*-old
+   tools" > .gitignore
 
-	      git add .
-	      git commit -m "Initial commit of Project $1"
-	  }
-	  cd ..
-      fi
-      rm "$1"/*~
+	       git add .
+	       git commit -m "Initial commit of Project $1"
+	   }
+	   cd ..
+       fi
+       rm "$1"/*~
 
-      printf "${PURPLEBOLD}\n"
-      pwd
-      printf "${CLEAR}"
-      tree -aI .git $1
+       printf "${PURPLEBOLD}\n"
+       pwd
+       printf "${CLEAR}"
+       tree -aI .git $1
 
-      return 0
-  }
+       return 0
+   }
 
-  template-update() {
-      ${EDITOR} -u --eval \
-	       "(progn
-		 (with-current-buffer (find-file-noselect (getenv \"SYNC_ORG_TEMPLATE\"))
-		  (save-excursion
-		   (goto-char (point-min))
-		   (org-link-search \"#build-tools\")
-		   (org-copy-subtree 2)))
-		 (with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t))
-		  (save-excursion
+   template-update() {
+       ${EDITOR} -u --eval \
+		"(progn
+		  (with-current-buffer (find-file-noselect (getenv \"SYNC_ORG_TEMPLATE\"))
+		   (save-excursion
 		    (goto-char (point-min))
 		    (org-link-search \"#build-tools\")
-		    (org-paste-subtree 1 nil t t)
-		    (org-cut-subtree 2)
-		    (save-buffer))))"
+		    (org-copy-subtree 2)))
+		  (with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t))
+		   (save-excursion
+		     (goto-char (point-min))
+		     (org-link-search \"#build-tools\")
+		     (org-paste-subtree 1 nil t t)
+		     (org-cut-subtree 2)
+		     (save-buffer))))"
 
-      return 0;
-  }
+       return 0;
+   }
 
-  main () {
-      case $1 in
-	  create)
+   main () {
+       case $1 in
+	   create)
 
-	      printf "${PURPLE}"
-	      read -n 1 -p "Create new project: $2 (y/n) ?"
-	      printf "${CLEAR}\n\n"
-	      [[ $REPLY =~ [yY] ]] && template-create "$2" || exit 0
-	      ;;
+	       printf "${PURPLE}"
+	       read -n 1 -p "Create new project: $2 (y/n) ?"
+	       printf "${CLEAR}\n\n"
+	       [[ $REPLY =~ [yY] ]] && template-create "$2" || exit 0
+	       ;;
 
-	  update)
+	   update)
 
-	      template-update
-	      ;;
-      esac
-      exit 0
-  }
+	       template-update
+	       ;;
+       esac
+       exit 0
+   }
 
 
-  if [[ $1 =~ ^-(h|-help)$ ]]; then
-	  printf "HELP:\n$USAGE"
-	  exit 0
-  fi
+   if [[ $1 =~ ^-(h|-help)$ ]]; then
+	   printf "HELP:\n$USAGE"
+	   exit 0
+   fi
 
-  if [[ $1 =~ ^-(u|-update)$ ]]; then
-	  printf "UPDATE:\n"
-	  main update
-  fi
+   if [[ $1 =~ ^-(u|-update)$ ]]; then
+	   printf "UPDATE:\n"
+	   main update
+   fi
 
-  [[ ($# -ge 1) && ($# -le 3) ]] && { printf "CREATE:\n";  main create $1; } || {
-      printf "${RED}ARGUMENTS ERROR:${CLEAR}$USAGE\n"
-      exit 1
-  }
+   [[ ($# -ge 1) && ($# -le 3) ]] && { printf "CREATE:\n";  main create $1; } || {
+       printf "${RED}ARGUMENTS ERROR:${CLEAR}$USAGE\n"
+       exit 1
+   }
 
-#+end_src
+ #+end_src
 ** Project Readme
 This adds the README.md template to a project. It should be customized uniquely
 for the project.
