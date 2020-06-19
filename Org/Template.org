@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-19 07:50
-#+macro:version Version 0.5.28
+#+date:2020-06-19 09:28
+#+macro:version Version 0.5.29
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest
 
@@ -1064,12 +1064,47 @@ nil
 
 **** Replace Build Tools
 
+#+name: replace-utilities
+#+header: :tangle /Users/minilolh/Dev/bin/org-template.el
+#+begin_src emacs-lisp
+
+  (defun project-tree (proj-buf)
+    "With a buffer PROJ-BUF, return an Org-parsed tree"
+    (org-element-parse-buffer proj-buf 'headline))
+
+
+
+
+  (defun find-hl (proj-tree cid)
+    "With an Org-parsed tree PROJ-TREE, find a headline with a
+  particular property drawer custom_id of CID."
+    (let* ((cid-hl (org-element-map proj-tree 'headline
+            (lambda (e) (let ((lev (org-element-property :level e))
+                              (bt (org-element-property :CUSTOM_ID e)))
+                          (and (= lev 1)
+                               (string= bt cid)
+                               e)))
+            nil t))
+           (car cid-hl))
+      (cons (org-element-property :begin cid-hl)
+            (org-element-property :end cid-hl))))
+
+
+#+end_src
+
 #+name: replace-build-tools
 #+header: :tangle /Users/minilolh/Dev/bin/org-template.el
 #+begin_src emacs-lisp
-  (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
-    (save-excursion (goto-char (point-min))
-      (current-buffer)))
+
+  (defun replace-build-tools ()
+    (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
+      (save-excursion (goto-char (point-min))
+        (message "Current Buffer: %s" (current-buffer))
+        (let* ((p-t (project-tree (current-buffer)))
+               (p-hl (find-hl p-t "build-tools")))
+          (message "P-HL: %s" p-hl)))))
+
+
 #+end_src
 
 *** Run Create and Update
@@ -1146,7 +1181,7 @@ nil
  #+begin_src emacs-lisp
 
    (load-file "/Users/minilolh/Dev/bin/org-template.el")
-   ;(add-pv-to-hl (car (file-expand-wildcards "*.org" t)) "Build Tools" "custom_id" "build-tools")
+   (add-pv-to-hl (car (file-expand-wildcards "*.org" t)) "Build Tools" "custom_id" "build-tools")
 
    (replace-build-tools)
  #+end_src
