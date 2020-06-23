@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-22 21:54
-#+macro:version Version 0.5.32
+#+date:2020-06-22 23:06
+#+macro:version Version 0.5.33
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -378,12 +378,15 @@ values: check
 
 check:
 	  @printf "$${BLUE}Checking dependencies...$${CLEAR}\n"
+
 	  @[[ -z $(BUCKET) ]] && \
-	     { printf "$${RED}\$(BUCKET) $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
+	     { printf "$${RED}$(BUCKET) $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
 	     printf "$${CYAN}BUCKET: $${GREEN}$(BUCKET)$${CLEAR}\n";
+
 	  @[[ -z $${GITHUB_TOKEN} ]] && \
 	     { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
 	     printf "$${CYAN}GITHUB_TOKEN: $${GREEN}SET$${CLEAR}\n";
+
 	  @[[ (-d ~/.aws) && (-f ~/.aws/credentials) && (-f ~/.aws/config) ]] && \
 	     printf "$${CYAN}AWS credentials and config: $${GREEN}SET$${CLEAR}\n" || \
 	     { printf "$${RED}~/.aws 'credentials' and 'config' must be set.$${CLEAR}\n"; exit 1; }
@@ -1006,6 +1009,10 @@ nil
 #+end_comment
 
 * Build Scripts
+  :PROPERTIES:
+  :custom_id: build-scripts
+  :from-file: Template
+  :END:
 ** Create and Update Projects
 *** Create New Project
  Copy this project template file into a new directory, update its title, author,
@@ -1068,8 +1075,7 @@ nil
 	   (unless (org-entry-get (point) p)
 	     (message "Adding property %s with value %s" p v)
 	     (org-entry-put (point) p v)
-	     (save-buffer)
-	     (prin1 "Success\n"))))))
+	     (save-buffer))))))
  #+end_src
 
 **** Replace Build Tools
@@ -1103,36 +1109,36 @@ nil
 
 #+end_src
 
+The ~replace-build-tools~ function replaces a section of an old templated file
+with the corresponding section from the source template file found in
+=SYNC_ORG_TEMPLATE=, which is presumably newer. It must be run from within the
+directory holding the older templated file, and the original template file must
+be identified by the environment variable =SYNC_ORG_TEMPLATE=.
+
+This function works by parsing the buffers by headlines and then using
+~org-element-map~ to find a level 1 headline containing a custom id of CID.
+Once it finds such a headline, it records that section's beginning and ending
+points. It does this for both the old template file and the template file. Then
+it deletes that section from the old template file, and inserts the
+corresponding section from the root template file.
+
 #+name: replace-build-tools
 #+header: :tangle /usr/local/dev/bin/org-template.el
 #+begin_src emacs-lisp
-  The ~replace-build-tools~ function replaces a section of an old
-  templated file with the corresponding section from the source
-  template file found in =SYNC_ORG_TEMPLATE=, which is presumably
-  newer. It must be run from within the directory holding the older
-  templated file, and the original template file must be identified
-  by the environment variable =SYNC_ORG_TEMPLATE=.
-
-  This function works by parsing the buffers by headlines and then
-  using ~org-element-map~ to find a level 1 headline containing a
-  custom id of CID. Once it finds such a headline, it records that
-  section's beginning and ending points. It does this for both the
-  old template file and the template file. Then it deletes that
-  section from the old template file, and inserts the corresponding
-  section from the root template file.
 
     (defun replace-build-tools (cid)
       "Replaces a section of an Org template file identified by the
     custom_id CID with the corresponding section of the root
-    template identified by the environment variable.  OLD-BUF is the
-    Org template in the current working directory.
-    SYNC_ORG_TEMPLATE."
+    template identified by the environment variable.
+
+    OLD-BUF is the Org template in the current working directory.
+    SYNC_ORG_TEMPLATE must be set."
       (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
 	     (sync-buf (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
 	     (old-tree (project-tree old-buf))
 	     (sync-tree (project-tree sync-buf))
 	     (old-be (find-hl old-tree cid))
-	     (sync-be (find-hl sync-tree "cid)))
+	     (sync-be (find-hl sync-tree cid)))
 	  (set-buffer old-buf)
 	  (delete-region (car old-be) (cdr old-be))
 	  (goto-char (car old-be))
@@ -1216,8 +1222,14 @@ nil
  #+header: :shebang "#!/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
  #+begin_src emacs-lisp
    (load-file "/usr/local/dev/bin/org-template.el")
-   (add-pv-to-hl (car (file-expand-wildcards "*.org" t)) "Build Tools" "custom_id" "build-tools")
+
+   (setq old-template (car (file-expand-wildcards "*.org" t)))
+
+   (add-pv-to-hl old-template "Build Tools"   "custom_id" "build-tools")
    (replace-build-tools "build-tools")
+
+   (add-pv-to-hl old-template "Build Scripts" "custom_id" "build-scripts")
+   (replace-build-tools "build-scripts")
  #+end_src
 
 ** Ignore
