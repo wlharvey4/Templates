@@ -3,10 +3,10 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-22 21:37
-#+macro:version Version 0.5.31
+#+date:2020-06-22 21:54
+#+macro:version Version 0.5.32
 #+macro:upload-date (eval (current-time-string))
-#+bucket:pinecone-forest
+#+bucket:pinecone-forest.com
 
 {{{version}}} {{{date}}}
 
@@ -215,13 +215,16 @@ S := s
 endif
 
 # The AWS S3 bucket to use to store the html source file; it is found at the
-# key #+bucket towards the beginning of the file
-S3_BUCKET := s3://$(shell $(EDITOR) --eval \
-	'(with-current-buffer (find-file-noselect "$(ORG)") \
-		(save-excursion \
-		(goto-char (point-min)) \
-		(re-search-forward "^\#[+]bucket:\\(.*\\)$$") \
-		(match-string-no-properties 1)))').com
+# key #+bucket towards the beginning of the file and should include the appropriate
+# suffix (.com, .net, .org, etc)
+BUCKET       := $(shell $(EDITOR) --eval \
+	       '(with-current-buffer (find-file-noselect "$(ORG)") \
+		  (save-excursion \
+		    (goto-char (point-min)) \
+		    (re-search-forward "^\#[+]bucket:\\(.*\\)$$") \
+		    (match-string-no-properties 1)))')
+S3_BUCKET    := s3://$(BUCKET)
+HTTPS_BUCKET := https://$(BUCKET)
 
 ### DIR, SRC
 # DIR is the .info name found at '#+texinfo_filename:<DIR>.info' (at
@@ -360,7 +363,9 @@ values: check
 	  @echo USER:		$(USER)
 	  @echo ORG:		$(ORG)
 	  @echo PROJ:		$(PROJ) $S
-	  @echo S3_BUCKET	$(S3_BUCKET)
+	  @echo BUCKET:		$(BUCKET)
+	  @echo S3_BUCKET:	$(S3_BUCKET)
+	  @echo HTTPS_BUCKET:	$(HTTPS_BUCKET)
 	  @echo VERS:		$(VERS)
 	  @echo S3PROJ:		$(S3PROJ)
 	  @echo S3VERS:		$(S3VERS)
@@ -373,9 +378,9 @@ values: check
 
 check:
 	  @printf "$${BLUE}Checking dependencies...$${CLEAR}\n"
-	  @[[ -z $${AWS_S3_BUCKET} ]] && \
-	     { printf "$${RED}\$$AWS_S3_BUCKET $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
-	     printf "$${CYAN}AWS_S3_BUCKET: $${GREEN}$${AWS_S3_BUCKET}$${CLEAR}\n";
+	  @[[ -z $(BUCKET) ]] && \
+	     { printf "$${RED}\$(BUCKET) $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
+	     printf "$${CYAN}BUCKET: $${GREEN}$(BUCKET)$${CLEAR}\n";
 	  @[[ -z $${GITHUB_TOKEN} ]] && \
 	     { printf "$${RED}GITHUB_TOKEN $${CYAN}must be set.$${CLEAR}\n"; exit 1; } || \
 	     printf "$${CYAN}GITHUB_TOKEN: $${GREEN}SET$${CLEAR}\n";
@@ -469,7 +474,7 @@ homepage: $(ORG) upload-index-html
 		-H "Authorization: token $(GITHUB_TOKEN)" \
 		-H "Content-Type: application/json" \
 		-X PATCH \
-		-d "{\"homepage\":\"https://$(AWS_S3_BUCKET)/$(DIR)-$(VERS)\",\
+		-d "{\"homepage\":\"$(HTTPS_BUCKET)/$(DIR)-$(VERS)\",\
 		     \"description\":\"$(description): $(VERS)\"}" \
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
 	  @echo Done updating homepage.
