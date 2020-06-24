@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-23 09:55
-#+macro:version Version 0.5.34
+#+date:2020-06-23 20:49
+#+macro:version Version 0.5.35
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -131,7 +131,6 @@ most recently uploaded version.
 :PROPERTIES:
 :appendix: t
 :custom_id: build-tools
-:from-file: Template
 :END:
 ** Makefile					:dependencies:env_vars:perl:
 :PROPERTIES:
@@ -1011,7 +1010,6 @@ nil
 * Build Scripts
   :PROPERTIES:
   :custom_id: build-scripts
-  :from-file: Template
   :END:
 ** Create and Update Projects
 *** Create New Project
@@ -1080,9 +1078,23 @@ nil
 
 **** Replace Build Tools
 
+These three small scripts are used by ~replace-build-tools~.
+~org-template-version~ returns the main Org Template's version number.
+~project-tree~ returns a parsed tree from a buffer. ~find-hl~ locates a level 1
+heading that contains a particular custom id and returns that subtree's
+beginning and ending points.
+
 #+name: replace-utilities
 #+header: :tangle /usr/local/dev/bin/org-template.el
 #+begin_src emacs-lisp
+
+  (defun org-template-version ()
+    "Return the current version number of SYNC_ORG_TEMPLATE."
+    (with-current-buffer (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")) (save-excursion
+       (goto-char (point-min))
+       (re-search-forward "^#[+]macro:\s*version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)")
+       (match-string-no-properties 1))))
+
 
   (defun project-tree (proj-buf)
     "With a buffer PROJ-BUF, return an Org-parsed tree"
@@ -1096,15 +1108,15 @@ nil
     "With an Org-parsed tree PROJ-TREE, find a headline with a
   particular property drawer custom_id of CID."
     (let* ((cid-hl (org-element-map proj-tree 'headline
-            (lambda (e) (let ((lev (org-element-property :level e))
-                              (bt (org-element-property :CUSTOM_ID e)))
-                          (and (= lev 1)
-                               (string= bt cid)
-                               e)))
-            nil t))
-           (car cid-hl))
+	    (lambda (e) (let ((lev (org-element-property :level e))
+			      (bt (org-element-property :CUSTOM_ID e)))
+			  (and (= lev 1)
+			       (string= bt cid)
+			       e)))
+	    nil t))
+	   (car cid-hl))
       (cons (org-element-property :begin cid-hl)
-            (org-element-property :end cid-hl))))
+	    (org-element-property :end cid-hl))))
 
 
 #+end_src
@@ -1126,31 +1138,31 @@ corresponding section from the root template file.
 #+header: :tangle /usr/local/dev/bin/org-template.el
 #+begin_src emacs-lisp
 
-    (defun replace-build-tools (cid)
-      "Replaces a section of an Org template file identified by the
-    custom_id CID with the corresponding section of the root
-    template identified by the environment variable.
+  (defun replace-build-tools (cid)
+    "Replaces a section of an Org template file identified by the
+  custom_id CID with the corresponding section of the root
+  template identified by the environment variable.
 
-    OLD-BUF is the Org template in the current working directory.
-    SYNC_ORG_TEMPLATE must be set."
-      (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
-	     (sync-buf (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
-	     (old-tree (project-tree old-buf))
-	     (sync-tree (project-tree sync-buf))
-	     (old-be (find-hl old-tree cid))
-	     (sync-be (find-hl sync-tree cid)))
-	  (set-buffer old-buf)
-	  (delete-region (car old-be) (cdr old-be))
-	  (goto-char (car old-be))
-	  (insert-buffer-substring sync-buf (car sync-be) (cdr sync-be))
-	  (save-buffer)))
-
+  OLD-BUF is the Org template in the current working directory.
+  SYNC_ORG_TEMPLATE must be set."
+    (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
+	   (sync-buf (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
+	   (old-tree (project-tree old-buf))
+	   (sync-tree (project-tree sync-buf))
+	   (old-be (find-hl old-tree cid))
+	   (sync-be (find-hl sync-tree cid)))
+	(set-buffer old-buf)
+	(delete-region (car old-be) (cdr old-be))
+	(goto-char (car old-be))
+	(insert-buffer-substring sync-buf (car sync-be) (cdr sync-be))
+	(goto-char (car old-be))
+	(org-set-property "org-template-version" (org-template-version))
+	(save-buffer)))
 
 
 #+end_src
 
 *** Run Create and Update
-
 **** Run Create
  This shell script is installed into $DEV/bin and is run by typing the shell
  command =new-org-template <...ARGS>= from the command-line to set up a new Org
@@ -1218,12 +1230,18 @@ corresponding section from the root template file.
 
 **** Run Update
 
+The command-line utility ~update-org-template~ is run from within a directory
+containing an out-dated org template project. It deletes the file's "Build
+Tools" and "Buid Scripts" subtrees and replaces them with those from the main
+template file.
+
  #+header: :tangle /usr/local/dev/bin/update-org-template
  #+header: :shebang "#!/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
  #+begin_src emacs-lisp
    (load-file "/usr/local/dev/bin/org-template.el")
 
    (setq old-template (car (file-expand-wildcards "*.org" t)))
+   (setq org-template-version (org-template-version))
 
    (add-pv-to-hl old-template "Build Tools"   "custom_id" "build-tools")
    (replace-build-tools "build-tools")
@@ -1842,5 +1860,6 @@ Copyright \copy 2020 by {{{author}}}
 * Local Variables						   :noexport:
 # Local Variables:
 # fill-column: 79
+# eval: (auto-fill-mode)
 # time-stamp-pattern: "8/^\\#\\+date:%:y-%02m-%02d %02H:%02M$"
 # End:
