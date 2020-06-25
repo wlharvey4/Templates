@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-23 20:49
-#+macro:version Version 0.5.35
+#+date:2020-06-24 21:48
+#+macro:version Version 0.5.36
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -233,13 +233,15 @@ HTTPS_BUCKET := https://$(BUCKET)
 # there is no '#+texinfo_filename'.
 # SRC is HTML directory based upon the DIR name
 
-DIR := $(shell $(EDITOR) --eval \
-	'(with-current-buffer (find-file-noselect "$(ORG)") \
-		(save-excursion \
-		(goto-char (point-min)) \
-		(re-search-forward "^\#[+]\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
-		(match-string-no-properties 1)))')
-ifeq ($(DIR),nil)
+#DIR := $(shell $(EDITOR) --eval \
+#	'(with-current-buffer (find-file-noselect "$(ORG)") \
+#		(save-excursion \
+#		(goto-char (point-min)) \
+#		(re-search-forward "^\#[+]\\(?:texinfo_filename\\|TEXINFO_FILENAME\\):\\(.*\\).info$$" nil t) \
+#		(match-string-no-properties 1)))')
+
+DIR := $(shell sed -E -n "/^\#\+texinfo_filename/s/^.*:(.*)\.info$$/\1/p" $(ORG))
+ifeq ($(DIR),$(EMPTY))
 	DIR := $(shell echo $(PROJ) | tr "[:upper:]" "[:lower:]")
 endif
 
@@ -287,7 +289,7 @@ ifeq ($(S3PROJ),$(empty))
 	S3PROJ := $(DIR)-$(VERS)
 endif
 
-S3VERS := $(subst $(DIR)-,,$(filter $(DIR)%, $(PROJ_LIST)))
+S3VERS := $(subst $(DIR)-,,$(S3PROJ))
 ifeq ($(S3VERS), $(empty))
 	S3VERS := $(VERS)
 endif
