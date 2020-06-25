@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-24 21:48
-#+macro:version Version 0.5.36
+#+date:2020-06-24 23:11
+#+macro:version Version 0.5.37
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -827,7 +827,7 @@ nil.
 #+header: :results value
 #+header: :var b=get-bucket-name()
 #+begin_src emacs-lisp
-(concat "https://" b ".com")
+(concat "https://" b)
 #+end_src
 
 *** S3 Bucket URL
@@ -837,7 +837,7 @@ This code calls ~get-bucket-name~ and returns the AWS S3 bucket url.
 #+header: :results value
 #+header: :var b=get-bucket-name()
 #+begin_src emacs-lisp
-(concat "s3://" b ".com")
+(concat "s3://" b)
 #+end_src
 
 *** Bucket Projects List
