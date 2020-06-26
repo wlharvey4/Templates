@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-24 23:11
-#+macro:version Version 0.5.37
+#+date:2020-06-26 00:18
+#+macro:version Version 0.5.38
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -711,6 +711,7 @@ file and returns its parsed tree, or nil if none found."
 	(with-current-buffer buf (org-element-parse-buffer))
       nil)))
 #+end_src
+
 *** Check for CID
 This code checks whether an Org file contains a =custom_id= of a particular
 value.  It accepts a ~cid-value~ and an optional directory.  If the directory
@@ -748,45 +749,6 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 
 #+call: run-org-tree-cid-p(dir="/usr/local/dev/programming/MasteringEmacs")
 
-*** Add Bucket
-This command utility takes two arguments:
-1. The name of an Org file (e.g., "MasteringEmacs.org"); and
-2. The name of an AWS S3 bucket
-
-
-It checks whether the Org file in the present working directory has a
-"#+bucket: keyword". If it does, then it simply returns nil. If it does not,
-then it adds that bucket name as a keyword (e.g. "#+bucket:pinecone-forest") to
-the Org file right after where the =version= macro is located, and saves the
-file. It returns a message upon succuess.
-
-#+name:add-bucket-fn
-#+header: :eval never-export
-#+header: :var parsed-tree=get-parsed-org-tree()
-#+begin_src emacs-lisp
-  ;;; Add a keyword named 'bucket' just after the version macro.
-  ;;; This function should be run from within the directory containing the Org file.
-  (defun add-bucket (s3-bucket)
-    "Add the name of the associated AWS S3 bucket to an Org templated file in the PWD."
-    (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
-      (goto-char (point-min))
-      (let* ((tree parsed-tree)
-	     ;; find the beginning position of the first headline to act as a limit
-	     (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
-	;; Check for the presence of a bucket keyword before the first headline
-	(unless (re-search-forward "^#\\+bucket:" hl1 t)
-	  ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
-	  (org-element-map tree (quote keyword)
-	    (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
-				    (string-match-p "version" (org-element-property :value kw)))
-			   ;; return the end position of the MACRO; subtract an empty line if there is one
-			   (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
-			   (insert "#+bucket:" s3-bucket)
-			   (newline)
-			   (basic-save-buffer)
-			   (message (format "Added bucket %s" s3-bucket))))
-	    nil t)))))
-#+end_src
 ** Bucket Index HTML
 The bucket should contain a master ~index.html~ file that links to each of the
 individual project ~index.html~ files.  The master ~index.html~ file will be
@@ -1051,13 +1013,51 @@ nil
  #+end_src
 
 *** Update Old Project
+**** Add an S3 Bucket
+ This script takes one argument:
+ 1. The name of an AWS S3 bucket (i.e., the "default" AWS S3 buffer to use)
+
+ This script checks whether the Org file in the present working directory has a
+ "#+bucket:" keyword (of any value). If it does, then it simply returns nil. If
+ it does not, then it adds the bucket name supplied as an argument as a keyword
+ (e.g. "#+bucket:pinecone-forest") to the Org file right after where the
+ =version= macro is located, and saves the file. It returns a message upon
+ success.
+
+#+name:add-s3-bucket
+#+header: :tangle /usr/local/dev/bin/org-template.el
+#+header: :var parsed-tree=get-parsed-org-tree()
+#+begin_src emacs-lisp
+;;; Add a keyword named 'bucket' just after the version macro.
+;;; This function should be run from within the directory containing the Org file.
+(defun add-s3-bucket (s3-bucket)
+   "Add the name of the associated AWS S3 bucket to an Org templated file in the PWD."
+   (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
+     (goto-char (point-min))
+     (let* ((tree parsed-tree)
+	      ;; find the beginning position of the first headline to act as a limit
+	      (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
+	 ;; Check for the presence of a bucket keyword before the first headline
+	 (unless (re-search-forward "^#\\+bucket:" hl1 t)
+	   ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
+	   (org-element-map tree (quote keyword)
+	     (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
+				     (string-match-p "version" (org-element-property :value kw)))
+			    ;; return the end position of the MACRO; subtract an empty line if there is one
+			    (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
+			    (insert "#+bucket:" s3-bucket)
+			    (newline)
+			    (basic-save-buffer)
+			    (message (format "Added bucket %s" s3-bucket))))
+	     nil t)))))
+#+end_src
 **** Add a Custom_Id
  This code checks a project file F to see if it contains a =property: value=
  pair (P, V) in a property drawer right under the headline HL. If it does not,
  it adds one. This code assumes the project file contains the heading HL for
  which it searches. It will throw an error if such a heading is not found.
 
- #+name: add-pv-to-hl
+ #+name:add-pv-to-hl
  #+header: :tangle /usr/local/dev/bin/org-template.el
  #+begin_src emacs-lisp
     (defun add-pv-to-hl (f hl p v)
@@ -1079,7 +1079,6 @@ nil
  #+end_src
 
 **** Replace Build Tools
-
 These three small scripts are used by ~replace-build-tools~.
 ~org-template-version~ returns the main Org Template's version number.
 ~project-tree~ returns a parsed tree from a buffer. ~find-hl~ locates a level 1
@@ -1090,12 +1089,26 @@ beginning and ending points.
 #+header: :tangle /usr/local/dev/bin/org-template.el
 #+begin_src emacs-lisp
 
+  (defun org-template-key-value (key &optional regexp-str)
+    "Given a KEY string and an optional REGEXP-STR string, in the file
+  SYNC_ORG_TEMPLATE find the key and return the value of the match
+  string, which defaults to (.*)$ if nil."
+    (with-current-buffer (find-file-noselect (getenv "SYNC_ORG_TEMPLATE"))
+      (save-excursion
+	(let ((regexp-use-str
+		(or regexp-str
+		    "\\(.*\\)$")))
+	  (goto-char (point-min))
+	  (re-search-forward (concat "^#[+]" key regexp-use-str))
+	  (match-string-no-properties 1)))))
+
   (defun org-template-version ()
     "Return the current version number of SYNC_ORG_TEMPLATE."
-    (with-current-buffer (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")) (save-excursion
-       (goto-char (point-min))
-       (re-search-forward "^#[+]macro:\s*version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)")
-       (match-string-no-properties 1))))
+    (org-template-key-value "macro:\s*version Version " "\\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)"))
+
+  (defun org-template-bucket ()
+    "Return the bucket name of SYNC_ORG_TEMPLATE."
+    (org-template-key-value "bucket:\s*"))
 
 
   (defun project-tree (proj-buf)
@@ -1231,7 +1244,6 @@ corresponding section from the root template file.
  #+end_src
 
 **** Run Update
-
 The command-line utility ~update-org-template~ is run from within a directory
 containing an out-dated org template project. It deletes the file's "Build
 Tools" and "Buid Scripts" subtrees and replaces them with those from the main
@@ -1244,6 +1256,8 @@ template file.
 
    (setq old-template (car (file-expand-wildcards "*.org" t)))
    (setq org-template-version (org-template-version))
+
+   (add-s3-bucket (org-template-bucket))
 
    (add-pv-to-hl old-template "Build Tools"   "custom_id" "build-tools")
    (replace-build-tools "build-tools")
