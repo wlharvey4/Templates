@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-26 00:18
-#+macro:version Version 0.5.38
+#+date:2020-06-26 14:30
+#+macro:version Version 0.5.39
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1026,30 +1026,25 @@ nil
 
 #+name:add-s3-bucket
 #+header: :tangle /usr/local/dev/bin/org-template.el
-#+header: :var parsed-tree=get-parsed-org-tree()
 #+begin_src emacs-lisp
-;;; Add a keyword named 'bucket' just after the version macro.
-;;; This function should be run from within the directory containing the Org file.
-(defun add-s3-bucket (s3-bucket)
-   "Add the name of the associated AWS S3 bucket to an Org templated file in the PWD."
-   (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
-     (goto-char (point-min))
-     (let* ((tree parsed-tree)
-	      ;; find the beginning position of the first headline to act as a limit
-	      (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
-	 ;; Check for the presence of a bucket keyword before the first headline
-	 (unless (re-search-forward "^#\\+bucket:" hl1 t)
-	   ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
-	   (org-element-map tree (quote keyword)
-	     (lambda (kw) (when (and (string= "MACRO" (org-element-property :key kw))
-				     (string-match-p "version" (org-element-property :value kw)))
-			    ;; return the end position of the MACRO; subtract an empty line if there is one
-			    (goto-char (- (org-element-property :end kw) (org-element-property :post-blank kw)))
-			    (insert "#+bucket:" s3-bucket)
-			    (newline)
-			    (basic-save-buffer)
-			    (message (format "Added bucket %s" s3-bucket))))
-	     nil t)))))
+  ;;; Add a keyword named 'bucket' just after the version macro.
+  ;;; This function should be run from within the directory containing the Org file.
+  (defun add-s3-bucket (s3-bucket)
+     "Add the name of the associated AWS S3 bucket to an Org templated file in the PWD."
+     (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
+       (goto-char (point-min))
+       (let* ((tree (project-tree (current-buffer)))
+              ;; find the beginning position of the first headline to act as a limit
+              (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
+           ;; Check for the presence of a bucket keyword before the first headline
+         (unless (re-search-forward "^#[+]bucket:" hl1 t)
+           ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
+           (re-search-forward "^#[+]macro:version")
+           (beginning-of-line 2)
+           (insert (concat "#+bucket:" s3-bucket))
+           (message "Inserted bucket %s at point %s" s3-bucket (line-beginning-position))
+           (newline)
+           (save-buffer)))))
 #+end_src
 **** Add a Custom_Id
  This code checks a project file F to see if it contains a =property: value=
