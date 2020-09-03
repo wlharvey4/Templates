@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-06-26 14:30
-#+macro:version Version 0.5.39
+#+date:2020-09-03 09:35
+#+macro:version Version 0.6.0
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -124,6 +124,16 @@ most recently uploaded version.
   Want to create a link from project index.html files to the root
   index.html files.
 :END:
+** TODO Error on running initial 'make open-org'
+:LOGBOOK:
+- State "TODO"       from              [2020-09-03 Thu 09:30] \\
+  Fix error when running initial make from new project
+:END:
+#+begin_src sh
+> make open-org
+
+  An error occurred (NoSuchBucket) when calling the ListObjectsV2 operation: The specified bucket does not exist
+#+end_src
 
 * Chapter
 
