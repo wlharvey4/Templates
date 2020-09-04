@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-03 09:35
-#+macro:version Version 0.6.0
+#+date:2020-09-04 13:53
+#+macro:version Version 0.6.1
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -134,7 +134,12 @@ most recently uploaded version.
 
   An error occurred (NoSuchBucket) when calling the ListObjectsV2 operation: The specified bucket does not exist
 #+end_src
-
+** SOMEDAY Delete a whole project
+:LOGBOOK:
+- State "SOMEDAY"    from "TODO"       [2020-09-04 Fri 13:54] \\
+  Provide functionality to remove a project from the file system,
+  GitHub, and the AWS S3 bucket.
+:END:
 * Chapter
 
 * Build Tools
