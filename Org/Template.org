@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-04 13:53
-#+macro:version Version 0.6.1
+#+date:2020-09-07 21:46
+#+macro:version Version 0.6.2
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -290,7 +290,7 @@ VERS := v$(shell $(EDITOR) --eval \
 
 PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
 
-### PROJ_LIST
+### S3PROJ
 # The name of the current project as obtained from S3: 'proj-v1.2.34/'
 # If there is no current project in the S3 bucket, then assign a value equal to
 # the Org project and version instead.
@@ -368,7 +368,7 @@ PHONY: default all check values boot \
 	  texi info html pdf \
 	  open-org open-texi open-html open-pdf \
 	  clean dist-clean wiped-clean \
-	  help sync update \
+	  help sync update delete-proj \
 	  install-aws-cli \
 	  index-html upload-index-html
 
@@ -498,6 +498,16 @@ homepage: $(ORG) upload-index-html
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
 	  @echo Done updating homepage.
 
+delete-proj:
+	@echo Deleting project $(PROJ)...
+	@curl -i \
+		-H "Authorization: token $(GITHUB_TOKEN)" \
+		-H "Accept: application/vnd.github.v3+json" \
+		-X DELETE \
+		https://api.github.com/repos/$(USER)/$(PROJ)$S
+	make wipe-clean
+	@echo Done deleting project.
+
 index-html: $(INDEX)
 $(INDEX): $(ORG)
 	@echo making index.html...
@@ -517,23 +527,23 @@ update: $(ORG)
 	@echo Updating $(ORG)...
 	$(EDITOR) -u --eval '\
 	(progn \
-	(with-current-buffer (find-file-noselect "$(TEMPLATE)") \
-	     (save-excursion \
-	     (goto-char (point-min)) \
-	     (search-forward "* Build Tools") \
-	     (org-beginning-of-line) \
-	     (org-copy-subtree))) \
-	(with-current-buffer (find-file-noselect "$(ORG)") \
-	     (save-excursion \
-	     (goto-char (point-min)) \
-	     (search-forward "* Build Tools") \
-	     (org-beginning-of-line) \
-	     (org-yank) \
-	     (org-cut-subtree) \
-	     (save-buffer) \
-	     (kill-buffer) \
-	     (setq org-confirm-babel-evaluate nil) \
-	     (org-babel-tangle-file "$(ORG)"))))'
+	  (with-current-buffer (find-file-noselect "$(TEMPLATE)") \
+	       (save-excursion \
+	       	 (goto-char (point-min)) \
+	       	 (search-forward "* Build Tools") \
+	       	 (org-beginning-of-line) \
+	       	 (org-copy-subtree))) \
+	  (with-current-buffer (find-file-noselect "$(ORG)") \
+	       (save-excursion \
+	       	 (goto-char (point-min)) \
+	       	 (search-forward "* Build Tools") \
+	       	 (org-beginning-of-line) \
+	       	 (org-yank) \
+	       	 (org-cut-subtree) \
+	       	 (save-buffer) \
+	       	 (kill-buffer) \
+	       	 (setq org-confirm-babel-evaluate nil) \
+	       	 (org-babel-tangle-file "$(ORG)"))))'
 	 @echo Done updating $(ORG).
 
 install-aws-cli:
