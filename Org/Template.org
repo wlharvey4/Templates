@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-07 23:52
-#+macro:version Version 0.6.3
+#+date:2020-09-08 13:29
+#+macro:version Version 0.6.4
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -289,7 +289,18 @@ VERS := v$(shell $(EDITOR) --eval \
 # the S3 bucket; each item contains the name of the project and its
 # current version.
 
-PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
+# Created function using elisp instead of the shell.
+# This variable contains an elisp list of strings of the form '("proj1-v1.2.3/" "proj2-v4.5.6/" ...)'
+# However, when it prints to the shell, the quotes are lost.
+# Need to make sure elisp's variable 'exec-path contains the proper $PATH instead of adding to 'exec-path.
+
+#PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
+PROJ_LIST := $(shell $(EDITOR) --eval \
+	"(progn \
+		(require (quote seq)) (add-to-list (quote exec-path) (quote \"/usr/local/bin\")) \
+		(seq-map (lambda (s) (replace-regexp-in-string \"^\s+PRE \" \"\" s)) \
+			(seq-filter (lambda (s) (string-match-p (regexp-quote \" PRE \") s)) \
+			(process-lines \"$(AWS)\" \"s3\" \"ls\" \"$(S3_BUCKET)\"))))")
 
 ### S3PROJ
 # The name of the current project as obtained from S3: 'proj-v1.2.34/'
@@ -391,7 +402,7 @@ values: check
 	  @echo SRC:		$(SRC)
 	  @echo DST_OLD:	$(DST_OLD)
 	  @echo DST_NEW:	$(DST_NEW)
-	  @echo PROJ_LIST:	$(PROJ_LIST)
+	  @echo PROJ_LIST:	"$(PROJ_LIST)"
 
 check:
 	  @printf "$${BLUE}Checking dependencies...$${CLEAR}\n"
@@ -506,7 +517,8 @@ delete-proj:
 		-H "Accept: application/vnd.github.v3+json" \
 		-X DELETE \
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
-	@make wipe-clean
+	-@make wipe-clean
+	@$(EDITOR) -u --eval "(kill-buffer \"$(ORG)\")"
 	@cd .. && rm -rf $(PROJ)
 	@echo Done deleting project.
 
@@ -555,24 +567,27 @@ install-aws-cli:
 	  rm -rf AWSCLIV2.pkg
 
 clean:
-	  -rm *~
-	  -for file in *.??*; \
+	@echo Cleaning...
+	  -@rm *~
+	  -@for file in *.??*; \
 	  do \
 		  ext=$${file#$(PROJ).}; \
 		  [[ ! $${ext} =~ org|texi|info|pdf|html ]] && rm -rv $${file}; \
 	  done
 
 dist-clean: clean
-	  -rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
-	  -for dir in *; \
+	@echo Dist Cleaning...
+	  -@rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
+	  -@for dir in *; \
 	  do \
 		  [ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
 		  rm -vr $$dir; \
 	  done
 
 wipe-clean: dist-clean
-	  -rm -rf Makefile Readme.md $(DIR_OLD)
-	  git checkout Makefile README.md
+	@echo Wipe Clean...
+	  -@rm -rf Makefile Readme.md $(DIR_OLD)
+	  @git checkout Makefile README.md
 
 git-ready: dist-clean
 	  git checkout Makefile
@@ -1236,7 +1251,7 @@ corresponding section from the root template file.
 
    # bucket is optional
    if [[ -z $4 ]]; then
-       bucket=${DEFAULT_BUCKET}
+       bucket=${AWS_S3_BUCKET}
    else
        bucket=$4
    fi
