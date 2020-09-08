@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-07 21:46
-#+macro:version Version 0.6.2
+#+date:2020-09-07 23:52
+#+macro:version Version 0.6.3
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -185,6 +185,7 @@ TEMPLATE := $(SYNC_ORG_TEMPLATE)
 
 # Use emacsclient as $EDITOR; make sure it is set in a shell startup file and
 # the server has been started.
+EMACS	  := $(EMACS)
 EDITOR	  := $(EDITOR)
 
 # User’s personal GitHub token for authentication to GitHub
@@ -279,9 +280,9 @@ SRC := $(DIR)/
 VERS := v$(shell $(EDITOR) --eval \
 	'(with-current-buffer (find-file-noselect "$(ORG)") \
 		(save-excursion \
-		(goto-char (point-min)) \
-		(re-search-forward "^\#[+]\\(?:macro\\|MACRO\\):version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)") \
-		(match-string-no-properties 1)))')/
+		  (goto-char (point-min)) \
+		  (re-search-forward "^\#[+]\\(?:macro\\|MACRO\\):version Version \\(\\(?:[[:digit:]]+[.]?\\)\\{3\\}\\)") \
+		  (match-string-no-properties 1)))')/
 
 ### AWS
 # PROJ_LIST contains the list of projects currently uploaded to
@@ -505,7 +506,8 @@ delete-proj:
 		-H "Accept: application/vnd.github.v3+json" \
 		-X DELETE \
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
-	make wipe-clean
+	@make wipe-clean
+	@cd .. && rm -rf $(PROJ)
 	@echo Done deleting project.
 
 index-html: $(INDEX)
@@ -1215,7 +1217,7 @@ corresponding section from the root template file.
    # $1 := project
    # $2 := title
    # $3 := author
-   # [$4 := bucket] (default := pinecone-forest)
+   # [$4 := bucket] (default := ${DEFAULT_BUCKET})
 
    USAGE="$0 <project> <title> <author> [<bucket>]\n"
 
@@ -1234,7 +1236,7 @@ corresponding section from the root template file.
 
    # bucket is optional
    if [[ -z $4 ]]; then
-       bucket='pinecone-forest'
+       bucket=${DEFAULT_BUCKET}
    else
        bucket=$4
    fi
@@ -1796,11 +1798,11 @@ variable is set to use ~emacsclient~.
 boot:
 	$(EDITOR) -u --eval \
 		"(with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t)) \
-                        (save-excursion \
 			(goto-char (point-min)) \
 			(re-search-forward \"^#[+]name:preprocess.el$$\") \
 			(org-babel-tangle (quote (4))) \
-                        (save-buffer)))"
+                        (save-buffer) \
+			(kill-buffer))"
 	./tools/preprocess.el
 #+end_src
 
