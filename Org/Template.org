@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-09 15:01
-#+macro:version Version 0.6.6
+#+date:2020-09-09 16:29
+#+macro:version Version 0.6.7
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -387,7 +387,6 @@ VERS := v$(shell $(EDITOR) --eval \
 # However, when it prints to the shell, the quotes are lost.
 # Need to make sure elisp's variable 'exec-path contains the proper $PATH instead of adding to 'exec-path.
 
-#PROJ_LIST := $(strip $(filter-out PRE, $(shell $(AWS) s3 ls $(S3_BUCKET))))
 PROJ_LIST := $(shell $(EDITOR) --eval \
 	"(progn \
 		(require (quote seq)) (add-to-list (quote exec-path) (quote \"/usr/local/bin\")) \
@@ -404,10 +403,9 @@ PROJ_LIST := $(shell $(EDITOR) --eval \
 # If there is no current version in the S3 bucket, then assign the version from
 # this Org file instead.
 
-S3PROJ := $(filter $(DIR)%,$(PROJ_LIST))
-ifeq ($(S3PROJ),$(empty))
-	S3PROJ := $(DIR)-$(VERS)
-endif
+S3PROJ := $(shell $(EDITOR) --eval \
+		'(let ((proj (seq-find (lambda (s) (string-match-p "$(DIR)" s)) (quote $(PROJ_LIST))))) \
+		   (or proj (quote '$(DIR)-$(VERS)')))')
 
 S3VERS := $(subst $(DIR)-,,$(S3PROJ))
 ifeq ($(S3VERS), $(empty))
