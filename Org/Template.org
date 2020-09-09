@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-08 23:20
-#+macro:version Version 0.6.5
+#+date:2020-09-09 15:01
+#+macro:version Version 0.6.6
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -16,50 +16,135 @@
 * Readme
 :PROPERTIES:
 :unnumbered: t
+:custom_id: README
 :END:
-- [[https://daringfireball.net/projects/markdown/][Markdown Home]]
+** About This Document
 
-- [[https://spec.commonmark.org/0.29/][CommonMark Spec]]
+ This Readme should be tangled and included in all git commits.	It’s purpose is
+ to provide an introduction to viewers of the source code on GitHub.
 
-- [[https://guides.github.com/features/mastering-markdown/][Mastering Markdown]]
+ #+texinfo:@heading Using the ABSTRACT Entry
 
-- [[https://github.github.com/gfm/][GitHub Flavored Markdown Spec]]
+ Each Readme should also provide an =ABSTRACT= entry for use by the ~sync~
+ command.  Each Org source file in a group of related ~.info~ blogs produces a
+ directory of linked HTML files via the ~make html~ command (which runs
+ ~makeinfo --html <project>.texi~).  The directory of linked HTML files is
+ uploaded by the AWS ~make sync~ command into a separate directory of the chosen
+ AWS bucket for this group of related ~.info~ blogs.  Given a bucket name
+ ~project~, and an ~.info~ blog named ~all-about-something~, with a version
+ number of ~v0.1.2~, the group of HTML files will be uploaded to an AWS bucket
+ that can be accessed like so:
+ : https://<project>.com/all-about-something-v0.1.2/
 
-- [[https://help.github.com/en/github/writing-on-github][Writing on GitHub]]
+ At the same time, the code running the ~make sync~ command will copy the text
+ from the =ABSTRACT= section of the Readme and create a directory at the domain
+ level of the AWS bucket linking to the current version of the ~index.html~ of
+ this subproject.  The =ABSTRACT= entry will provide some context in the
+ directory at the domain level, allowing the viewer to peruse the list of
+ ~.info~ blogs and choose one based on its context.  In other words, by opening
+ the project domain at:
+ : https://<project>.com
+ the user will see a list of all related subprojects which link directly to the
+ most recently uploaded version.
 
-- [[https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet][Markdown Cheatsheet]]
+** On Writing Markdown
 
-- [[https://guides.github.com/pdfs/markdown-cheatsheet-online.pdf][Markdown Syntax]]
+ - [[https://daringfireball.net/projects/markdown/][Markdown Home]]
+   Daring Fireball by John Gruber 17 Dec 2004.
 
-- [[https://developer.github.com/v3/markdown/][GitHub REST API v3 --- Markdown]]
+   Markdown is a text-to-HTML conversion tool for web writers.
 
+   Thus, “Markdown” is two things:
+   1. a plain text  formatting syntax; you can view the  Markdown source for the
+      article          text         on          this         page          here:
+      https://daringfireball.net/projects/markdown/index.text[fn:1].
 
-This Readme should be tangled and included in all git commits.	It’s purpose is
-to provide an introduction to viewers of the source code on GitHub.
+      The overriding design goal for Markdown’s  formatting syntax is to make it
+      as readable as possible.
 
-#+texinfo:@heading Using the ABSTRACT Entry
+   2. (2) a software tool,  written in Perl, that  converts the plain text
+      formatting to HTML
 
-Each Readme should also provide an =ABSTRACT= entry for use by the ~sync~
-command.  Each Org source file in a group of related ~.info~ blogs produces a
-directory of linked HTML files via the ~make html~ command (which runs
-~makeinfo --html <project>.texi~).  The directory of linked HTML files is
-uploaded by the AWS ~make sync~ command into a separate directory of the chosen
-AWS bucket for this group of related ~.info~ blogs.  Given a bucket name
-~project~, and an ~.info~ blog named ~all-about-something~, with a version
-number of ~v0.1.2~, the group of HTML files will be uploaded to an AWS bucket
-that can be accessed like so:
-: https://<project>.com/all-about-something-v0.1.2/
+      (click to download ==> [[https://daringfireball.net/projects/downloads/Markdown_1.0.1.zip][=Markdown.pl=]])[fn:2].
 
-At the same time, the code running the ~make sync~ command will copy the text
-from the =ABSTRACT= section of the Readme and create a directory at the domain
-level of the AWS bucket linking to the current version of the ~index.html~ of
-this subproject.  The =ABSTRACT= entry will provide some context in the
-directory at the domain level, allowing the viewer to peruse the list of
-~.info~ blogs and choose one based on its context.  In other words, by opening
-the project domain at:
-: https://<project>.com
-the user will see a list of all related subprojects which link directly to the
-most recently uploaded version.
+      By default, Markdown produces XHTML output for tags with empty elements:
+
+      : <br />
+
+ - [[https://spec.commonmark.org/0.29/][CommonMark Spec]]
+   Current Version 0.29 (2019-04-06) by John MacFarlane
+
+   John Gruber’s canonical description of Markdown’s syntax does not specify the
+   syntax unambiguously. =Markdown.pl= was quite  buggy, and gave manifestly bad
+   results in many cases,  so it was not a satisfactory  replacement for a spec.
+   Because  there   is  no  unambiguous  spec,   implementations  have  diverged
+   considerably. As a result, users are  often surprised to find that a document
+   that renders one  way on one system (say, a  GitHub wiki) renders differently
+   on another (say, converting to docbook using pandoc).
+
+   The   CommonMark   specification   attempts  to   specify   Markdown   syntax
+   unambiguously. The examples  are intended to double as  conformance tests. An
+   accompanying script  spec_tests.py can be used  to run the tests  against any
+   Markdown program:
+
+   : python test/spec_tests.py --spec spec.txt --program PROGRAM
+
+ - [[https://github.github.com/gfm/][GitHub Flavored Markdown Spec]]
+
+   GitHub Flavored Markdown, often shortened as  GFM, is the dialect of Markdown
+   that  is  currently supported  for  user  content  on GitHub.com  and  GitHub
+   Enterprise.
+
+   GitHub-flavored  Markdown  is   based  upon  the  CommonMark   Spec  by  John
+   MacFarlane. This formal specification, based  on the CommonMark Spec, defines
+   the  syntax and  semantics  of this  dialect.  GFM is  a  strict superset  of
+   CommonMark. All the  features which are supported in GitHub  user content and
+   that are  not specified on  the original CommonMark  Spec are hence  known as
+   extensions, and highlighted as such.
+
+   Some  features  of  GitHub  Flavored  Markdown  are  only  available  in  the
+   descriptions  and  comments  of  Issues  and  Pull  Requests.  These  include
+   =@mentions= as well as references to SHA-1 hashes, Issues, and Pull Requests.
+   Task Lists are also available in Gist comments and in Gist Markdown files.
+
+   - Some Extensions
+
+     - Syntax highlighting
+
+     - Task Lists
+
+     - Tables
+
+     - SHA references
+
+     - Issue references within a repository
+
+     - Username =@mentions=
+
+     - Automatic linking for URLs
+
+     - Strikethrough
+
+     - Emoji
+
+ - [[https://guides.github.com/features/mastering-markdown/][Mastering Markdown]]
+
+   This is a GitHub Guide, fairly simple in nature.
+
+ - [[https://help.github.com/en/github/writing-on-github][Writing on GitHub]]
+
+   This is also a GitHub Guide, more extensive and advanced in nature than
+   Mastering Markdown.
+
+ - [[https://guides.github.com/pdfs/markdown-cheatsheet-online.pdf][Markdown Syntax]]
+
+   This is a GitHub Cheatsheet-style guide.
+
+ - [[https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet][Markdown Cheatsheet]]
+
+   This is intended as a quick reference and showcase.
+
+ - [[https://docs.github.com/en/rest/reference/markdown][GitHub REST API v3 --- Markdown]]
 
 * Introduction
 :PROPERTIES:
@@ -124,7 +209,12 @@ most recently uploaded version.
   Want to create a link from project index.html files to the root
   index.html files.
 :END:
-** DONE Error on running initial 'make open-org'
+*** TODO Make sure exec-path has correct values before proceeding
+:LOGBOOK:
+- State "TODO"       from              [2020-09-09 Wed 12:54] \\
+  Make Sure exec-path has correct values
+:END:
+*** DONE Error on running initial 'make open-org'
    - State "DONE"       from "TODO"       [2020-09-08 Tue 23:10]
 :LOGBOOK:
 - State "TODO"       from              [2020-09-03 Thu 09:30] \\
@@ -137,7 +227,7 @@ most recently uploaded version.
 
   An error occurred (NoSuchBucket) when calling the ListObjectsV2 operation: The specified bucket does not exist
 #+end_src
-** SOMEDAY Delete a whole project
+*** SOMEDAY Delete a whole project
 :LOGBOOK:
 - State "SOMEDAY"    from "TODO"       [2020-09-04 Fri 13:54] \\
   Provide functionality to remove a project from the file system,
@@ -361,7 +451,7 @@ SAVE	:= resources
 ### TEXINFO
 TEXI	:= $(PROJ).texi
 INFO	:= $(DIR).info
-PDF	:= $(PROJ).pdf
+PDF		:= $(PROJ).pdf
 INDEX	:= index.html
 HTML	:= $(DIR)/$(INDEX)
 DIR_OLD	:= $(DIR)-old
@@ -369,11 +459,11 @@ DIR_OLD	:= $(DIR)-old
 ### AWS S3
 DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
 DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
-EXCL_INCL:= --exclude "*" --include "*.html"
+EXCL_INCL	:= --exclude "*" --include "*.html"
 GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
-S3COPY  := $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
+S3COPY	:= $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
 
 ###############################################################################
 
@@ -476,14 +566,14 @@ $(PDF): $(TEXI)
 open-pdf: pdf
 	 @open $(PDF)
 
-sync:	$(HTML)
+sync: $(HTML)
 	@echo Syncing version $(VERS) onto $(S3VERS)...
 	$(S3SYNC)
 	@echo Done syncing.
 	[[ $(VERS) != $(S3VERS) ]] && { echo Moving...; $(S3MOVE); echo Done moving.;  make homepage; } || :
 
 # This is a target-specific variable for updating the “description”
-# key on the GitHub repo page with the current version number.	It
+# key on the GitHub repo page with the current version number.  It
 # first makes a curl call to the GitHub project repo, finds the
 # “description” line, pulls out the description only (leaving the old
 # version) and then prints the value with the current version number.
@@ -531,8 +621,8 @@ $(INDEX): $(ORG)
 	$(EDITOR) --eval \
 	"(with-current-buffer (find-file-noselect \"$(ORG)\") \
 		(save-excursion \
-		(org-link-search \"#project-index-title\") \
-		(org-export-to-file (quote html) \"index.html\" nil t)))"
+		  (org-link-search \"#project-index-title\") \
+		  (org-export-to-file (quote html) \"index.html\" nil t)))"
 	@echo Done making index.html.
 
 upload-index-html: $(INDEX)
@@ -651,10 +741,10 @@ help:
 ** Compare Replace
 
 #+begin_comment
-The following source code tangles all files during an export operation.	 This
-is to make sure the ~cmprpl~ source code exists in the ~tools/~ directory
-before running the Makefile target =html=.  It also makes sure there is a
-Makefile on an initial export.	The following code is not exported.
+The following source  code tangles all files during an  export operation.  This
+is  to make  sure the  ~cmprpl~ source  code exists  in the  ~tools/~ directory
+before  running the  Makefile target  =html=.  It  also makes  sure there  is a
+Makefile on an initial export. The following code is not exported.
 #+end_comment
 
 #+name:tangle-org-file
@@ -663,39 +753,39 @@ Makefile on an initial export.	The following code is not exported.
 (org-babel-tangle-file (buffer-file-name))
 #+end_src
 
-The AWS ~sync~ command relies upon time stamps to determine whether two
-programs are identical or not, as well as content.  If two otherwise identical
-files have different time stamps, ~sync~ will assume they are different and
-will process the newer.	 However, the ~texinfo~ ~makeinfo --html~ command
-produces all new files even if some files (or most files) remain unchanged.
-This means that all files will be uploaded to the AWS S3 bucket on every
+The  AWS ~sync~  command  relies  upon time  stamps  to  determine whether  two
+programs are identical or not, as  well as content.  If two otherwise identical
+files have  different time stamps,  ~sync~ will  assume they are  different and
+will  process the  newer.   However, the  ~texinfo~  ~makeinfo --html~  command
+produces all  new files even  if some files  (or most files)  remain unchanged.
+This  means that  all files  will be  uploaded to  the AWS  S3 bucket  on every
 iteration, even though the majority of the files are actually unchanged.
 
-The ~cmprpl~ source code attempts to resolve the issue of identical exported
-code having different time stamps, thus defeating the benefit provided by the
+The ~cmprpl~  source code attempts to  resolve the issue of  identical exported
+code having different  time stamps, thus defeating the benefit  provided by the
 ~aws2 s3 sync~ command uploading only changed files.
 
 This program makes sure that a generated HTML directory exists: =$DIR_NEW=.  If
 it doesn’t, then it is in an improper state and the program stops with an error
 message.
 
-The program then checks if an old directory exists, =$DIR_OLD=.	 If one
-doesn’t, then one is created by copying the current new directory.  This
-provides a baseline for comparisons going forward.  The program exits at that
-point.	It is very important that the =$DIR_OLD= directory not be deleted going
+The  program then  checks  if  an old  directory  exists,  =$DIR_OLD=.  If  one
+doesn’t,  then one  is  created by  copying the  current  new directory.   This
+provides a baseline  for comparisons going forward.  The program  exits at that
+point. It is very important that  the =$DIR_OLD= directory not be deleted going
 forward.
 
-Given that =$DIR_OLD= exists, the program then loops through all files in
-=$DIR_NEW= and compares them to the files in =$DIR_OLD=.  If the files are
+Given  that =$DIR_OLD=  exists, the  program then  loops through  all files  in
+=$DIR_NEW= and  compares them  to the  files in =$DIR_OLD=.   If the  files are
 identical, the =$DIR_OLD= file replaces the =$DIR_NEW= file while retaining the
-old time stamp (using the ~-p~ option of ~cp~.	If a file is different, then
-the =$DIR_NEW= file replaces the =$DIR_OLD= file, thus giving it updated
-content and an updated time stamp.  If the file does not exist in the
-=$DIR_OLD= directory, then it is added.
+old time stamp (using the ~-p~ option of ~cp~. If a file is different, then the
+=$DIR_NEW= file  replaces the =$DIR_OLD=  file, thus giving it  updated content
+and  an updated  time stamp.   If the  file does  not exist  in the  =$DIR_OLD=
+directory, then it is added.
 
-The program then loops through all of the files in the old directory and deletes
-any that do not exist in the new directory.  Now both directories should be in
-sync.
+The  program then  loops through  all of  the files  in the  old directory  and
+deletes  any that  do not  exist in  the new  directory.  Now  both directories
+should be in sync.
 
 #+caption:Compare Replace program
 #+name:cmprpl
@@ -743,7 +833,7 @@ sync.
 ** Update Utility Commands
 *** Get Parsed Org Tree
 This function looks for an Org file in the present working directory, and if it
-finds one returns a parsed tree using ~org-element-parse-buffer~.  It returns
+finds one returns  a parsed tree using  ~org-element-parse-buffer~.  It returns
 =nil= if there is no Org file or if the found file is not in ~org-mode~.
 
 #+name:get-parsed-org-tree
@@ -762,12 +852,12 @@ file and returns its parsed tree, or nil if none found."
 #+end_src
 
 *** Check for CID
-This code checks whether an Org file contains a =custom_id= of a particular
-value.  It accepts a ~cid-value~ and an optional directory.  If the directory
+This code  checks whether an  Org file contains  a =custom_id= of  a particular
+value.  It accepts  a ~cid-value~ and an optional directory.   If the directory
 is not given, then it defaults to the current directory.  If throws an error if
 the directory does not exist.  It returns =nil= if the given directory does not
-contain an Org file.  It returns =t= if the Org file contains a node property
-of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
+contain an Org file.   It returns =t= if the Org file  contains a node property
+of   =custom_id=  and   value  ~cid-value~,   or   =nil=  if   not.   It   uses
 ~get-parsed-org-tree~.
 
 #+name:org-tree-cid-p
@@ -799,14 +889,14 @@ of =custom_id= and value ~cid-value~, or =nil= if not.  It uses
 #+call: run-org-tree-cid-p(dir="/usr/local/dev/programming/MasteringEmacs")
 
 ** Bucket Index HTML
-The bucket should contain a master ~index.html~ file that links to each of the
-individual project ~index.html~ files.  The master ~index.html~ file will be
-placed at the root of the bucket, ~https://<bucket-name>.com/~, and the bucket
+The bucket should contain a master ~index.html~  file that links to each of the
+individual project  ~index.html~ files.  The  master ~index.html~ file  will be
+placed at the root of  the bucket, ~https://<bucket-name>.com/~, and the bucket
 must be set up to serve this ~index.html~ when the user hits the root.
 
 *** Get Bucket Name
- This code searches for the keyword-value pair =bucket:<BUCKET-NAME>= that
- should be located towards the beginning of the file, and returns the value
+ This  code searches  for  the keyword-value  pair =bucket:<BUCKET-NAME>=  that
+ should be  located towards the  beginning of the  file, and returns  the value
  =BUCKET-NAME= or nil if not found.
 
 #+name: get-bucket-name
@@ -818,9 +908,9 @@ must be set up to serve this ~index.html~ when the user hits the root.
      (match-string-no-properties 1))
 #+end_src
 
-For some reason, ~get-bucket-name~ does not work when called from the headline
-[[#project-index-links][=Links for bucket=]] below when creating =index.html=, even if it returns as
-~(prin1 ...)~ and is set up to ~:return output~; the call receives =nil=. The
+For some reason, ~get-bucket-name~ does not  work when called from the headline
+[[#project-index-links][=Links for  bucket=]] below  when creating  =index.html=, even  if it  returns as
+~(prin1 ...)~ and is  set up to ~:return output~; the  call receives =nil=. The
 following code from ~bucket-name~, however, works. I don't know why.
 
 #+name: bucket-name
@@ -831,8 +921,8 @@ following code from ~bucket-name~, however, works. I don't know why.
 #+end_src
 
 *** Bucket HTTPS URL
-This code calls ~get-bucket-name~ and returns the value returned as a URL string or
-nil.
+This  code calls  ~get-bucket-name~ and  returns the  value returned  as a  URL
+string or nil.
 
 #+name: bucket-https-url
 #+header: :results value
@@ -853,9 +943,9 @@ This code calls ~get-bucket-name~ and returns the AWS S3 bucket url.
 
 *** Bucket Projects List
 This code uses the ~s3-bucket-url~ result to obtain the list of projects in the
-bucket.  It does this by calling the AWS S3 high-level command ~ls~ and then
-removing the =PRE= string in each result.  The result that is returned is a
-single string that can be separated into individual links by breaking the
+bucket.  It does  this by calling the  AWS S3 high-level command  ~ls~ and then
+removing the  =PRE= string in  each result.  The result  that is returned  is a
+single  string that  can be  separated into  individual links  by breaking  the
 string on spaces.
 
 #+name: bucket-projects-list
@@ -866,9 +956,9 @@ string on spaces.
 #+end_src
 
 *** Bucket Project Links
-This code uses the result from ~bucket-projects-list~ to create an unordered
-list of links written to bucket projects, written in Org-mode syntax. It is
-executed by a =#+call:= in [[*Bucket Index][*Bucket Index]] during an HTML export of that subtree
+This code  uses the result  from ~bucket-projects-list~ to create  an unordered
+list of  links written to  bucket projects, written  in Org-mode syntax.  It is
+executed by a =#+call:= in [[*Bucket Index][*Bucket  Index]] during an HTML export of that subtree
 to a file called =index.html=.
 
 #+name: bucket-project-links
@@ -1041,23 +1131,35 @@ nil
      (let ((projfile (concat project "/" project ".org")))
        (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
        (with-current-buffer (find-file-noselect projfile)
+         ;; remove the README section of the TEMPLATE from the new project;
+         ;; the README must have a custom_id of "README"
+         (message "Deleting the README.")
+         (let* ((cbuf (current-buffer))
+                (ptree (project-tree cbuf))
+                (readme-beg-end (find-hl ptree "README")))
+           (message "readme-beg-end: %s" readme-beg-end)
+           (delete-region (car readme-beg-end) (cdr readme-beg-end))
+           (message "Done deleting README."))
          (goto-char (point-min))
-	     (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
-	     (replace-match title t nil nil 1)
-	     (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
-	     (replace-match author t nil nil 1)
-	     (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
-	     (replace-match "0.0.0" t nil nil 1)
-	     (when bucket
-	         (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
-	       (replace-match bucket t nil nil 1))
-	     (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
-	     (replace-match (concat project "---" title) t nil nil 1)
-	     (save-buffer)
-	     (org-babel-goto-named-src-block "project-readme")
-	     (org-babel-tangle (quote (4)))
-	     (org-babel-goto-named-src-block "boot-template")
-	     (org-babel-tangle (quote (4)))
+         ;; update title, author, version, bucket
+         ;; with values provided by the user
+         (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
+         (replace-match title t nil nil 1)
+         (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
+         (replace-match author t nil nil 1)
+         (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
+         (replace-match "0.0.0" t nil nil 1)
+         (when bucket
+           (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
+           (replace-match bucket t nil nil 1))
+         (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
+         (replace-match (concat project "---" title) t nil nil 1)
+         (save-buffer)
+         ;; tangle the project readme and boot makefile
+         (org-babel-goto-named-src-block "project-readme")
+         (org-babel-tangle (quote (4)))
+         (org-babel-goto-named-src-block "boot-template")
+         (org-babel-tangle (quote (4)))
          (kill-buffer))))
  #+end_src
 
@@ -1223,13 +1325,14 @@ corresponding section from the root template file.
 
 *** Run Create and Update
 **** Run Create
- This shell script is installed into $DEV/bin and is run by typing the shell
+ This shell script  is installed into $DEV/bin  and is run by  typing the shell
  command =new-org-template <...ARGS>= from the command-line to set up a new Org
- project at a particular point in your directory structure.  The main code is
+ project at a  particular point in your directory structure.   The main code is
  elisp, described above in [[*Create New Project][Create New Project]] and [[*Update Old Project][Update Old Project]].
 
- After a new project is installed into the directory structure, a git repo is
- established, as well as a new GetHub repo, and the initial commit is pushed up.
+ After a new project  is installed into the directory structure,  a git repo is
+ established, as well  as a new GetHub  repo, and the initial  commit is pushed
+ up.
 
  #+name:run-create-and-update
  #+header: :tangle /usr/local/dev/bin/new-org-template
@@ -1287,9 +1390,9 @@ corresponding section from the root template file.
  #+end_src
 
 **** Run Update
-The command-line utility ~update-org-template~ is run from within a directory
-containing an out-dated org template project. It deletes the file's "Build
-Tools" and "Buid Scripts" subtrees and replaces them with those from the main
+The command-line utility  ~update-org-template~ is run from  within a directory
+containing  an out-dated  Org template  project. It  deletes the  file's "Build
+Tools" and "Buid  Scripts" subtrees and replaces them with  those from the main
 template file.
 
  #+header: :tangle /usr/local/dev/bin/update-org-template
@@ -1368,15 +1471,15 @@ template file.
     :dependency4: tree command
     :dependency5: git command
     :END:
- This code is a script file to create a new project from this template, and also
- to update a project with updated scripts. It is tangled into the ~$DEV/bin~
- directory and is called from the command line as ~org-template <project>
- [<author>] [git]~ or as ~org-template -u | --update~. Its create mode takes one
- required, and up to two optional arguments. The required argument is the name
- of the project. One optional argument is the name of the author. The other
- optional argument is the term =git=, meaning to initialize a =git= repository
- for the project. To update a project, call ~org-template --update~ from the
- project root.
+ This code  is a script file  to create a  new project from this  template, and
+ also  to  update a  project  with  updated scripts.  It  is  tangled into  the
+ ~$DEV/bin~  directory and  is called  from the  command line  as ~org-template
+ <project> [<author>]  [git]~ or  as ~org-template -u  | --update~.  Its create
+ mode  takes one  required,  and up  to two  optional  arguments. The  required
+ argument is the name of the project.  One optional argument is the name of the
+ author. The other optional argument is the term =git=, meaning to initialize a
+ =git=  repository for  the project.  To update  a project,  call ~org-template
+ --update~ from the project root.
 
  Here are the steps it takes:
 
@@ -1828,13 +1931,13 @@ boot:
 #+end_src
 
 ** Preprocess Env Vars
-The environment variable DEV can be in different locations and will be spelled
-differently based on how the local machine is set up.  For instance, on one
-system, it will be at ~$HOME/Dev~ while in another system it will be at
-~/usr/local/dev~.  However, the =:tangle= keyword does not expand variables in
-the form ~${DEV}~, but rather requires absolute paths, like ~/usr/local/dev~.
+The environment variable DEV can be  in different locations and will be spelled
+differently based  on how the  local machine is set  up.  For instance,  on one
+system,  it will  be at  ~$HOME/Dev~  while in  another  system it  will be  at
+~/usr/local/dev~.  However, the =:tangle= keyword  does not expand variables in
+the form ~${DEV}~,  but rather requires absolute  paths, like ~/usr/local/dev~.
 Therefore, this program works like a preprocessor for environment variables set
-up as part of =:tangle= lines, changing them to their system environment
+up  as part  of  =:tangle= lines,  changing them  to  their system  environment
 variable values prior to tangling.  It lives in the ~tools~ directory.
 
 #+name:preprocess.el
@@ -1899,9 +2002,6 @@ Copyright \copy 2020 by {{{author}}}
 :END:
 
 
-* Footnotes
-
-
 * Configuration							   :noexport:
 #+todo: SOMEDAY(s@) TODO(t@) INPROGRESS(i@) WAIT(w@) | CANCEL(c@) DONE(d!)
 
@@ -1917,6 +2017,14 @@ Copyright \copy 2020 by {{{author}}}
 
 
 * Local Variables						   :noexport:
+
+* Footnotes
+
+[fn:1]In the browser, add =index.text= to the end of the URL to see the source.
+
+[fn:2]Markdown requires the standard Perl library module Digest::MD5.
+
+
 # Local Variables:
 # fill-column: 79
 # eval: (auto-fill-mode)
