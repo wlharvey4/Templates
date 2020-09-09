@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-08 13:29
-#+macro:version Version 0.6.4
+#+date:2020-09-08 23:20
+#+macro:version Version 0.6.5
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -124,10 +124,13 @@ most recently uploaded version.
   Want to create a link from project index.html files to the root
   index.html files.
 :END:
-** TODO Error on running initial 'make open-org'
+** DONE Error on running initial 'make open-org'
+   - State "DONE"       from "TODO"       [2020-09-08 Tue 23:10]
 :LOGBOOK:
 - State "TODO"       from              [2020-09-03 Thu 09:30] \\
   Fix error when running initial make from new project
+
+  A: Made sure the default bucket was named correctly.
 :END:
 #+begin_src sh
 > make open-org
@@ -595,17 +598,13 @@ git-ready: dist-clean
 	  git status
 
 help:
+	  @echo '"make boot" tangles all of the files in Template'
 	  @echo '"make default" makes the .texi file, the .info file, \
 	  the html files, and the .pdf file.'
 	  @echo
 
 	  @echo '"make check" checks for prerequistes'
 	  @echo '"make values" runs check and prints variable values'
-	  @echo
-
-	  @echo '"make sync" syncs the html files in the AWS S3 bucket BUCKET; \
-	  you must have your AWS S3 bucket name in the env var AWS_S3_BUCKET; \
-	  You must have your AWS credentials installed in ~/.aws/credentials'
 	  @echo
 
 	  @echo '"make texi" makes the .texi file'
@@ -621,14 +620,22 @@ help:
 	  @echo '"make open-pdf" opens the .pdf file'
 	  @echo
 
+	  @echo '"make sync" syncs the html files in the AWS S3 bucket BUCKET; \
+	  you must have your AWS S3 bucket name in the env var AWS_S3_BUCKET; \
+	  You must have your AWS credentials installed in ~/.aws/credentials'
+	  @echo
+
 	  @echo '"make install-aws-cli" installs the "aws cli v2" command-line tools'
 	  @echo 'You also need to run "aws configure" and supply your Access Key and Secret Access Key'
+	  @echo
 
 	  @echo '"make clean" removes the .texi, .info, and backup files ("*~")'
 	  @echo '"make dist-clean" cleans, removes the html distribution, \
 	  and removes the build directory'
 	  @echo '"make wipe-clean" wipes clean the directory, including old directories'
-	  @echo '"make boot" tangles all of the files in Template'
+	  @echo
+
+	  @echo '"make delete-proj" deletes the project from the file system, GitHub and AWS'
 
 #+end_src
 
@@ -1232,9 +1239,13 @@ corresponding section from the root template file.
    # $1 := project
    # $2 := title
    # $3 := author
-   # [$4 := bucket] (default := ${DEFAULT_BUCKET})
+   # [$4 := bucket] (default := ${AWS_S3_BUCKET})
 
    USAGE="$0 <project> <title> <author> [<bucket>]\n"
+   [[ -z $AWS_S3_BUCKET ]] && {
+       printf "${RED}ERROR: ${YELLOW}The environment variable ${GREEN}\$AWS_S3_BUCKET${YELLOW} needs to be set.${CLEAR}\n"
+       exit 1
+   }
 
    if [[ $1 =~ ^-(h|-?help)$ || ( $# < 3 || $# > 4 ) ]]; then
        printf "USAGE:\n$USAGE"
@@ -1242,7 +1253,7 @@ corresponding section from the root template file.
    fi
 
    # verify command-line args contain only letters, digits, underscores, dashes and spaces
-   RE="^[_a-zA-Z][_a-zA-Z0-9 -]+$"
+   RE="^[_a-zA-Z][_a-zA-Z0-9 -.]+$"
    for arg in "$@"; do
        printf "$arg..."
        [[ $arg =~ $RE ]] || { printf ": ERROR\n"; exit 1; }
@@ -1250,16 +1261,11 @@ corresponding section from the root template file.
    done
 
    # bucket is optional
-   if [[ -z $4 ]]; then
-       bucket=${AWS_S3_BUCKET}
-   else
-       bucket=$4
-   fi
+   bucket=${4:-${AWS_S3_BUCKET}}
 
-   # the main code is in an elisp file
    ${EDITOR} --eval "(progn
-                         (load-file \"/usr/local/dev/bin/org-template.el\")
-                         (create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
+			 (load-file \"/usr/local/dev/bin/org-template.el\")
+			 (create-new-project \"$1\" \"$2\" \"$3\" \"$bucket\"))"
 
    # create a new Git repo and GitHub repo
    cd "$1"
