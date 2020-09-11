@@ -3,7 +3,7 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-09 21:27
+#+date:2020-09-09 21:37
 #+macro:version Version 0.6.7
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
@@ -462,7 +462,7 @@ GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
 S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
 S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
 S3COPY	:= $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
-#S3REMOVE	:= $(S3) rm --recursive $(S3_BUCKET)/$(S3_PROJ)
+S3REMOVE	:= $(S3) rm $(S3_BUCKET)/$(S3PROJ) --dryrun --recursive
 
 ###############################################################################
 
@@ -612,7 +612,7 @@ delete-proj:
 	-@make wipe-clean
 	@$(EDITOR) -u --eval "(kill-buffer \"$(ORG)\")"
 	@cd .. && rm -rf $(PROJ)
-#	$(S3REMOVE)
+	$(S3REMOVE)
 	@echo Done deleting project.
 
 index-html: $(INDEX)
