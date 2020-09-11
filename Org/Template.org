@@ -3,7 +3,7 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-11 08:28
+#+date:2020-09-11 09:36
 #+macro:version Version 0.6.7
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
@@ -308,6 +308,7 @@ REGION := --region us-west-2
 ### NOTE: there can be only one Org file in the project directory;
 # so far this has not been a problem, but it might be.
 
+PWD  := $(shell pwd)
 ORG  := $(shell ls *.org)
 PROJ := $(basename $(ORG))
 
@@ -481,6 +482,7 @@ values: check
 	  @echo TEMPLATE:	$(TEMPLATE)
 	  @echo EDITOR:		$(EDITOR)
 	  @echo USER:		$(USER)
+	  @echo PWD:		$(PWD)
 	  @echo ORG:		$(ORG)
 	  @echo PROJ:		$(PROJ) $S
 	  @echo BUCKET:		$(BUCKET)
@@ -640,7 +642,7 @@ update: $(ORG)
 	       	 (search-forward \"* Build Tools\") \
 	       	 (org-beginning-of-line) \
 	       	 (org-copy-subtree))) \
-	  (with-current-buffer (find-file-noselect \"$(ORG)\") \
+	  (with-current-buffer (find-file-noselect \"$(PWD)/$(ORG)\") \
 	       (save-excursion \
 	       	 (goto-char (point-min)) \
 	       	 (search-forward \"* Build Tools\") \
@@ -650,7 +652,7 @@ update: $(ORG)
 	       	 (save-buffer) \
 	       	 (kill-buffer) \
 	       	 (setq org-confirm-babel-evaluate nil) \
-	       	 (org-babel-tangle-file \"$(ORG)\"))))"
+	       	 (org-babel-tangle-file \"$(PWD)/$(ORG)\"))))"
 	 @echo Done updating $(ORG).
 
 install-aws-cli:
