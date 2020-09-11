@@ -3,7 +3,7 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-09 21:37
+#+date:2020-09-11 08:28
 #+macro:version Version 0.6.7
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
@@ -632,25 +632,25 @@ upload-index-html: $(INDEX)
 
 update: $(ORG)
 	@echo Updating $(ORG)...
-	$(EDITOR) -u --eval '\
-	(progn \
-	  (with-current-buffer (find-file-noselect "$(TEMPLATE)") \
+	$(EDITOR) -u --eval \
+	"(progn \
+	  (with-current-buffer (find-file-noselect \"$(TEMPLATE)\") \
 	       (save-excursion \
 	       	 (goto-char (point-min)) \
-	       	 (search-forward "* Build Tools") \
+	       	 (search-forward \"* Build Tools\") \
 	       	 (org-beginning-of-line) \
 	       	 (org-copy-subtree))) \
-	  (with-current-buffer (find-file-noselect "$(ORG)") \
+	  (with-current-buffer (find-file-noselect \"$(ORG)\") \
 	       (save-excursion \
 	       	 (goto-char (point-min)) \
-	       	 (search-forward "* Build Tools") \
+	       	 (search-forward \"* Build Tools\") \
 	       	 (org-beginning-of-line) \
 	       	 (org-yank) \
 	       	 (org-cut-subtree) \
 	       	 (save-buffer) \
 	       	 (kill-buffer) \
 	       	 (setq org-confirm-babel-evaluate nil) \
-	       	 (org-babel-tangle-file "$(ORG)"))))'
+	       	 (org-babel-tangle-file \"$(ORG)\"))))"
 	 @echo Done updating $(ORG).
 
 install-aws-cli:
