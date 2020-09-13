@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-11 18:58
-#+macro:version Version 0.6.7
+#+date:2020-09-13 00:24
+#+macro:version Version 0.6.8
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -611,9 +611,10 @@ delete-proj:
 		-H "Accept: application/vnd.github.v3+json" \
 		-X DELETE \
 		https://api.github.com/repos/$(USER)/$(PROJ)$S
-	$(S3REMOVE)
+	@$(S3REMOVE)
+	@make dist-clean
+	@make upload-index-html
 	@$(EDITOR) -u --eval "(kill-buffer \"$(ORG)\")"
-	-@make wipe-clean
 	@rm -rf "../$(PROJ)"
 	@echo Done deleting project.
 
