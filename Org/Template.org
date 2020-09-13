@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-13 00:24
-#+macro:version Version 0.6.8
+#+date:2020-09-14 10:49
+#+macro:version Version 0.6.9
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -398,19 +398,32 @@ PROJ_LIST := $(shell $(EDITOR) --eval \
 ### S3PROJ
 # The name of the current project as obtained from S3: 'proj-v1.2.34/'
 # If there is no current project in the S3 bucket, then assign a value equal to
-# the Org project and version instead.
+# the Org project and version instead.  It is set to the project if found, and
+# NO if not found, then updated in the ifeq block below.
+S3PROJ := $(shell $(EDITOR) --eval \
+		'(let ((proj (seq-find (lambda (s) (string-match-p "$(DIR)" s)) (quote $(PROJ_LIST))))) \
+		   (or proj (quote NO)))')
+
+### PROJINS3
+# is used by make sync; this allows the index.html file to be generated the first
+# time the project is synced.  It is set to NO if this project is not currently in an
+# S3 bucket, and it is set to YES if it is.
+PROJINS3 :=
+
 ### S3VERS
 # The version of this project currently installed in the S3 bucket: 'v1.2.34/'
 # If there is no current version in the S3 bucket, then assign the version from
 # this Org file instead.
+S3VERS   :=
 
-S3PROJ := $(shell $(EDITOR) --eval \
-		'(let ((proj (seq-find (lambda (s) (string-match-p "$(DIR)" s)) (quote $(PROJ_LIST))))) \
-		   (or proj (quote '$(DIR)-$(VERS)')))')
-
-S3VERS := $(subst $(DIR)-,,$(S3PROJ))
-ifeq ($(S3VERS), $(empty))
+# Update S3PROJ, S3VERS, and PROJINS3
+ifeq ($(S3PROJ), NO)
+	S3PROJ := $(DIR)-$(VERS)
 	S3VERS := $(VERS)
+	PROJINS3 := NO
+else
+	S3VERS := $(subst $(DIR)-,,$(S3PROJ))
+	PROJINS3 := YES
 endif
 
 ### GITHUB
@@ -497,6 +510,7 @@ values: check
 	  @echo DST_OLD:	$(DST_OLD)
 	  @echo DST_NEW:	$(DST_NEW)
 	  @echo PROJ_LIST:	"$(PROJ_LIST)"
+	  @echo PROJINS3:	$(PROJINS3)
 
 check:
 	  @printf "$${BLUE}Checking dependencies...$${CLEAR}\n"
@@ -559,19 +573,20 @@ open-html: html
 # therefore, use --tidy.  If it produces an error, try to link the PDF;
 # if it does not produce an error, the PDF will be added to the top dir
 # and there will be no attempt to link.
-pdf: $(PDF)
+pdf:	$(PDF)
 $(PDF): $(TEXI)
-	 @echo Making PDF INFO...
-	 @-pdftexi2dvi --quiet --build=tidy $(TEXI) || ln -s $(PROJ).t2d/pdf/build/$(PDF) $(PDF)
-	 @echo Done making PDF.
-open-pdf: pdf
+	@echo Making PDF INFO...
+	@-pdftexi2dvi --quiet --build=tidy $(TEXI) || ln -s $(PROJ).t2d/pdf/build/$(PDF) $(PDF)
+	@echo Done making PDF.
+open-pdf:pdf
 	 @open $(PDF)
 
-sync: $(HTML)
+sync:   $(HTML)
 	@echo Syncing version $(VERS) onto $(S3VERS)...
 	$(S3SYNC)
 	@echo Done syncing.
 	[[ $(VERS) != $(S3VERS) ]] && { echo Moving...; $(S3MOVE); echo Done moving.;  make homepage; } || :
+	[[ $(PROJINS3) = "NO" ]] && make homepage || :
 
 # This is a target-specific variable for updating the “description”
 # key on the GitHub repo page with the current version number.  It
@@ -1946,7 +1961,7 @@ variable values prior to tangling.  It lives in the ~tools~ directory.
 #+name:preprocess.el
 #+header: :mkdirp t
 #+header: :tangle tools/preprocess.el
-#+header: :shebang "#!/opt/local/bin/emacs --script"
+#+header: :shebang "#!/opt/local/bin/emacs -Q --script"
 #+begin_src emacs-lisp
   (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
     (save-excursion
