@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-16 09:15
-#+macro:version Version 0.6.10
+#+date:2020-09-16 09:19
+#+macro:version Version 0.6.11
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -232,6 +232,12 @@
 - State "SOMEDAY"    from "TODO"       [2020-09-04 Fri 13:54] \\
   Provide functionality to remove a project from the file system,
   GitHub, and the AWS S3 bucket.
+:END:
+*** TODO Added Template Version when Updating
+:LOGBOOK:
+- State "TODO"       from              [2020-09-16 Wed 09:18] \\
+  Add a custom id to an org template file when it is updated with the
+  new template.
 :END:
 * Chapter
 
