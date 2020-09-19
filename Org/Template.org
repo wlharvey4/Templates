@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-19 09:20
-#+macro:version Version 0.6.12
+#+date:2020-09-19 10:10
+#+macro:version Version 0.6.13
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -243,6 +243,10 @@
     - State "INPROGRESS" from [2020-09-18 Fri 08:24] \\
       When updating, add a missing #+bucket: key by asking with a default of
       pinecone-forest.
+*** TODO Check for Newer Version On Open Org
+    - State "TODO"       from              [2020-09-19 Sat 10:09] \\
+      When running the make command 'open-org', check for a newer version
+      stored on GitHub and issue a warning if there is one.
 * Chapter
 
 * Build Tools
