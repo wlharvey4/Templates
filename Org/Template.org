@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-19 10:10
-#+macro:version Version 0.6.13
+#+date:2020-09-21 19:03
+#+macro:version Version 0.6.14
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -247,6 +247,13 @@
     - State "TODO"       from              [2020-09-19 Sat 10:09] \\
       When running the make command 'open-org', check for a newer version
       stored on GitHub and issue a warning if there is one.
+*** INPROGRESS Revert INFO buffer upon new INFO file being generated
+    - State "INPROGRESS" from "TODO"       [2020-09-21 Mon 07:56] \\
+      Starting work on this TODO.
+    - State "TODO"       from              [2020-09-21 Mon 07:54] \\
+      After an INFO file is opened in Emacs as an INFO program, and a change is made to the ORG file, and a
+      new INFO file is generated, the old INFO buffer is simply opened again; it must be manually reverted.
+      Have the Makefile revert it if it exists instead.
 * Chapter
 
 * Build Tools
@@ -569,7 +576,9 @@ open-texi: texi
 info: $(INFO)
 $(INFO): $(TEXI)
 	 @echo Making INFO...
-	 @makeinfo $(TEXI)
+	 @makeinfo -o $(INFO) $(TEXI)
+	 @$(EDITOR) -u -eval \
+		"(revert-without-query \"@(INFO)\")"
 	 @echo Done making INFO.
 open-info: info
 	 @$(EDITOR) $(INFO)
@@ -1207,10 +1216,11 @@ nil
 	   ;; Check for the presence of a bucket keyword before the first headline
 	 (unless (re-search-forward "^#[+]bucket:" hl1 t)
 	   ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
+	   (message "No bucket found; adding %s..." s3-bucket)
 	   (re-search-forward "^#[+]macro:version")
 	   (beginning-of-line 2)
 	   (insert (concat "#+bucket:" s3-bucket))
-	   (message "Inserted bucket %s at point %s" s3-bucket (line-beginning-position))
+	   (message "Added bucket %s at point %s" s3-bucket (line-beginning-position))
 	   (newline)
 	   (save-buffer)))))
 #+end_src
@@ -1435,7 +1445,7 @@ template file.
    (setq org-template-version (org-template-version))
    (message (format "org-template-version: %s" org-template-version))
 
-   (message (format "Adding s3-bucket: %s..." (org-template-bucket)))
+   (message (format "Checking for s3-bucket: %s..." (org-template-bucket)))
    (add-s3-bucket (org-template-bucket))
    (message "done")
 
