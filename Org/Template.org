@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-21 19:06
-#+macro:version Version 0.6.15
+#+date:2020-09-22 13:51
+#+macro:version Version 0.6.16
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -671,11 +671,6 @@ upload-index-html: $(INDEX)
 	 $(S3COPY)
 	 @echo Done uploading index.html
 
-update: $(ORG)
-	@echo Updating $(ORG)...
-	update-org-template
-	@echo Done updating $(ORG).
-
 install-aws-cli:
 	  curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && \
 	  sudo installer -pkg AWSCLIV2.pkg -target / && \
@@ -1302,7 +1297,7 @@ nil
     drawer (creating one if necessary) at headline HL."
        (with-current-buffer (find-file-noselect f)
 	 (save-excursion (goto-char (point-min))
-	 (re-search-forward (concat "^*\s*" hl))
+	 (re-search-forward (concat "^*\\{1,\\}\s*" hl))
 	 (beginning-of-line 2)
 	 (let* ((e (org-element-at-point))
 		(et (org-element-type e)))
@@ -1397,6 +1392,7 @@ corresponding section from the root template file.
 
   OLD-BUF is the Org template in the current working directory.
   SYNC_ORG_TEMPLATE must be set."
+    (message "...in replace-build-tools with %s..." cid)
     (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
 	   (sync-buf (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
 	   (old-tree (project-tree old-buf))
@@ -1411,7 +1407,17 @@ corresponding section from the root template file.
 	(org-set-property "org-template-version" (org-template-version))
 	(save-buffer)))
 
-
+  (defun delete-build-tools (cid)
+    "Delete a section of an Org template file identified by the
+  custom_id CID."
+    (message "...in delete-build-tools at %s..." cid)
+    (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
+	   (old-tree (project-tree old-buf))
+	   (old-be (find-hl old-tree cid)))
+      (message "old-buf: %s\told-be: %s" old-buf old-be)
+      (with-current-buffer old-buf
+	(delete-region (car old-be) (cdr old-be))
+	(save-buffer))))
 #+end_src
 
 **** Replace Build Tools Script
@@ -1502,6 +1508,12 @@ template file.
  #+header: :tangle /usr/local/dev/bin/update-org-template
  #+header: :shebang "#!/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
  #+begin_src emacs-lisp
+   (require 'org)
+   (message "Update Org Template...")
+   (message "Obtaining ORG_SYNC_TEMPLATE: %S..." (getenv "SYNC_ORG_TEMPLATE"))
+   (org-babel-tangle-file (getenv "SYNC_ORG_TEMPLATE"))
+   (message "obtained.")
+
    (load-file "/usr/local/dev/bin/org-template.el")
 
    (setq old-template (car (file-expand-wildcards "*.org" t)))
@@ -1513,11 +1525,27 @@ template file.
    (add-s3-bucket (org-template-bucket))
    (message "done")
 
+   (message "Adding build-tools...")
    (add-pv-to-hl old-template "Build Tools"   "custom_id" "build-tools")
-   (replace-build-tools "build-tools")
+   (message "done.")
 
+   (message "Replacing build-tools...")
+   (replace-build-tools "build-tools")
+   (message "done.")
+
+   (message "Adding template version to Makefile...")
+   (add-pv-to-hl old-template "Makefile" "org-template-version" (org-template-version))
+   (message "done.")
+
+   (message "Adding build-scripts...")
    (add-pv-to-hl old-template "Build Scripts" "custom_id" "build-scripts")
-   (replace-build-tools "build-scripts")
+   (message "done.")
+
+   ;(replace-build-tools "build-scripts")
+   (message "Deleting build-scripts...")
+   (delete-build-tools "build-scripts")
+   (message "done.")
+   (message "Finished Update Org Template.")
  #+end_src
 
 ** Ignore
