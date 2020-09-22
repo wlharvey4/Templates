@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-22 13:51
-#+macro:version Version 0.6.16
+#+date:2020-09-22 14:08
+#+macro:version Version 0.6.17
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1305,7 +1305,7 @@ nil
 	       (message "Adding property drawer to headline %s" hl)
 	       (org-insert-property-drawer))
 	   (unless (org-entry-get (point) p)
-	     (message "Adding property %s with value %s" p v)
+	     ;(message "Adding property %s with value %s" p v)
 	     (org-entry-put (point) p v)
 	     (save-buffer))))))
  #+end_src
@@ -1392,7 +1392,7 @@ corresponding section from the root template file.
 
   OLD-BUF is the Org template in the current working directory.
   SYNC_ORG_TEMPLATE must be set."
-    (message "...in replace-build-tools with %s..." cid)
+    ;(message "...in replace-build-tools with %s..." cid)
     (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
 	   (sync-buf (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
 	   (old-tree (project-tree old-buf))
@@ -1410,11 +1410,11 @@ corresponding section from the root template file.
   (defun delete-build-tools (cid)
     "Delete a section of an Org template file identified by the
   custom_id CID."
-    (message "...in delete-build-tools at %s..." cid)
+    ;(message "...in delete-build-tools at %s..." cid)
     (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
 	   (old-tree (project-tree old-buf))
 	   (old-be (find-hl old-tree cid)))
-      (message "old-buf: %s\told-be: %s" old-buf old-be)
+      ;(message "old-buf: %s\told-be: %s" old-buf old-be)
       (with-current-buffer old-buf
 	(delete-region (car old-be) (cdr old-be))
 	(save-buffer))))
@@ -1510,41 +1510,42 @@ template file.
  #+begin_src emacs-lisp
    (require 'org)
    (message "Update Org Template...")
-   (message "Obtaining ORG_SYNC_TEMPLATE: %S..." (getenv "SYNC_ORG_TEMPLATE"))
+   ;(message "Obtaining ORG_SYNC_TEMPLATE: %S..." (getenv "SYNC_ORG_TEMPLATE"))
    (org-babel-tangle-file (getenv "SYNC_ORG_TEMPLATE"))
-   (message "obtained.")
+   ;(message "obtained.")
 
    (load-file "/usr/local/dev/bin/org-template.el")
 
    (setq old-template (car (file-expand-wildcards "*.org" t)))
-   (message (format "loaded old-template: %s" old-template))
+   ;(message (format "loaded old-template: %s" old-template))
    (setq org-template-version (org-template-version))
-   (message (format "org-template-version: %s" org-template-version))
+   ;(message (format "org-template-version: %s" org-template-version))
 
-   (message (format "Checking for s3-bucket: %s..." (org-template-bucket)))
+   ;(message (format "Checking for s3-bucket: %s..." (org-template-bucket)))
    (add-s3-bucket (org-template-bucket))
-   (message "done")
+   ;(message "done")
 
-   (message "Adding build-tools...")
-   (add-pv-to-hl old-template "Build Tools"   "custom_id" "build-tools")
-   (message "done.")
+   ;(message "Adding pv to build-tools...")
+   (add-pv-to-hl old-template "Build Tools" "custom_id" "build-tools")
+   ;(message "done.")
 
-   (message "Replacing build-tools...")
+   ;(message "Replacing build-tools...")
    (replace-build-tools "build-tools")
-   (message "done.")
+   ;(message "done.")
 
-   (message "Adding template version to Makefile...")
-   (add-pv-to-hl old-template "Makefile" "org-template-version" (org-template-version))
-   (message "done.")
+   ;(message "Adding template version to Makefile...")
+   (add-pv-to-hl old-template "Makefile" "org-template-version" org-template-version)
+   ;(message "done.")
 
-   (message "Adding build-scripts...")
+   ;(message "Adding pb build-scripts...")
    (add-pv-to-hl old-template "Build Scripts" "custom_id" "build-scripts")
-   (message "done.")
+   ;(message "done.")
 
-   ;(replace-build-tools "build-scripts")
-   (message "Deleting build-scripts...")
+   ;(message "Deleting build-scripts...")
    (delete-build-tools "build-scripts")
-   (message "done.")
+   ;(message "done.")
+
+   (org-babel-tangle-file old-template)
    (message "Finished Update Org Template.")
  #+end_src
 
