@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-21 19:03
-#+macro:version Version 0.6.14
+#+date:2020-09-21 19:06
+#+macro:version Version 0.6.15
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1013,6 +1013,70 @@ to a file called =index.html=.
      :END:
 
 #+call: bucket-project-links()
+** Boot Template
+:PROPERTIES:
+:dependency1: EMACS:=:/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs or similar
+:dependency2: EDITOR:=:emacsclient
+:dependency3: =SYNC_ORG_TEMPLATE= defined as $DEV/Templates/Org/Template.org
+:END:
+Although running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
+will install  everything, it would  be nice to have  a simple Makefile  that is
+downloaded with this  file that could be  invoked to do the  same thing without
+starting Emacs and Org-mode and keying in the ~org-babel-tangle~ command.  This
+little Makefile should be stored on  GitHub along with the ~Template.org~ file.
+When  the source  is extracted  to a  directory, then  running this  Makefile's
+default rule  as simply ~make~  will extract the ~preprocess.el~  script, which
+updates  =DEV= and  then  extracts the  full Makefile.   Because  this file  is
+tangled along with the full Makefile, it simply gets tacked onto the end of the
+big Makefile as an additional rule.   Now, running ~make~ runs the default rule
+from the  main Makefile, which is  to extract everything, then  export to TEXI,
+INFO, HTML, and PDF forms.
+
+It is assumed that an Emacs server is running, and that the $EDITOR environment
+variable is set to use ~emacsclient~.
+
+#+name:boot-template
+#+header: :tangle Makefile
+#+begin_src makefile
+boot:
+	$(EDITOR) -u --eval \
+		"(with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t)) \
+			(goto-char (point-min)) \
+			(re-search-forward \"^#[+]name:preprocess.el$$\") \
+			(org-babel-tangle (quote (4))) \
+                        (save-buffer) \
+			(kill-buffer))"
+	./tools/preprocess.el
+#+end_src
+
+** Preprocess Env Vars
+The environment variable DEV can be  in different locations and will be spelled
+differently based  on how the  local machine is set  up.  For instance,  on one
+system,  it will  be at  ~$HOME/Dev~  while in  another  system it  will be  at
+~/usr/local/dev~.  However, the =:tangle= keyword  does not expand variables in
+the form ~${DEV}~,  but rather requires absolute  paths, like ~/usr/local/dev~.
+Therefore, this program works like a preprocessor for environment variables set
+up  as part  of  =:tangle= lines,  changing them  to  their system  environment
+variable values prior to tangling.  It lives in the ~tools~ directory.
+
+#+name:preprocess.el
+#+header: :mkdirp t
+#+header: :tangle tools/preprocess.el
+#+header: :shebang "#!/opt/local/bin/emacs -Q --script"
+#+begin_src emacs-lisp
+  (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
+    (save-excursion
+    (goto-char (point-min))
+    (let ((re-search-str "\\(?::tangle\\|load-file \\(?:[\\]*\\)?[\"]\\)\s*\\(.*?/[dD]ev\\)/")
+          (dev (getenv "DEV")))
+      (while
+              (re-search-forward re-search-str nil t)
+              (replace-match dev t nil nil 1)))
+    (save-buffer)
+    (require 'org)
+    (org-babel-tangle)))
+#+end_src
+
 ** Samples
 #+begin_comment
 (cd "~/Dev/Emacs/MasteringEmacs/")
@@ -1936,70 +2000,6 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 	      ,*tmux?conf)     comp $file $TEMPLATES/rc/${COMP}/tmux.conf     ;;
 	  esac
     done
-#+end_src
-
-** Boot Template
-:PROPERTIES:
-:dependency1: EMACS:=:/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs or similar
-:dependency2: EDITOR:=:emacsclient
-:dependency3: =SYNC_ORG_TEMPLATE= defined as $DEV/Templates/Org/Template.org
-:END:
-Although running the command ~org-babel-tangle~ (=C-c C-v t=) from within Emacs
-will install  everything, it would  be nice to have  a simple Makefile  that is
-downloaded with this  file that could be  invoked to do the  same thing without
-starting Emacs and Org-mode and keying in the ~org-babel-tangle~ command.  This
-little Makefile should be stored on  GitHub along with the ~Template.org~ file.
-When  the source  is extracted  to a  directory, then  running this  Makefile's
-default rule  as simply ~make~  will extract the ~preprocess.el~  script, which
-updates  =DEV= and  then  extracts the  full Makefile.   Because  this file  is
-tangled along with the full Makefile, it simply gets tacked onto the end of the
-big Makefile as an additional rule.   Now, running ~make~ runs the default rule
-from the  main Makefile, which is  to extract everything, then  export to TEXI,
-INFO, HTML, and PDF forms.
-
-It is assumed that an Emacs server is running, and that the $EDITOR environment
-variable is set to use ~emacsclient~.
-
-#+name:boot-template
-#+header: :tangle Makefile
-#+begin_src makefile
-boot:
-	$(EDITOR) -u --eval \
-		"(with-current-buffer (car (find-file-noselect \"./*.org\" nil nil t)) \
-			(goto-char (point-min)) \
-			(re-search-forward \"^#[+]name:preprocess.el$$\") \
-			(org-babel-tangle (quote (4))) \
-                        (save-buffer) \
-			(kill-buffer))"
-	./tools/preprocess.el
-#+end_src
-
-** Preprocess Env Vars
-The environment variable DEV can be  in different locations and will be spelled
-differently based  on how the  local machine is set  up.  For instance,  on one
-system,  it will  be at  ~$HOME/Dev~  while in  another  system it  will be  at
-~/usr/local/dev~.  However, the =:tangle= keyword  does not expand variables in
-the form ~${DEV}~,  but rather requires absolute  paths, like ~/usr/local/dev~.
-Therefore, this program works like a preprocessor for environment variables set
-up  as part  of  =:tangle= lines,  changing them  to  their system  environment
-variable values prior to tangling.  It lives in the ~tools~ directory.
-
-#+name:preprocess.el
-#+header: :mkdirp t
-#+header: :tangle tools/preprocess.el
-#+header: :shebang "#!/opt/local/bin/emacs -Q --script"
-#+begin_src emacs-lisp
-  (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
-    (save-excursion
-    (goto-char (point-min))
-    (let ((re-search-str "\\(?::tangle\\|load-file \\(?:[\\]*\\)?[\"]\\)\s*\\(.*?/[dD]ev\\)/")
-          (dev (getenv "DEV")))
-      (while
-              (re-search-forward re-search-str nil t)
-              (replace-match dev t nil nil 1)))
-    (save-buffer)
-    (require 'org)
-    (org-babel-tangle)))
 #+end_src
 
 * List of Programs
