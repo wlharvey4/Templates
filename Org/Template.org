@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-22 14:08
-#+macro:version Version 0.6.17
+#+date:2020-09-23 22:41
+#+macro:version Version 0.6.18
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -145,6 +145,9 @@
    This is intended as a quick reference and showcase.
 
  - [[https://docs.github.com/en/rest/reference/markdown][GitHub REST API v3 --- Markdown]]
+
+** On Org Babel
+- [[https://org-babel.readthedocs.io/en/latest/][Org Babel Reference Card]]
 
 * Introduction
 :PROPERTIES:
@@ -1008,6 +1011,27 @@ to a file called =index.html=.
      :END:
 
 #+call: bucket-project-links()
+** Project Readme
+This adds the README.md template to a project. It should be customized uniquely
+for the project.
+
+#+name:project-readme
+#+header: :tangle README.md
+#+begin_src markdown
+# TITLE
+## Subtitle
+## Author
+## Date
+## Version
+# ABSTRACT
+This is the Org Template file.	It is the parent of all other Org Info blogs,
+and provides the source code for processing them in various different ways.
+# INTRODUCTION
+# CHAPTER
+## Section
+### Subsection
+#+end_src
+
 ** Boot Template
 :PROPERTIES:
 :dependency1: EMACS:=:/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs or similar
@@ -1215,36 +1239,43 @@ nil
      (let ((projfile (concat project "/" project ".org")))
        (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
        (with-current-buffer (find-file-noselect projfile)
-         ;; remove the README section of the TEMPLATE from the new project;
-         ;; the README must have a custom_id of "README"
-         (message "Deleting the README.")
-         (let* ((cbuf (current-buffer))
-                (ptree (project-tree cbuf))
-                (readme-beg-end (find-hl ptree "README")))
-           (message "readme-beg-end: %s" readme-beg-end)
-           (delete-region (car readme-beg-end) (cdr readme-beg-end))
-           (message "Done deleting README."))
-         (goto-char (point-min))
-         ;; update title, author, version, bucket
-         ;; with values provided by the user
-         (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
-         (replace-match title t nil nil 1)
-         (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
-         (replace-match author t nil nil 1)
-         (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
-         (replace-match "0.0.0" t nil nil 1)
-         (when bucket
-           (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
-           (replace-match bucket t nil nil 1))
-         (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
-         (replace-match (concat project "---" title) t nil nil 1)
-         (save-buffer)
-         ;; tangle the project readme and boot makefile
-         (org-babel-goto-named-src-block "project-readme")
-         (org-babel-tangle (quote (4)))
-         (org-babel-goto-named-src-block "boot-template")
-         (org-babel-tangle (quote (4)))
-         (kill-buffer))))
+	 (let* ((cur-buf (current-buffer))
+		(proj-tree (project-tree cur-buf))
+		(delete-hl-list (list "build-scripts" "README")))
+	   (message "Deleting %s..." delete-hl-list)
+	   (seq-do (lambda (cid)
+		     (message "...Deleting %s in %s..." cid cur-buf)
+		     (let* ((beg-end (find-hl proj-tree cid))
+			    (beg (car beg-end))
+			    (end (cdr beg-end)))
+		       (message "   ...%s: %s" cid beg-end)
+		       (delete-region beg end)
+		       (message "   ...done")))
+		   delete-hl-list))
+	 (message "Done deleting.")
+
+	 (goto-char (point-min))
+	 ;; update title, author, version, bucket
+	 ;; with values provided by the user
+	 (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
+	 (replace-match title t nil nil 1)
+	 (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
+	 (replace-match author t nil nil 1)
+	 (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
+	 (replace-match "0.0.0" t nil nil 1)
+	 (when bucket
+	   (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
+	   (replace-match bucket t nil nil 1))
+	 (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
+	 (replace-match (concat project "---" title) t nil nil 1)
+	 (save-buffer)
+	 ;; tangle the project readme and boot makefile
+	 (goto-char (point-min))
+	 (org-babel-goto-named-src-block "project-readme")
+	 (org-babel-tangle (quote (4)))
+	 (org-babel-goto-named-src-block "boot-template")
+	 (org-babel-tangle (quote (4)))
+	 (kill-buffer))))
  #+end_src
 
 *** Update Old Project
@@ -1364,7 +1395,6 @@ beginning and ending points.
 	   (car cid-hl))
       (cons (org-element-property :begin cid-hl)
 	    (org-element-property :end cid-hl))))
-
 
 #+end_src
 
@@ -1781,27 +1811,6 @@ template file.
    }
 
  #+end_src
-** Project Readme
-This adds the README.md template to a project. It should be customized uniquely
-for the project.
-
-#+name:project-readme
-#+header: :tangle README.md
-#+begin_src markdown
-# TITLE
-## Subtitle
-## Author
-## Date
-## Version
-# ABSTRACT
-This is the Org Template file.	It is the parent of all other Org Info blogs,
-and provides the source code for processing them in various different ways.
-# INTRODUCTION
-# CHAPTER
-## Section
-### Subsection
-#+end_src
-
 ** Switch Emacs Init
 This script allows the user to switch into using a different Emacs
 initialization setup.  The script first lists the currently-selected
