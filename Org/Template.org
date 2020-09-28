@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-24 00:21
-#+macro:version Version 0.6.20
+#+date:2020-09-28 11:59
+#+macro:version Version 0.6.21
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -548,7 +548,8 @@
   ### TEXINFO
   TEXI	:= $(PROJ).texi
   INFO	:= $(DIR).info
-  PDF		:= $(PROJ).pdf
+  INFOTN	:= $(shell $(EDITOR) --eval "(file-truename \"$(INFO)\")")
+  PDF	:= $(PROJ).pdf
   INDEX	:= index.html
   HTML	:= $(DIR)/$(INDEX)
   DIR_OLD	:= $(DIR)-old
@@ -578,17 +579,20 @@
   values: check
 	    @printf "$${BLUE}Values...$${CLEAR}\n"
 	    @echo TEMPLATE:	$(TEMPLATE)
-	    @echo EDITOR:		$(EDITOR)
+	    @echo EDITOR:	$(EDITOR)
 	    @echo USER:		$(USER)
 	    @echo PWD:		$(PWD)
 	    @echo ORG:		$(ORG)
+	    @echo TEXI:		$(TEXI)
+	    @echo INFO:		$(INFO)
+	    @ECHO INFOTN:	$(INFOTN)
+	    @echo BUCKET:	$(BUCKET)
 	    @echo PROJ:		$(PROJ) $S
-	    @echo BUCKET:		$(BUCKET)
 	    @echo S3_BUCKET:	$(S3_BUCKET)
 	    @echo HTTPS_BUCKET:	$(HTTPS_BUCKET)
 	    @echo VERS:		$(VERS)
-	    @echo S3PROJ:		$(S3PROJ)
-	    @echo S3VERS:		$(S3VERS)
+	    @echo S3PROJ:	$(S3PROJ)
+	    @echo S3VERS:	$(S3VERS)
 	    @echo DIR:		$(DIR)
 	    @echo DIR_OLD:	$(DIR_OLD)
 	    @echo SRC:		$(SRC)
