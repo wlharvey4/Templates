@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-28 11:59
-#+macro:version Version 0.6.21
+#+date:2020-09-28 12:34
+#+macro:version Version 0.6.22
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -653,10 +653,12 @@
 
   open-info: info
 	   @$(EDITOR) -u -eval \
-		  "(when (get-buffer \"*info*\") \
+		  "(if (get-buffer \"*info*\") \
 			  (with-current-buffer (get-buffer \"*info*\") \
-				  (revert-buffer t t t)))"
-	   @$(EDITOR) -n $(INFO)
+				(when (not (string= \"(symbol-value (quote Info-current-file))\" \"$(INFOTN)\")) \
+					(info \"$(INFOTN)\")) \
+				(revert-buffer t t t)) \
+		      (info \"$(INFOTN)\"))"
 
   html: $(HTML)
   $(HTML): $(TEXI)
