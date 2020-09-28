@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-28 12:34
-#+macro:version Version 0.6.22
+#+date:2020-09-28 13:22
+#+macro:version Version 0.6.23
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -756,7 +756,7 @@
 
   clean:
 	  @echo Cleaning...
-	    -@rm *~
+	    -@rm *~ 2>/dev/null
 	    -@for file in *.??*; \
 	    do \
 		    ext=$${file#$(PROJ).}; \
@@ -765,14 +765,14 @@
 
   dist-clean: clean
 	  @echo Dist Cleaning...
-	    ${EDITOR} --eval \
+	    @${EDITOR} -u --eval \
 	      "(kill-buffer \"$(ORG)\")"
 	    -@rm -rf *.{texi*,info*,html*,pdf*} $(DIR) $(TOOLS)
 	    -@for dir in *; \
-	    do \
+	    	do \
 		    [ -d $$dir -a $$dir != "$(DIR_OLD)" -a $$dir != $(SAVE) ] && \
 		    rm -vr $$dir; \
-	    done
+	    	done
 
   wipe-clean: dist-clean
 	  @echo Wipe Clean...
