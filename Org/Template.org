@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-28 13:22
-#+macro:version Version 0.6.23
+#+date:2020-09-29 10:41
+#+macro:version Version 0.6.24
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1353,66 +1353,68 @@ nil
  #+end_src
 
 *** Update Old Project
-**** Add an S3 Bucket
- This script takes one argument:
- 1. The name of an AWS S3 bucket (i.e., the "default" AWS S3 buffer to use)
+**** Add a Key-Value
+This script replaces ~add-s3-bucket~ with more abstract code to add any
+key-value combo after the =version= macro.  It takes two values, the key and
+the value.  It checks whether the key exists in the current Org file as
+=#+key:=.  If it does, then it simply returns nil.  If it does not, then it
+adds =#+key:value" after the =version= macro.
 
- This script checks whether the Org file in the present working directory has a
- "#+bucket:" keyword (of any value). If it does, then it simply returns nil. If
- it does not, then it adds the bucket name supplied as an argument as a keyword
- (e.g. "#+bucket:pinecone-forest") to the Org file right after where the
- =version= macro is located, and saves the file. It returns a message upon
- success.
-
-#+name:add-s3-bucket
+#+name:add-key-value
 #+header: :tangle /usr/local/dev/bin/org-template.el
-#+begin_src emacs-lisp
-  ;;; Add a keyword named 'bucket' just after the version macro.
-  ;;; This function should be run from within the directory containing the Org file.
-  (defun add-s3-bucket (s3-bucket)
-     "Add the name of the associated AWS S3 bucket to an Org
-  templated file in the PWD."
-     (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
-       (goto-char (point-min))
-       (let* ((tree (project-tree (current-buffer)))
-	      ;; find the beginning position of the first headline to act as a limit
-	      (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
-	   ;; Check for the presence of a bucket keyword before the first headline
-	 (unless (re-search-forward "^#[+]bucket:" hl1 t)
-	   ;; If no bucket keyword is found, search for a keyword MACRO with the value 'version'
-	   (message "No bucket found; adding %s..." s3-bucket)
-	   (re-search-forward "^#[+]macro:version")
-	   (beginning-of-line 2)
-	   (insert (concat "#+bucket:" s3-bucket))
-	   (message "Added bucket %s at point %s" s3-bucket (line-beginning-position))
-	   (newline)
-	   (save-buffer)))))
+#+begin_src elisp
+    (defun add-key-value (key value)
+      "Check for the existence of a key KEY; if not found, add it
+    with value VALUE."
+      (with-current-buffer (car (find-file-noselect "*.org" nil nil t))
+        (goto-char (point-min))
+        (let* ((tree (project-tree (current-buffer)))
+               ;; hl1 limits the search to the first headline
+               (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
+          (message  "In add-key-value; searching for key: %s..." key)
+          (if (re-search-forward (format "^#+%s:" key) hl1 t)
+              (message "...found.")
+            (progn
+              (message "...key: %s not found; adding value: %s..." key value)
+              (re-search-forward "^#[+]macro:version")
+              (beginning-of-line 2)
+              (insert (format "#+%s:%s" key value))
+              (message "Added #+%s:%s at point %d" key value (line-beginning-position))
+              (newline)
+              (save-buffer)
+              (revert-buffer t t t))))))
 #+end_src
 **** Add a Custom_Id
  This code checks a project file F to see if it contains a =property: value=
  pair (P, V) in a property drawer right under the headline HL. If it does not,
- it adds one. This code assumes the project file contains the heading HL for
- which it searches. It will throw an error if such a heading is not found.
+ it adds one. It will return nil if the headline is not found.
 
  #+name:add-pv-to-hl
  #+header: :tangle /usr/local/dev/bin/org-template.el
  #+begin_src emacs-lisp
-    (defun add-pv-to-hl (f hl p v)
-      "In file F add a property P with value V into a property
-    drawer (creating one if necessary) at headline HL."
-       (with-current-buffer (find-file-noselect f)
-	 (save-excursion (goto-char (point-min))
-	 (re-search-forward (concat "^*\\{1,\\}\s*" hl))
-	 (beginning-of-line 2)
-	 (let* ((e (org-element-at-point))
-		(et (org-element-type e)))
-	   (unless (string= et "property-drawer")
-	       (message "Adding property drawer to headline %s" hl)
-	       (org-insert-property-drawer))
-	   (unless (org-entry-get (point) p)
-	     ;(message "Adding property %s with value %s" p v)
-	     (org-entry-put (point) p v)
-	     (save-buffer))))))
+   (defun add-pv-to-hl (f hl p v)
+     "In file F add a property P with value V into a property
+   drawer (creating one if necessary) at headline HL."
+     (message "In `add-pv-to-hl' with %s %s %s %s" f hl p v)
+     (with-current-buffer (find-file-noselect f)
+       (save-excursion
+         (goto-char (point-min))
+         (let ((found (re-search-forward (concat "^*\\{1,\\}\s*" hl) nil t)))
+           (cond ((numberp found) (message "...found %s" hl))
+                 ((null found)
+                  (message "...did not find %s" hl)
+                  (beginning-of-line 2)
+                  (let* ((e (org-element-at-point))
+                         (et (org-element-type e)))
+                    (unless (string= et "property-drawer")
+                      (message "...adding property drawer to headline %s" hl)
+                      (org-insert-property-drawer))
+                    (unless (org-entry-get (point) p)
+                                           (message "...adding property %s with value %s" p v)
+                      (org-entry-put (point) p v))))))
+         (when (buffer-modified-p)
+           (message "Saving buffer %s" (current-buffer))
+           (save-buffer)))))
  #+end_src
 
 **** Replace Build Tools
@@ -1625,8 +1627,12 @@ template file.
    (setq org-template-version (org-template-version))
    ;(message (format "org-template-version: %s" org-template-version))
 
-   ;(message (format "Checking for s3-bucket: %s..." (org-template-bucket)))
-   (add-s3-bucket (org-template-bucket))
+   (message "Checking for s3-bucket: %s..." (org-template-bucket))
+   (add-key-value "bucket" (org-template-bucket))
+   ;(add-s3-bucket (org-template-bucket))
+
+   (message "Checking for `macro upload-date'")
+   (add-key-value "macro" "upload-date (eval (current-time-string))")
    ;(message "done")
 
    ;(message "Adding pv to build-tools...")
