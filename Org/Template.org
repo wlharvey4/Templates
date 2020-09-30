@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-29 10:41
-#+macro:version Version 0.6.24
+#+date:2020-09-30 08:46
+#+macro:version Version 0.6.25
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1395,33 +1395,31 @@ adds =#+key:value" after the =version= macro.
    (defun add-pv-to-hl (f hl p v)
      "In file F add a property P with value V into a property
    drawer (creating one if necessary) at headline HL."
-     (message "In `add-pv-to-hl' with %s %s %s %s" f hl p v)
+     (message "In `add-pv-to-hl' with file:`%s' headline:`%s' property:`%s' value:`%s'" f hl p v)
      (with-current-buffer (find-file-noselect f)
        (save-excursion
-         (goto-char (point-min))
-         (let ((found (re-search-forward (concat "^*\\{1,\\}\s*" hl) nil t)))
-           (cond ((numberp found) (message "...found %s" hl))
-                 ((null found)
-                  (message "...did not find %s" hl)
-                  (beginning-of-line 2)
-                  (let* ((e (org-element-at-point))
-                         (et (org-element-type e)))
-                    (unless (string= et "property-drawer")
-                      (message "...adding property drawer to headline %s" hl)
-                      (org-insert-property-drawer))
-                    (unless (org-entry-get (point) p)
-                                           (message "...adding property %s with value %s" p v)
-                      (org-entry-put (point) p v))))))
-         (when (buffer-modified-p)
-           (message "Saving buffer %s" (current-buffer))
-           (save-buffer)))))
+	 (goto-char (point-min))
+	 (let ((found (re-search-forward (concat "^[*]\\{1,\\}\s*" hl))))
+	   (message "...found %s" hl)
+	   (beginning-of-line 2)
+	   (let* ((e (org-element-at-point))
+		  (et (org-element-type e)))
+	     (unless (string= et "property-drawer")
+	       (message "...adding property drawer to headline:`%s'" hl)
+	       (org-insert-property-drawer))
+	     (unless (org-entry-get (point) p)
+	       (message "...adding property:`%s' with value:`%s' to property drawer." p v)
+	       (org-entry-put (point) p v))))
+	 (when (buffer-modified-p)
+	   (message "Saving buffer:`%s'" (current-buffer))
+	   (save-buffer)))))
  #+end_src
 
 **** Replace Build Tools
-These three small scripts are used by ~replace-build-tools~.
-~org-template-version~ returns the main Org Template's version number.
-~project-tree~ returns a parsed tree from a buffer. ~find-hl~ locates a level 1
-heading that contains a particular custom id and returns that subtree's
+These    three   small    scripts    are    used   by    ~replace-build-tools~.
+~org-template-version~  returns   the  main  Org  Template's   version  number.
+~project-tree~ returns  a parsed  tree from a  buffer. ~find-hl-cid~  locates a
+level 1 heading that contains a particular custom id and returns that subtree's
 beginning and ending points.
 
 #+name: replace-utilities
@@ -1456,9 +1454,18 @@ beginning and ending points.
       (org-element-parse-buffer 'headline)))
 
 
+  (defun find-hl (buf hl)
+    "With a buffer BUF, find a headline HL.
 
+  Return nil if the headline is not found. Return its point if it
+  is found."
+    (with-current-buffer buf
+      (save-excursion
+	(goto-char (point-min))
+	(let ((re (format "^[*]\\{1,\\}\\s\\{1,\\}%s$" hl)))
+	  (re-search-forward re nil t)))))
 
-  (defun find-hl (proj-tree cid)
+  (defun find-hl-cid (proj-tree cid)
     "With an Org-parsed tree PROJ-TREE, find a headline with a
   particular property drawer custom_id of CID."
     (let* ((cid-hl (org-element-map proj-tree 'headline
@@ -1503,8 +1510,8 @@ corresponding section from the root template file.
 	   (sync-buf (find-file-noselect (getenv "SYNC_ORG_TEMPLATE")))
 	   (old-tree (project-tree old-buf))
 	   (sync-tree (project-tree sync-buf))
-	   (old-be (find-hl old-tree cid))
-	   (sync-be (find-hl sync-tree cid)))
+	   (old-be (find-hl-cid old-tree cid))
+	   (sync-be (find-hl-cid sync-tree cid)))
 	(set-buffer old-buf)
 	(delete-region (car old-be) (cdr old-be))
 	(goto-char (car old-be))
@@ -1519,7 +1526,7 @@ corresponding section from the root template file.
     ;(message "...in delete-build-tools at %s..." cid)
     (let* ((old-buf (car (find-file-noselect "./*.org" nil nil t)))
 	   (old-tree (project-tree old-buf))
-	   (old-be (find-hl old-tree cid)))
+	   (old-be (find-hl-cid old-tree cid)))
       ;(message "old-buf: %s\told-be: %s" old-buf old-be)
       (with-current-buffer old-buf
 	(delete-region (car old-be) (cdr old-be))
@@ -1648,12 +1655,13 @@ template file.
    ;(message "done.")
 
    ;(message "Adding pb build-scripts...")
-   (add-pv-to-hl old-template "Build Scripts" "custom_id" "build-scripts")
-   ;(message "done.")
+   (when (find-hl (get-file-buffer old-template) "Build Scripts")
+     (add-pv-to-hl old-template "Build Scripts" "custom_id" "build-scripts")
+     ;(message "done.")
 
-   ;(message "Deleting build-scripts...")
-   (delete-build-tools "build-scripts")
-   ;(message "done.")
+     ;(message "Deleting build-scripts...")
+     (delete-build-tools "build-scripts"))
+     ;(message "done.")
 
    (org-babel-tangle-file old-template)
    (message "Finished Update Org Template.")
