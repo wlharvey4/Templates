@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-09-30 08:46
-#+macro:version Version 0.6.25
+#+date:2020-10-01 07:20
+#+macro:version Version 0.6.26
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -2149,26 +2149,22 @@ Copyright \copy 2020 by {{{author}}}
 
 * Concept Index
 :PROPERTIES:
-:unnumbered: t
-:index:	   cp
+:index:	cp
 :END:
 
 * Program Index
 :PROPERTIES:
-:index:	   pg
-:unnumbered: t
+:index:	pg
 :END:
 
 * Function Index
 :PROPERTIES:
-:index:	   fn
-:unnumbered: t
+:index:	fn
 :END:
 
 * Variable Index
 :PROPERTIES:
-:index:	   vr
-:unnumbered: t
+:index:	vr
 :END:
 
 
