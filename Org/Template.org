@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-10-01 07:20
-#+macro:version Version 0.6.26
+#+date:2020-10-11 17:57
+#+macro:version Version 0.6.27
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -639,7 +639,7 @@
 			  (org-texinfo-export-to-texinfo)))"
 	   @echo Done making TEXI.
   open-texi: texi
-	   @$(EDITOR) $(TEXI)
+	   @$(EDITOR) -n $(TEXI)
 
   info: $(INFO)
   $(INFO): $(TEXI)
