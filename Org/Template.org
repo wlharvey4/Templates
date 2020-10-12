@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-10-11 17:57
-#+macro:version Version 0.6.27
+#+date:2020-10-12 14:14
+#+macro:version Version 0.6.28
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -311,13 +311,23 @@
     - State "TODO"       from              [2020-09-19 Sat 10:09] \\
       When running the make command 'open-org', check for a newer version
       stored on GitHub and issue a warning if there is one.
-*** INPROGRESS Revert INFO buffer upon new INFO file being generated
+*** DONE Revert INFO buffer upon new INFO file being generated
+CLOSED: [2020-10-12 Mon 14:12]
+:LOGBOOK:
+- State "DONE"       from "INPROGRESS" [2020-10-12 Mon 14:12]
+:END:
     - State "INPROGRESS" from "TODO"       [2020-09-21 Mon 07:56] \\
       Starting work on this TODO.
     - State "TODO"       from              [2020-09-21 Mon 07:54] \\
       After an INFO file is opened in Emacs as an INFO program, and a change is made to the ORG file, and a
       new INFO file is generated, the old INFO buffer is simply opened again; it must be manually reverted.
       Have the Makefile revert it if it exists instead.
+*** TODO Add resources and images to AWS S3 bucket
+:LOGBOOK:
+- State "TODO"       from              [2020-10-12 Mon 14:12] \\
+  Find a way to display images when syncing to the AWS S3 bucket.  Now
+  they simply do not exist.
+:END:
 * Chapter
 
 * Build Tools
