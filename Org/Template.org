@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-10-12 16:58
-#+macro:version Version 0.6.29
+#+date:2020-10-12 20:32
+#+macro:version Version 0.6.30
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -376,15 +376,15 @@ CLOSED: [2020-10-12 Mon 14:12]
   # tools is a directory holding tangled scripts, such as cmprpl
   # resources is a directory holding static resources for the project
   # images is a directory holding jpg and png image files
-  TOOLS	:= tools
-  CMPRPL	:= $(TOOLS)/cmprpl
   RESOURCES := resources
-  IMAGES  := $(RESOURCES)/images
+  TOOLS	    := $(RESOURCES)/tools
+  IMAGES    := $(RESOURCES)/images
+  CMPRPL    := $(TOOLS)/cmprpl
 
   # Use emacsclient as $EDITOR; make sure it is set in a shell startup file and
   # the server has been started.
   EMACS	  := $(EMACS)
-  EDITOR	  := $(EDITOR)
+  EDITOR  := $(EDITOR)
 
   # User’s personal GitHub token for authentication to GitHub
   # DO NOT HARD-CODE THIS VALUE
@@ -856,10 +856,10 @@ CLOSED: [2020-10-12 Mon 14:12]
 ** Compare Replace
 
 #+begin_comment
-The following source  code tangles all files during an  export operation.  This
-is  to make  sure the  ~cmprpl~ source  code exists  in the  ~tools/~ directory
-before  running the  Makefile target  =html=.  It  also makes  sure there  is a
-Makefile on an initial export. The following code is not exported.
+The following source code tangles all files during an export operation. This is
+to  make  sure  the  ~cmprpl~  source code  exists  in  the  ~resources/tools/~
+directory before running  the Makefile target =html=. It also  makes sure there
+is a Makefile on an initial export. The following code is not exported.
 #+end_comment
 
 #+name:tangle-org-file
@@ -906,7 +906,7 @@ should be in sync.
 #+name:cmprpl
 #+header: :mkdirp t
 #+header: :shebang "#!/usr/bin/env bash"
-#+begin_src sh :tangle tools/cmprpl
+#+begin_src sh :tangle resources/tools/cmprpl
   [[ $# -eq 2 ]] || { echo "ERROR: Incorrect command line arguments"; exit 1; }
   DIR_NEW=$1
   DIR_OLD=$2
@@ -1157,7 +1157,7 @@ boot:
 			(org-babel-tangle (quote (4))) \
                         (save-buffer) \
 			(kill-buffer))"
-	./tools/preprocess.el
+	.resources/tools/preprocess.el
 #+end_src
 
 ** Preprocess Env Vars
@@ -1168,11 +1168,11 @@ system,  it will  be at  ~$HOME/Dev~  while in  another  system it  will be  at
 the form ~${DEV}~,  but rather requires absolute  paths, like ~/usr/local/dev~.
 Therefore, this program works like a preprocessor for environment variables set
 up  as part  of  =:tangle= lines,  changing them  to  their system  environment
-variable values prior to tangling.  It lives in the ~tools~ directory.
+variable values prior to tangling.  It lives in the ~resources/tools~ directory.
 
 #+name:preprocess.el
 #+header: :mkdirp t
-#+header: :tangle tools/preprocess.el
+#+header: :tangle resources/tools/preprocess.el
 #+header: :shebang "#!/opt/local/bin/emacs -Q --script"
 #+begin_src emacs-lisp
   (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
@@ -1325,9 +1325,17 @@ nil
  #+header: :tangle /usr/local/dev/bin/org-template.el
  #+begin_src emacs-lisp
    (defun create-new-project (project title author &optional bucket)
-     "Create a new project in a new directory."
+     "Create a new project in a new directory.
+
+   This includes creating the 'resources' directory and the list of
+   subdirectories to go inside the resources directory."
      (message "NEW PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
      (mkdir project t)
+     (mkir (concat project "/" "resources"))
+     (let ((rsrcdir "resources")
+	   (subdirs (list "tools" "images")))
+       (dolist (subdir subdirs)
+	 (mkdir (concat project "/" rsrcdir "/" subdir))))
      (let ((projfile (concat project "/" project ".org")))
        (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
        (with-current-buffer (find-file-noselect projfile)
