@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-04 07:57
-#+macro:version Version 0.6.33
+#+date:2020-11-07 17:10
+#+macro:version Version 0.6.34
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1338,62 +1338,89 @@ nil
  and AWS S3 bucket, and tangle the bootstrap Makefile and initial Readme, then
  create a new git repository and create an initial git commit. Finally, save the
  project in GitHub, and there add a description and link to its AWS S3 bucket.
+**** DONE List of todos [1/1]
+     - State "DONE"       from "TODO"       [2020-11-07 Sat 16:53]
+     - State "TODO"       from              [2020-11-07 Sat 09:47] \\
+       List of todo's for creating a new project
+ - [X] Make sure env var SYNC_ORG_TEMPLATE exists or throw an error
 
+**** Create New Project Code
+ #+caption:Create New Project Code
  #+name:create-new-project
  #+header: :tangle /usr/local/dev/bin/org-template.el
  #+begin_src emacs-lisp
    (defun create-new-project (project title author &optional bucket)
      "Create a new project in a new directory.
 
-   This includes creating the 'resources' directory and the list of
-   subdirectories to go inside the resources directory."
+   - Depends on env var SYNC_ORG_TEMPLATE existing and pointing to this file.
+   - Require a title, author, and AWS S3 bucket name
+   - Create new directory structure: resources, and subdirs tools, images, etc
+   - Copy template file into a new directory.
+   - Update its title, author, and S3 bucket entries.
+   - Tangle the bootstrap makefile and Readme.
+   - Create a new git repo and add an initial commit.
+   - Upload the git repo into GitHub, add a description to the GitHub repo."
      (message "NEW PROJECT=%s TITLE=%s AUTHOR=%s BUCKET=%s" project title author bucket)
-     (mkdir project t)
-     (mkdir (concat project "/" "resources"))
-     (let ((rsrcdir "resources")
-	   (subdirs (list "tools" "images")))
-       (dolist (subdir subdirs)
-	 (mkdir (concat project "/" rsrcdir "/" subdir))))
-     (let ((projfile (concat project "/" project ".org")))
-       (copy-file (getenv "SYNC_ORG_TEMPLATE") projfile)
-       (with-current-buffer (find-file-noselect projfile)
-	 (let* ((cur-buf (current-buffer))
-		(proj-tree (project-tree cur-buf))
-		(delete-hl-list (list "build-scripts" "README")))
-	   (message "Deleting %s..." delete-hl-list)
-	   (seq-do (lambda (cid)
-		     (message "...Deleting %s in %s..." cid cur-buf)
-		     (let* ((beg-end (find-hl proj-tree cid))
-			    (beg (car beg-end))
-			    (end (cdr beg-end)))
-		       (message "   ...%s: %s" cid beg-end)
-		       (delete-region beg end)
-		       (message "   ...done")))
-		   delete-hl-list))
-	 (message "Done deleting.")
 
-	 (goto-char (point-min))
-	 ;; update title, author, version, bucket
-	 ;; with values provided by the user
-	 (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
-	 (replace-match title t nil nil 1)
-	 (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
-	 (replace-match author t nil nil 1)
-	 (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
-	 (replace-match "0.0.0" t nil nil 1)
-	 (when bucket
-	   (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
-	   (replace-match bucket t nil nil 1))
-	 (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
-	 (replace-match (concat project "---" title) t nil nil 1)
-	 (save-buffer)
-	 ;; tangle the project readme and boot makefile
-	 (goto-char (point-min))
-	 (org-babel-goto-named-src-block "project-readme")
-	 (org-babel-tangle (quote (4)))
-	 (org-babel-goto-named-src-block "boot-template")
-	 (org-babel-tangle (quote (4)))
-	 (kill-buffer))))
+     (setq SOT (getenv "SYNC_ORG_TEMPLATE"))
+     (access-file SOT "Cannot access SYNC_ORG_TEMPLATE")
+
+     ;; Project directory structure
+     (setq project-dir (file-name-as-directory project))
+     (setq project-file (concat project-dir project ".org"))
+     (setq resources-dir "resources/")
+     (setq projrsc-dir (concat project-dir resources-dir))
+     (setq resources-subdirs (list "tools/" "images/"))
+
+     ;; make the directories
+     (mkdir project-dir t)
+     (mkdir projrsc-dir)
+     (dolist (subdir resources-subdirs)
+       (mkdir (concat projrsc-dir subdir)))
+     ;; create the project file from the template
+     (copy-file SOT project-file)
+
+     (with-current-buffer (find-file-noselect project-file)
+       (let* ((cur-buf (current-buffer))
+	      (proj-tree (project-tree cur-buf))
+	      (delete-hl-list (list "build-scripts" "README")))
+
+	 ;; Remove some sections
+	 (message "Deleting %s..." delete-hl-list)
+	 (seq-do (lambda (cid)
+		   (message "...Deleting %s in %s..." cid cur-buf)
+		   (let* ((beg-end (find-hl proj-tree cid))
+			  (beg (car beg-end))
+			  (end (cdr beg-end)))
+		     (message "   ...%s: %s" cid beg-end)
+		     (delete-region beg end)
+		     (message "   ...done")))
+		 delete-hl-list))
+       (message "Done deleting.")
+
+       ;; update title, author, version, bucket
+       ;; with values provided by the user
+       (goto-char (point-min))
+       (re-search-forward "^#[+]title:\s*\\(TITLE\\)$")
+       (replace-match title t nil nil 1)
+       (re-search-forward "^#[+]author:\s*\\(AUTHOR\\)$")
+       (replace-match author t nil nil 1)
+       (re-search-forward "^#[+]macro:\s*version Version \\(.*\\)$")
+       (replace-match "0.0.0" t nil nil 1)
+       (when bucket
+	 (re-search-forward "^#[+]bucket:\s*\\(.*\\)$")
+	 (replace-match bucket t nil nil 1))
+       (re-search-forward "^#[+]texinfo_printed_title:\\(PRINTED TITLE\\)$")
+       (replace-match (concat project "---" title) t nil nil 1)
+       (save-buffer)
+
+       ;; tangle the project readme and boot makefile
+       (goto-char (point-min))
+       (org-babel-goto-named-src-block "project-readme")
+       (org-babel-tangle (quote (4)))
+       (org-babel-goto-named-src-block "boot-template")
+       (org-babel-tangle (quote (4)))
+       (kill-buffer)))
  #+end_src
 
 *** Update Old Project
@@ -1595,10 +1622,10 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
  This shell script  is installed into $DEV/bin  and is run by  typing the shell
  command =new-org-template <...ARGS>= from the command-line to set up a new Org
  project at a  particular point in your directory structure.   The main code is
- elisp, described above in [[*Create New Project][Create New Project]] and [[*Update Old Project][Update Old Project]].
+ elisp, described above in [[*Create New Project][Create New Project]].
 
  After a new project  is installed into the directory structure,  a git repo is
- established, as well  as a new GetHub  repo, and the initial  commit is pushed
+ established, as well  as a new GitHub  repo, and the initial  commit is pushed
  up.
 
  #+name:run-create-and-update
