@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-07 17:10
-#+macro:version Version 0.6.34
+#+date:2020-11-07 18:12
+#+macro:version Version 0.6.35
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -215,6 +215,9 @@
 :unnumbered: t
 :END:
 ** TODO Ideas on how to make this a better system
+   :PROPERTIES:
+   :custom_id: todos
+   :END:
 *** TODO Install major dependencies
 [2020-02-14 Fri 10:12]
 - [ ] like ~aws2~
@@ -1383,13 +1386,13 @@ nil
      (with-current-buffer (find-file-noselect project-file)
        (let* ((cur-buf (current-buffer))
 	      (proj-tree (project-tree cur-buf))
-	      (delete-hl-list (list "build-scripts" "README")))
+	      (delete-hl-list (list "build-scripts" "todos" "README")))
 
 	 ;; Remove some sections
 	 (message "Deleting %s..." delete-hl-list)
 	 (seq-do (lambda (cid)
 		   (message "...Deleting %s in %s..." cid cur-buf)
-		   (let* ((beg-end (find-hl proj-tree cid))
+		   (let* ((beg-end (find-hl-cid proj-tree cid))
 			  (beg (car beg-end))
 			  (end (cdr beg-end)))
 		     (message "   ...%s: %s" cid beg-end)
@@ -1537,12 +1540,12 @@ beginning and ending points.
 	  (re-search-forward re nil t)))))
 
   (defun find-hl-cid (proj-tree cid)
-    "With an Org-parsed tree PROJ-TREE, find a headline with a
-  particular property drawer custom_id of CID."
+    "With an Org-parsed tree PROJ-TREE,  find a headline of leval 1
+  or 2 with a particular property drawer custom_id of CID."
     (let* ((cid-hl (org-element-map proj-tree 'headline
 	    (lambda (e) (let ((lev (org-element-property :level e))
 			      (bt (org-element-property :CUSTOM_ID e)))
-			  (and (= lev 1)
+			  (and (<= lev 2)
 			       (string= bt cid)
 			       e)))
 	    nil t))
@@ -1628,11 +1631,11 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
  established, as well  as a new GitHub  repo, and the initial  commit is pushed
  up.
 
- #+name:run-create-and-update
+ #+name:new-org-template
  #+header: :tangle /usr/local/dev/bin/new-org-template
  #+header: :shebang "#!/usr/bin/env zsh"
  #+begin_src sh -n
-   # run-org-template
+   # new-org-template
    # $1 := project
    # $2 := title
    # $3 := author
@@ -2240,6 +2243,8 @@ Copyright \copy 2020 by {{{author}}}
 
 
 * Configuration							   :noexport:
+#+startup:content
+
 #+todo: SOMEDAY(s@) TODO(t@) INPROGRESS(i@) WAIT(w@) | CANCEL(c@) DONE(d!)
 
 #+options: H:4
