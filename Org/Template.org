@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-07 18:12
-#+macro:version Version 0.6.35
+#+date:2020-11-10 07:11
+#+macro:version Version 0.6.36
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1446,7 +1446,7 @@ adds =#+key:value" after the =version= macro.
                ;; hl1 limits the search to the first headline
                (hl1 (org-element-map tree (quote headline) (lambda (hl) (org-element-property :begin hl)) nil t)))
           (message  "In add-key-value; searching for key: %s..." key)
-          (if (re-search-forward (format "^#+%s:" key) hl1 t)
+          (if (re-search-forward (format "^#[+]%s:" key) hl1 t)
               (message "...found.")
             (progn
               (message "...key: %s not found; adding value: %s..." key value)
