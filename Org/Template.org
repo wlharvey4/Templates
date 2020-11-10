@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-10 07:29
-#+macro:version Version 0.6.37
+#+date:2020-11-10 12:23
+#+macro:version Version 0.6.38
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -343,6 +343,11 @@ CLOSED: [2020-10-12 Mon 14:12]
 - State "TODO"       from              [2020-10-12 Mon 14:12] \\
   Find a way to display images when syncing to the AWS S3 bucket.  Now
   they simply do not exist.
+:END:
+*** TODO Refactor ~org-template.el~ to use ~org-collect-keywords~ procedure
+:LOGBOOK:
+- State "TODO"       from              [2020-11-10 Tue 12:24] \\
+  Just found procedure ~org-collect-keywords~; refactor to use it.
 :END:
 * Chapter
 
@@ -1433,6 +1438,9 @@ key-value combo after the =version= macro.  It takes two values, the key and
 the value.  It checks whether the key exists in the current Org file as
 =#+key:=.  If it does, then it simply returns nil.  If it does not, then it
 adds =#+key:value" after the =version= macro.
+
+NOTE: there is already an org procedure called ~org-collect-keywords~ that
+searches for and return key-value pairs; consider using it instead.
 
 #+name:add-key-value
 #+header: :tangle /usr/local/dev/bin/org-template.el
