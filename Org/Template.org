@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-10 07:11
-#+macro:version Version 0.6.36
+#+date:2020-11-10 07:29
+#+macro:version Version 0.6.37
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -566,7 +566,7 @@ CLOSED: [2020-10-12 Mon 14:12]
   # code should work with any version of 'perl' without having to
   # install any modules.
 
-  USER := $(shell \
+  USER	:= $(shell \
 	    curl -sH "Authorization: token $(GITHUB_TOKEN)" https://api.github.com/user \
 	    | \
 	    perl -MJSON::PP -e \
@@ -574,28 +574,28 @@ CLOSED: [2020-10-12 Mon 14:12]
 		 my $$json = JSON::PP->new->loose->allow_barekey->decode(<STDIN>); \
 		 print $$json->{login};' \
 	    )
-  SAVE	:= resources
+  SAVE		:= resources
 
   ### TEXINFO
-  TEXI	:= $(PROJ).texi
-  INFO	:= $(DIR).info
+  TEXI		:= $(PROJ).texi
+  INFO		:= $(DIR).info
   INFOTN	:= $(shell $(EDITOR) --eval "(file-truename \"$(INFO)\")")
-  PDF	:= $(PROJ).pdf
-  INDEX	:= index.html
-  HTML	:= $(DIR)/$(INDEX)
+  PDF		:= $(PROJ).pdf
+  INDEX		:= index.html
+  HTML		:= $(DIR)/$(INDEX)
   DIR_OLD	:= $(DIR)-old
 
   ### AWS S3
   DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
   DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
-  EXCL_INCL   := --exclude "*" --include "*.html"
-  INCL_IMAGES := --exclude "*" --include "*.jpg" --include "*.png"
+  EXCL_INCL	:= --exclude "*" --include "*.html"
+  INCL_IMAGES	:= --exclude "*" --include "*.jpg" --include "*.png"
   GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
   S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(REGION) $(GRANTS)
   S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(REGION) $(GRANTS)
   S3COPY	:= $(S3) cp $(INDEX) $(S3_BUCKET) $(REGION) $(GRANTS)
-  S3REMOVE:= $(S3) rm $(S3_BUCKET)/$(S3PROJ) --recursive
-  S3IMAGESYNC := $(S3) sync $(INCL_IMAGES) $(IMAGES) $(S3_BUCKET)/$(IMAGES) $(REGIONS) $(GRANTS)
+  S3REMOVE	:= $(S3) rm $(S3_BUCKET)/$(S3PROJ) --recursive
+  S3IMAGESYNC	:= $(S3) sync $(INCL_IMAGES) $(IMAGES) $(S3_BUCKET)/$(IMAGES) $(REGIONS) $(GRANTS)
 
   ###############################################################################
 
