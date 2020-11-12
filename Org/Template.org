@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-10 12:23
-#+macro:version Version 0.6.38
+#+date:2020-11-12 10:43
+#+macro:version Version 0.6.39
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1651,7 +1651,8 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
 
    USAGE="$0 <project> <title> <author> [<bucket>]\n"
    [[ -z $AWS_S3_BUCKET ]] && {
-       printf "${RED}ERROR: ${YELLOW}The environment variable ${GREEN}\$AWS_S3_BUCKET${YELLOW} needs to be set.${CLEAR}\n"
+       # printf goes to standard out by default; redirect this error message to standard error
+       printf "${RED}ERROR: ${YELLOW}The environment variable ${GREEN}\$AWS_S3_BUCKET${YELLOW} needs to be set.${CLEAR}\n" >&2
        exit 1
    }
 
@@ -1668,8 +1669,18 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
        printf "ok\n"
    done
 
-   # bucket is optional
+   # bucket is optional;
+   # if it is supplied, make sure it has a suffix, e.g. '.com' or '.org'
+   # if not, add '.com' as the default;
+   # let this be known on standard error
    bucket=${4:-${AWS_S3_BUCKET}}
+   [[ ${bucket} == ${bucket%.*} ]] && {
+      bucket=${bucket}.com
+      # printf goes to standard out by default; redirect this error message to standard error
+      printf "${YELLOW}The bucket name has had the suffix ${BLUE}.com${YELLOW} added: ${PURPLE}${bucket}${CLEAR}" >&2
+   }
+
+   return 0
 
    ${EDITOR} --eval "(progn
 			 (load-file \"/usr/local/dev/bin/org-template.el\")
