@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-12 10:43
-#+macro:version Version 0.6.39
+#+date:2020-11-12 10:53
+#+macro:version Version 0.6.40
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -459,6 +459,23 @@ CLOSED: [2020-10-12 Mon 14:12]
 		      (re-search-forward "^\#[+]bucket:\\(.*\\)$$" nil t) \
 		      (match-string-no-properties 1)))')
   S3_BUCKET    := s3://$(BUCKET)
+
+  # Buckets set up to serve static web sites from S3 can use either http
+  # or https protocols; some  http protocols will automatically redirect
+  # to https;  however, some only use  http. I would like  to accomodate
+  # both, and  so this code  finds the url's  that are in  my Cloudfront
+  # account, which presumably will serve https.  If the url is not here,
+  # then this must be set up to serve http instead.
+  HTTP_S := $(shell $(CFD) | perl -MJSON::PP -e \
+	  '$$/=""; \
+	   my @urls = (); \
+	   my $$json=JSON::PP->new->decode(<STDIN>); \
+	   for my $$item ( @{$$json->{"DistributionList"}{"Items"}} ) { \
+		  push @urls, @{$$item->{"Aliases"}{"Items"}}; \
+	   } \
+	  my $$found = grep { /'$(BUCKET)'/ } @urls; \
+	  print "http", ($$found ? "s" : "");')
+
   HTTPS_BUCKET := https://$(BUCKET)
 
   ### DIR, SRC
@@ -627,6 +644,7 @@ CLOSED: [2020-10-12 Mon 14:12]
 	    @echo BUCKET:	$(BUCKET)
 	    @echo PROJ:		$(PROJ) $S
 	    @echo S3_BUCKET:	$(S3_BUCKET)
+	    @echo HTTP_S:	$(HTTP_S)
 	    @echo HTTPS_BUCKET:	$(HTTPS_BUCKET)
 	    @echo VERS:		$(VERS)
 	    @echo S3PROJ:	$(S3PROJ)
