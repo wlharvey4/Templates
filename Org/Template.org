@@ -3,7 +3,7 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-12 10:53
+#+date:2020-11-15 17:54
 #+macro:version Version 0.6.40
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
@@ -1697,8 +1697,6 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
       # printf goes to standard out by default; redirect this error message to standard error
       printf "${YELLOW}The bucket name has had the suffix ${BLUE}.com${YELLOW} added: ${PURPLE}${bucket}${CLEAR}" >&2
    }
-
-   return 0
 
    ${EDITOR} --eval "(progn
 			 (load-file \"/usr/local/dev/bin/org-template.el\")
