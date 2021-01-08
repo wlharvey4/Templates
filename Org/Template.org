@@ -4,7 +4,7 @@
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
 #+date:2020-11-15 22:50
-#+macro:version Version 0.6.41
+#+macro:version Version 0.6.42
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1040,6 +1040,52 @@ of   =custom_id=  and   value  ~cid-value~,   or   =nil=  if   not.   It   uses
 #+end_src
 
 #+call: run-org-tree-cid-p(dir="/usr/local/dev/programming/MasteringEmacs")
+
+*** Keywords and Values
+This function takes  an Org file name and optionally  a directory (otherwise it
+uses the default  directory) and returns the  value of a keyword.   It does not
+use a parse tree, but rather loops through the file line-by-line until it finds
+the keyword and then returns its value.
+
+#+name:get-keyword-value
+#+begin_src emacs-lisp
+  (defun get-keyword-value (keyword-to-get org-file-name &optional dir)
+    "Returns the value of a keyword in an Org buffer identified by ORG-FILE-NAME.
+  Uses the current directory unless an optional DIR is supplied.
+  Returns NIL if none is found.  Rather than parsing the whole Org
+  buffer into a tree, this function simply starts at the beginning
+  of the file and loops line by line through the file, returning
+  when the key has been found or it reaches the end of the file."
+    (with-current-buffer
+	(find-file-noselect
+	 (concat
+	  (if dir (file-name-as-directory dir) default-directory)
+	  org-file-name))
+      (save-excursion
+	(goto-char (point-min))
+	(let ((done nil)
+	      (ans nil))
+	  (while (not done)
+	    (let* ((el (org-element-at-point))
+		   (ty (org-element-type el))
+		   (key (org-element-property :key el))
+		   (val (org-element-property :value el)))
+	      (when (and
+		     (string-equal ty "keyword")
+		     (string-equal key keyword-to-get))
+		(setq ans val done t))
+	      (forward-line)
+	      (when (eobp)
+		(setq done t))))
+	  ans))))
+#+end_src
+
+#+name:get-title-for-org-buffer
+#+begin_src emacs-lisp
+(defun get-title-for-org-buffer (org-file-name &optional dir)
+"A wrapper around `get-keyword-value' to find a TITLE in an Org buffer."
+  (get-keyword-value "TITLE" org-file-name dir))
+#+end_src
 
 ** Bucket Index HTML
 The bucket should contain a master ~index.html~  file that links to each of the
