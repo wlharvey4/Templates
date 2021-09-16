@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2020-11-15 22:50
-#+macro:version Version 0.6.42
+#+date:2021-09-15 23:31
+#+macro:version Version 0.6.43
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -55,8 +55,8 @@
    Markdown is a text-to-HTML conversion tool for web writers.
 
    Thus, “Markdown” is two things:
-   1. a plain text  formatting syntax; you can view the  Markdown source for the
-      article          text         on          this         page          here:
+   1. a plain text formatting syntax; you can view the Markdown source for the
+      article text on this page here:
       https://daringfireball.net/projects/markdown/index.text[fn:1].
 
       The overriding design goal for Markdown’s  formatting syntax is to make it
@@ -71,8 +71,8 @@
 
       : <br />
 
- - [[https://spec.commonmark.org/0.29/][CommonMark Spec]]
-   Current Version 0.29 (2019-04-06) by John MacFarlane
+ - [[https://spec.commonmark.org/0.30/][CommonMark Spec]]
+   Current Version 0.30 (2021-06-19) by John MacFarlane
 
    John Gruber’s canonical description of Markdown’s syntax does not specify the
    syntax unambiguously. =Markdown.pl= was quite  buggy, and gave manifestly bad
@@ -82,28 +82,28 @@
    that renders one  way on one system (say, a  GitHub wiki) renders differently
    on another (say, converting to docbook using pandoc).
 
-   The   CommonMark   specification   attempts  to   specify   Markdown   syntax
-   unambiguously. The examples  are intended to double as  conformance tests. An
-   accompanying script  spec_tests.py can be used  to run the tests  against any
+   The   CommonMark  specification   attempts   to   specify  Markdown   syntax
+   unambiguously. The examples are intended  to double as conformance tests. An
+   accompanying script ~spec_tests.py~ can be used to run the tests against any
    Markdown program:
 
    : python test/spec_tests.py --spec spec.txt --program PROGRAM
 
  - [[https://github.github.com/gfm/][GitHub Flavored Markdown Spec]]
 
-   GitHub Flavored Markdown, often shortened as  GFM, is the dialect of Markdown
-   that  is  currently supported  for  user  content  on GitHub.com  and  GitHub
-   Enterprise.
+   =GitHub  Flavored Markdown=,  often shortened  as  =GFM=, is  the dialect  of
+   Markdown that  is currently  supported for user  content on  ~GitHub.com~ and
+   GitHub Enterprise.
 
-   GitHub-flavored  Markdown  is   based  upon  the  CommonMark   Spec  by  John
+   =GitHub-flavored  Markdown=  is  based  upon  the  CommonMark  Spec  by  John
    MacFarlane. This formal specification, based  on the CommonMark Spec, defines
-   the  syntax and  semantics  of this  dialect.  GFM is  a  strict superset  of
+   the  syntax and  semantics of  this  dialect.  GFM  is a  strict superset  of
    CommonMark. All the  features which are supported in GitHub  user content and
    that are  not specified on  the original CommonMark  Spec are hence  known as
    extensions, and highlighted as such.
 
-   Some  features  of  GitHub  Flavored  Markdown  are  only  available  in  the
-   descriptions  and  comments  of  Issues  and  Pull  Requests.  These  include
+   Some  features  of =GitHub  Flavored  Markdown=  are  only available  in  the
+   descriptions  and  comments  of  Issues and  Pull  Requests.   These  include
    =@mentions= as well as references to SHA-1 hashes, Issues, and Pull Requests.
    Task Lists are also available in Gist comments and in Gist Markdown files.
 
@@ -1257,12 +1257,17 @@ system,  it will  be at  ~$HOME/Dev~  while in  another  system it  will be  at
 the form ~${DEV}~,  but rather requires absolute  paths, like ~/usr/local/dev~.
 Therefore, this program works like a preprocessor for environment variables set
 up  as part  of  =:tangle= lines,  changing them  to  their system  environment
-variable values prior to tangling.  It lives in the ~resources/tools~ directory.
+variable values prior to tangling.  It lives in the ~resources/tools~
+directory.
+
+- *NOTE:  [2021-09-15 Wed  23:30]* The  assumption  that the  emacs program  is
+  located   at  ~/opt/local/bin/~   is   incorrect.   Perhaps   it  should   be
+  ~#!/usb/bin/env emacs~ instead.
 
 #+name:preprocess.el
 #+header: :mkdirp t
 #+header: :tangle resources/tools/preprocess.el
-#+header: :shebang "#!/opt/local/bin/emacs -Q --script"
+#+header: :shebang "#!/usr/bin/env emacs -Q --script"
 #+begin_src emacs-lisp
   (with-current-buffer (car (find-file-noselect "./*.org" nil nil t))
     (save-excursion
