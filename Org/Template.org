@@ -3,7 +3,7 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-09-26 10:24
+#+date:2021-09-26 10:36
 #+macro:version Version 0.6.44
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
@@ -2303,6 +2303,12 @@ template   is	updated	  with	 a   newer  local   file,   then   delete   the
 :appendix: t
 :END:
 #+texinfo:@listoffloats Example
+
+* List of Tables
+:PROPERTIES:
+:appendix: t
+:END:
+#+texinfo:@listoffloats Table
 
 * Copying
 :PROPERTIES:
