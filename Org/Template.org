@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-09-26 10:36
-#+macro:version Version 0.6.44
+#+date:2021-09-26 10:52
+#+macro:version Version 0.6.45
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1694,7 +1694,7 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
 
 #+name:replace-build-tools-script
 #+header: :tangle /usr/local/dev/bin/replace-build-tools
-#+header: :shebang "#! /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
+#+header: :shebang "#! /usr/bin/env emacs --script"
 #+begin_src elisp
 (load-file "/usr/local/dev/bin/org-template.el")
 (replace-build-tools "build-tools")
@@ -1779,11 +1779,11 @@ Add a script in ~bin~ to run just the ~replace-build-tools~, then tangle the
 **** Run Update
 The command-line utility  ~update-org-template~ is run from  within a directory
 containing  an out-dated  Org template  project. It  deletes the  file's "Build
-Tools" and "Buid  Scripts" subtrees and replaces them with  those from the main
+Tools" and "Build  Scripts" subtrees and replaces them with  those from the main
 template file.
 
  #+header: :tangle /usr/local/dev/bin/update-org-template
- #+header: :shebang "#!/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs --script"
+ #+header: :shebang "#! /usr/bin/env emacs --script"
  #+begin_src emacs-lisp
    (require 'org)
    (message "Update Org Template...")
