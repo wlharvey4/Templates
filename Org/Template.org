@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-09-15 23:31
-#+macro:version Version 0.6.43
+#+date:2021-09-26 10:24
+#+macro:version Version 0.6.44
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -735,6 +735,10 @@ CLOSED: [2020-10-12 Mon 14:12]
 	  @echo Done making PDF.
   open-pdf:pdf
 	   @open $(PDF)
+
+  tangle: $(ORG)
+	      @$(EDITOR) -u --eval "(org-babel-tangle)"
+	      @echo Done tangling
 
   sync:   $(HTML)
 	  @echo Syncing version $(VERS) onto $(S3VERS)...
@@ -2337,7 +2341,7 @@ Copyright \copy 2020 by {{{author}}}
 
 #+todo: SOMEDAY(s@) TODO(t@) INPROGRESS(i@) WAIT(w@) | CANCEL(c@) DONE(d!)
 
-#+options: H:4
+#+options: H:4 ':t
 
 #+texinfo_class: info
 #+texinfo_header:
