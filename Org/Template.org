@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-09-26 19:12
-#+macro:version Version 0.6.46
+#+date:2021-09-26 20:51
+#+macro:version Version 0.6.47
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -399,14 +399,14 @@ CLOSED: [2020-10-12 Mon 14:12]
   # resources is a directory holding static resources for the project
   # images is a directory holding jpg and png image files
   RESOURCES := resources
-  TOOLS	    := $(RESOURCES)/tools
+  TOOLS	:= $(RESOURCES)/tools
   IMAGES    := $(RESOURCES)/images
   CMPRPL    := $(TOOLS)/cmprpl
 
   # Use emacsclient as $EDITOR; make sure it is set in a shell startup file and
   # the server has been started.
-  EMACS	  := $(EMACS)
-  EDITOR  := $(EDITOR)
+  EMACS	:= $(EMACS)
+  EDITOR	:= $(EDITOR)
 
   # User’s personal GitHub token for authentication to GitHub
   # DO NOT HARD-CODE THIS VALUE
@@ -600,22 +600,22 @@ CLOSED: [2020-10-12 Mon 14:12]
   ### TEXINFO
   TEXI		:= $(PROJ).texi
   INFO		:= $(DIR).info
-  INFOTN	:= $(shell $(EDITOR) --eval "(file-truename \"$(INFO)\")")
+  INFOTN		:= $(shell $(EDITOR) --eval "(file-truename \"$(INFO)\")")
   PDF		:= $(PROJ).pdf
   INDEX		:= index.html
   HTML		:= $(DIR)/$(INDEX)
-  DIR_OLD	:= $(DIR)-old
+  DIR_OLD		:= $(DIR)-old
 
   ### AWS S3
-  DST_OLD	:= $(S3_BUCKET)/$(S3PROJ)
-  DST_NEW	:= $(S3_BUCKET)/$(DIR)-$(VERS)
-  EXCL_INCL	:= --exclude "*" --include "*.html"
+  DST_OLD		:= $(S3_BUCKET)/$(S3PROJ)
+  DST_NEW		:= $(S3_BUCKET)/$(DIR)-$(VERS)
+  EXCL_INCL		:= --exclude "*" --include "*.html"
   INCL_IMAGES	:= --exclude "*" --include "*.jpg" --include "*.png"
-  GRANTS	:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
-  S3SYNC	:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(GRANTS)
-  S3MOVE	:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(GRANTS)
-  S3COPY	:= $(S3) cp $(INDEX) $(S3_BUCKET) $(GRANTS)
-  S3REMOVE	:= $(S3) rm $(S3_BUCKET)/$(S3PROJ) --recursive
+  GRANTS		:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+  S3SYNC		:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(GRANTS)
+  S3MOVE		:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(GRANTS)
+  S3COPY		:= $(S3) cp $(INDEX) $(S3_BUCKET) $(GRANTS)
+  S3REMOVE		:= $(S3) rm $(S3_BUCKET)/$(S3PROJ) --recursive
   S3IMAGESYNC	:= $(S3) sync $(INCL_IMAGES) $(IMAGES) $(S3_BUCKET)/$(IMAGES) $(GRANTS)
 
   ###############################################################################
@@ -1227,9 +1227,12 @@ When  the source  is extracted  to a  directory, then  running this  Makefile's
 default rule  as simply ~make~  will extract the ~preprocess.el~  script, which
 updates  =DEV= and  then  extracts the  full Makefile.   Because  this file  is
 tangled along with the full Makefile, it simply gets tacked onto the end of the
-big Makefile as an additional rule.   Now, running ~make~ runs the default rule
-from the  main Makefile, which is  to extract everything, then  export to TEXI,
-INFO, HTML, and PDF forms.
+big Makefile  as an additional rule.   After 'preprocess.el' runs, and  the new
+Makefile  is  extracted,  the  script  runs 'git'  to  update  the  repository,
+including pushing the changes to Github.
+
+Now, running ~make~ runs  the default rule from the main  Makefile, which is to
+extract everything, then export to TEXI, INFO, HTML, and PDF forms.
 
 It is assumed that an Emacs server is running, and that the $EDITOR environment
 variable is set to use ~emacsclient~.
