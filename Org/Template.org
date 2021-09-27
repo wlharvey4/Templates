@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-09-26 10:52
-#+macro:version Version 0.6.45
+#+date:2021-09-26 19:12
+#+macro:version Version 0.6.46
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1251,6 +1251,7 @@ variable is set to use ~emacsclient~.
 		     (mkdir rsrcdir t) \
 		     (dolist (subdir subdirs) (mkdir (concat rsrcdir \"/\" subdir) t)))"
 	  ./resources/tools/preprocess.el
+	  git add . && git commit -m "After running boot-template Makefile" && git push origin master
 #+end_src
 
 ** Preprocess Env Vars

@@ -12,3 +12,4 @@ boot:
 		   (mkdir rsrcdir t) \
 		   (dolist (subdir subdirs) (mkdir (concat rsrcdir \"/\" subdir) t)))"
 	./resources/tools/preprocess.el
+	git add . && git commit -m "After running boot-template Makefile" && git push origin master
