@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-10-23 03:43
-#+macro:version Version 0.6.48
+#+date:2021-11-13 09:12
+#+macro:version Version 0.6.49
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -426,8 +426,9 @@ CLOSED: [2020-10-12 Mon 14:12]
   # resource/tools is a directory holding tangled scripts, such as cmprpl
   # resources/images is a directory holding jpg and png image files
   RESOURCES	:= resources
-  TOOLS		:= $(RESOURCES)/tools
+  TOOLS	:= $(RESOURCES)/tools
   IMAGES	:= $(RESOURCES)/images
+  SOURCE	:= $(RESOURCES)/source
   CMPRPL	:= $(TOOLS)/cmprpl
   
   ### PROJ AND ORG
@@ -615,12 +616,14 @@ CLOSED: [2020-10-12 Mon 14:12]
   DST_NEW		:= $(S3_BUCKET)/$(DIR)-$(VERS)
   EXCL_INCL		:= --exclude "*" --include "*.html"
   INCL_IMAGES	:= --exclude "*" --include "*.jpg" --include "*.png"
+  INCL_SOURCE	:= --exclude "*" --include "*.html"
   GRANTS		:= --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
   S3SYNC		:= $(S3) sync --delete $(EXCL_INCL) $(SRC) $(DST_OLD) $(GRANTS)
   S3MOVE		:= $(S3) mv --recursive $(DST_OLD) $(DST_NEW) $(GRANTS)
   S3COPY		:= $(S3) cp $(INDEX) $(S3_BUCKET) $(GRANTS)
   S3REMOVE		:= $(S3) rm $(S3_BUCKET)/$(S3PROJ) --recursive
   S3IMAGESYNC	:= $(S3) sync $(INCL_IMAGES) $(IMAGES) $(S3_BUCKET)/$(IMAGES) $(GRANTS)
+  S3SOURCESYNC      := $(S3) sync $(INCL_SOURCE) $(SOURCE) $(S3_BUCKET)/$(SOURCE) $(GRANTS)
   
   ###############################################################################
   
@@ -748,6 +751,7 @@ CLOSED: [2020-10-12 Mon 14:12]
 	  @echo Syncing version $(VERS) onto $(S3VERS)...
 	  $(S3SYNC)
 	  $(S3IMAGESYNC)
+      $(S3SOURCESYNC)
 	  @echo Done syncing.
 	  [[ $(VERS) != $(S3VERS) ]] && { echo Moving...; $(S3MOVE); echo Done moving.;  make homepage; } || :
 	  [[ $(PROJINS3) = "NO" ]] && make homepage || :
@@ -1459,7 +1463,7 @@ nil
      (setq project-file (concat project-dir project ".org"))
      (setq resources-dir "resources/")
      (setq projrsc-dir (concat project-dir resources-dir))
-     (setq resources-subdirs (list "tools/" "images/"))
+     (setq resources-subdirs (list "tools/" "images/" "source/"))
 
      ;; make the directories
      (mkdir project-dir t)
