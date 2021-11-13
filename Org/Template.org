@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-11-13 09:22
-#+macro:version Version 0.6.50
+#+date:2021-11-13 09:39
+#+macro:version Version 0.6.51
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -751,7 +751,7 @@ CLOSED: [2020-10-12 Mon 14:12]
 	  @echo Syncing version $(VERS) onto $(S3VERS)...
 	  $(S3SYNC)
 	  $(S3IMAGESYNC)
-      $(S3SOURCESYNC)
+	  $(S3SOURCESYNC)
 	  @echo Done syncing.
 	  [[ $(VERS) != $(S3VERS) ]] && { echo Moving...; $(S3MOVE); echo Done moving.;  make homepage; } || :
 	  [[ $(PROJINS3) = "NO" ]] && make homepage || :
