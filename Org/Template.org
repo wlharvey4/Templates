@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-11-13 09:12
-#+macro:version Version 0.6.49
+#+date:2021-11-13 09:22
+#+macro:version Version 0.6.50
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1258,7 +1258,7 @@ variable is set to use ~emacsclient~.
 			  (kill-buffer))" \
 	  --eval \
 		  "(let ((rsrcdir \"resources\") \
-			 (subdirs (list \"tools\" \"images\"))) \
+			 (subdirs (list \"tools\" \"images\" \"source\"))) \
 		     (mkdir rsrcdir t) \
 		     (dolist (subdir subdirs) (mkdir (concat rsrcdir \"/\" subdir) t)))"
 	  ./resources/tools/preprocess.el
