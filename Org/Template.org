@@ -3,8 +3,8 @@
 #+title:TITLE
 #+subtitle:{{{version}}} {{{date}}}
 #+author:AUTHOR
-#+date:2021-11-13 09:39
-#+macro:version Version 0.6.51
+#+date:2022-01-13 22:57
+#+macro:version Version 0.6.52
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -1423,6 +1423,7 @@ nil
 * Build Scripts
   :PROPERTIES:
   :custom_id: build-scripts
+  :dependency1: $DEV/bin exists and is in $PATH
   :END:
 ** Create and Update Projects
 *** Create New Project
